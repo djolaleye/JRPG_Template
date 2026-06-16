@@ -1,0 +1,20 @@
+{
+    "name": "JRPG.Bootstrap",
+    "rootNamespace": "JRPG.Bootstrap",
+    "references": [
+        "JRPG.Core",
+        "JRPG.Data",
+        "JRPG.Services",
+        "JRPG.Characters",
+        "JRPG.Save"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -1,0 +1,22 @@
+{
+    "name": "JRPG.Save.Editor",
+    "rootNamespace": "JRPG.Save.Editor",
+    "references": [
+        "JRPG.Core",
+        "JRPG.Data",
+        "JRPG.Services",
+        "JRPG.Characters",
+        "JRPG.Save"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

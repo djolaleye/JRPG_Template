@@ -1,0 +1,16 @@
+{
+    "name": "JRPG.Services",
+    "rootNamespace": "JRPG.Services",
+    "references": [
+        "JRPG.Core"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

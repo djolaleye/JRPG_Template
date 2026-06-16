@@ -1,0 +1,17 @@
+{
+    "name": "JRPG.Save",
+    "rootNamespace": "JRPG.Save",
+    "references": [
+        "JRPG.Core",
+        "JRPG.Services"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

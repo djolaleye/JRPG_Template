@@ -1,0 +1,16 @@
+{
+    "name": "JRPG.Data",
+    "rootNamespace": "JRPG.Data",
+    "references": [
+        "JRPG.Core"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
