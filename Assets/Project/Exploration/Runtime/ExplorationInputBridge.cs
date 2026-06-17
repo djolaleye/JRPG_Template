@@ -5,10 +5,8 @@ using JRPG.Services;
 
 namespace JRPG.Exploration
 {
-    /// <summary>
     /// Routes Input System actions from the authored InputActionAsset (map "Exploration") to gameplay handlers.
     /// Action names expected: Move, Look, Sprint, Interact, Pause, QuickSave, Recenter, Attack.
-    /// </summary>
     public class ExplorationInputBridge : MonoBehaviour
     {
         [Header("Action Asset")]
@@ -160,6 +158,8 @@ namespace JRPG.Exploration
 
         private void OnAttack(InputAction.CallbackContext ctx)
         {
+            Debug.Log("Attacked.");
+
             if (AppContext.Services != null && AppContext.Services.TryResolve<IEventBus>(out var bus))
                 bus.Publish(new CombatInitiationRequested("player_attack_request"));
         }

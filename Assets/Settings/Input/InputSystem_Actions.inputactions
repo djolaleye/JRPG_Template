@@ -916,6 +916,34 @@
                     "isPartOfComposite": false
                 }
             ]
+        },
+        {
+            "name": "Dev",
+            "id": "c8b5bc5f-d524-4fb4-9cd8-86edf9c0411a",
+            "actions": [
+                {
+                    "name": "SceneChange",
+                    "type": "Button",
+                    "id": "460650d2-f751-4995-aab0-15ad5fc6116d",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "7367a542-f34e-4299-9fee-463d55222bbd",
+                    "path": "<Keyboard>/space",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "SceneChange",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
         }
     ],
     "controlSchemes": [

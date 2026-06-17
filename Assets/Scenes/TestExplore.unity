@@ -228,6 +228,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: JRPG.Exploration::JRPG.Exploration.CameraRigController
   orbitalFollow: {fileID: 559316696}
   playerBody: {fileID: 208555899}
+  recenterDuration: 0.35
 --- !u!114 &208555903
 MonoBehaviour:
   m_ObjectHideFlags: 0
