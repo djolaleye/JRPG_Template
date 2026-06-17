@@ -14,5 +14,8 @@ namespace JRPG.Save
 
         // Phase 3 proof-of-structure payload. Later phases add party, inventory, progression, story, world.
         public List<CharacterSaveData> characters = new();
+
+        // Phase 4: player transform contributor.
+        public PlayerSaveData player = new();
     }
 }

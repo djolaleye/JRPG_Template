@@ -6,10 +6,10 @@ using JRPG.Save;
 
 namespace JRPG.Bootstrap
 {
-    /// <summary>
+
     /// Single composition root. The only place concrete service implementations are wired up.
     /// Lives in the first-loaded scene.
-    /// </summary>
+
     [DefaultExecutionOrder(-10000)]
     public class GameBootstrap : MonoBehaviour
     {
@@ -49,10 +49,14 @@ namespace JRPG.Bootstrap
 
             State = new GameStateController(bus, new LayeredState(GameMode.MainMenu, OverlayState.None, InputContext.Menu));
 
+            // Publish to JRPG.Core.AppContext so other assemblies can resolve services without a
+            // direct reference on JRPG.Bootstrap (Bootstrap remains the only place that constructs them).
+            AppContext.Initialize(Services, bus, State);
 
             SaveContributors = new SaveRegistry();
             Characters = new CharacterHolder(Data);
             SaveContributors.Register(Characters);
+            AppContext.SetSaveContributors(SaveContributors);
 
             if (saveConfig == null)
             {
