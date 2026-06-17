@@ -3,7 +3,9 @@
     "rootNamespace": "JRPG.Save",
     "references": [
         "JRPG.Core",
-        "JRPG.Services"
+        "JRPG.Data",
+        "JRPG.Services",
+        "JRPG.Characters"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
