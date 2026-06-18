@@ -14,5 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: JRPG.Data::JRPG.Data.GameDatabase
   characters:
   - {fileID: 11400000, guid: 136577f59a7ad12418ed50b23d68483a, type: 2}
+  - {fileID: 11400000, guid: 24a3676368e8ad749977febe6ee8dc46, type: 2}
   enemies:
   - {fileID: 11400000, guid: 71d665905d374ab47ad84913cd444e99, type: 2}

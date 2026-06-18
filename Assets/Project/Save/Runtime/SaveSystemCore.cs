@@ -180,6 +180,10 @@ namespace JRPG.Save
                     if (payload is PlayerPayload pp) dto.player = pp.data;
                     else Debug.LogError($"[JRPG.Save] Unexpected payload type for key 'player': {payload?.GetType().Name}");
                     break;
+                case "party":
+                    if (payload is PartyPayload partyP) dto.party = partyP.data;
+                    else Debug.LogError($"[JRPG.Save] Unexpected payload type for key 'party': {payload?.GetType().Name}");
+                    break;
                 default:
                     Debug.LogWarning($"[JRPG.Save] Unknown SaveKey '{key}' (no field in GameSaveData).");
                     break;
@@ -194,6 +198,8 @@ namespace JRPG.Save
                     return new CharactersPayload { version = dto.version, entries = dto.characters };
                 case "player":
                     return new PlayerPayload { version = dto.version, data = dto.player };
+                case "party":
+                    return new PartyPayload { version = dto.version, data = dto.party };
                 default:
                     return null;
             }

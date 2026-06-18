@@ -17,5 +17,8 @@ namespace JRPG.Save
 
         // Phase 4: player transform contributor.
         public PlayerSaveData player = new();
+
+        // Phase 5: party roster + scope stack.
+        public PartySaveData party = new();
     }
 }

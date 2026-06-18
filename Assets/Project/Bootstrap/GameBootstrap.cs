@@ -3,6 +3,7 @@ using JRPG.Core;
 using JRPG.Data;
 using JRPG.Services;
 using JRPG.Save;
+using JRPG.Party;
 
 namespace JRPG.Bootstrap
 {
@@ -15,6 +16,8 @@ namespace JRPG.Bootstrap
     {
         [SerializeField] private GameDatabase database;
         [SerializeField] private SaveFileConfig saveConfig;
+        [Tooltip("Stable id of the protagonist character. Seeded directly to Active and locked to Active/Reserve transitions.")]
+        [SerializeField] private string protagonistId = "char_hero";
         [SerializeField] private bool logProbeOutput = true;
 
         public static ServiceRegistry Services { get; private set; }
@@ -22,6 +25,8 @@ namespace JRPG.Bootstrap
         public static GameStateController State { get; private set; }
         public static SaveRegistry SaveContributors { get; private set; }
         public static CharacterHolder Characters { get; private set; }
+        public static PartyService Party { get; private set; }
+        public static SimpleRecruitmentConditionStore RecruitmentConditions { get; private set; }
 
         private void Awake()
         {
@@ -57,6 +62,15 @@ namespace JRPG.Bootstrap
             Characters = new CharacterHolder(Data);
             SaveContributors.Register(Characters);
             AppContext.SetSaveContributors(SaveContributors);
+
+            // Recruitment-condition evaluator: in-memory stub for now. Will be replaced by the
+            // story-flag store once the dialogue/world phase lands.
+            RecruitmentConditions = new SimpleRecruitmentConditionStore();
+            Services.Register<IRecruitmentConditionEvaluator>(RecruitmentConditions);
+
+            Party = new PartyService(Data, bus, protagonistId, RecruitmentConditions);
+            Services.Register<IPartyService>(Party);
+            SaveContributors.Register(Party);
 
             if (saveConfig == null)
             {
