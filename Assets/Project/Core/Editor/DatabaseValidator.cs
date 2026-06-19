@@ -82,6 +82,7 @@ namespace JRPG.Core.Editor
             var seenIds = new Dictionary<string, string>(); // id -> list label
             CheckList("characters", _db.characters, seenIds);
             CheckList("enemies", _db.enemies, seenIds);
+            CheckList("items", _db.items, seenIds);
 
             // Look for orphan assets in the database folder.
             CheckOrphans(_db);

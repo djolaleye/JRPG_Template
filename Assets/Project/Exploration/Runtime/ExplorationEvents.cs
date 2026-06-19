@@ -9,11 +9,6 @@ namespace JRPG.Exploration
         public InteractionTriggered(GameObject target, Vector3 position) { Target = target; Position = position; }
     }
 
-    public readonly struct MenuOpened
-    {
-        public readonly string MenuId;
-        public MenuOpened(string menuId) { MenuId = menuId; }
-    }
 
     public readonly struct CombatInitiationRequested
     {

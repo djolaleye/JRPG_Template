@@ -9,9 +9,13 @@ namespace JRPG.Data
         public List<CharacterData> characters = new();
         public List<EnemyData> enemies = new();
 
+        /// <summary>
+        /// Items and equipment share one list — EquipmentData : ItemData, so polymorphic lookups
+        /// resolve through the same dictionary in DataRegistry.
+        /// </summary>
+        public List<ItemData> items = new();
+
         // Later phases:
-        // public List<ItemData> items;
-        // public List<EquipmentData> equipment;
         // public List<CombatActionData> combatActions;
         // public List<StatusEffectData> statuses;
         // public List<DialogueGraph> dialogueGraphs;

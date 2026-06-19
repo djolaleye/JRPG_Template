@@ -184,6 +184,14 @@ namespace JRPG.Save
                     if (payload is PartyPayload partyP) dto.party = partyP.data;
                     else Debug.LogError($"[JRPG.Save] Unexpected payload type for key 'party': {payload?.GetType().Name}");
                     break;
+                case "inventory":
+                    if (payload is InventoryPayload invP) dto.inventory = invP.data;
+                    else Debug.LogError($"[JRPG.Save] Unexpected payload type for key 'inventory': {payload?.GetType().Name}");
+                    break;
+                case "equipment":
+                    if (payload is EquipmentPayload eqP) dto.equipment = eqP.data;
+                    else Debug.LogError($"[JRPG.Save] Unexpected payload type for key 'equipment': {payload?.GetType().Name}");
+                    break;
                 default:
                     Debug.LogWarning($"[JRPG.Save] Unknown SaveKey '{key}' (no field in GameSaveData).");
                     break;
@@ -200,6 +208,10 @@ namespace JRPG.Save
                     return new PlayerPayload { version = dto.version, data = dto.player };
                 case "party":
                     return new PartyPayload { version = dto.version, data = dto.party };
+                case "inventory":
+                    return new InventoryPayload { version = dto.version, data = dto.inventory };
+                case "equipment":
+                    return new EquipmentPayload { version = dto.version, data = dto.equipment };
                 default:
                     return null;
             }

@@ -20,5 +20,9 @@ namespace JRPG.Save
 
         // Phase 5: party roster + scope stack.
         public PartySaveData party = new();
+
+        // Phase 6: inventory stacks + per-character equipment.
+        public InventorySaveData inventory = new();
+        public EquipmentSaveData equipment = new();
     }
 }

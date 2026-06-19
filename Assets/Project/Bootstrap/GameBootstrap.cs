@@ -4,6 +4,8 @@ using JRPG.Data;
 using JRPG.Services;
 using JRPG.Save;
 using JRPG.Party;
+using JRPG.Inventory;
+using JRPG.Menu;
 
 namespace JRPG.Bootstrap
 {
@@ -16,6 +18,10 @@ namespace JRPG.Bootstrap
     {
         [SerializeField] private GameDatabase database;
         [SerializeField] private SaveFileConfig saveConfig;
+        [SerializeField] private StartingInventoryConfig startingInventory;
+        [SerializeField] private ContextualCanvasRegistry menuRegistry;
+        [SerializeField] private Transform menuParent;
+
         [Tooltip("Stable id of the protagonist character. Seeded directly to Active and locked to Active/Reserve transitions.")]
         [SerializeField] private string protagonistId = "char_hero";
         [SerializeField] private bool logProbeOutput = true;
@@ -27,6 +33,9 @@ namespace JRPG.Bootstrap
         public static CharacterHolder Characters { get; private set; }
         public static PartyService Party { get; private set; }
         public static SimpleRecruitmentConditionStore RecruitmentConditions { get; private set; }
+        public static InventoryService Inventory { get; private set; }
+        public static EquipmentManager Equipment { get; private set; }
+        public static MenuService Menus { get; private set; }
 
         private void Awake()
         {
@@ -57,6 +66,7 @@ namespace JRPG.Bootstrap
             // Publish to JRPG.Core.AppContext so other assemblies can resolve services without a
             // direct reference on JRPG.Bootstrap (Bootstrap remains the only place that constructs them).
             AppContext.Initialize(Services, bus, State);
+            AppContext.SetData(Data);
 
             SaveContributors = new SaveRegistry();
             Characters = new CharacterHolder(Data);
@@ -71,6 +81,43 @@ namespace JRPG.Bootstrap
             Party = new PartyService(Data, bus, protagonistId, RecruitmentConditions);
             Services.Register<IPartyService>(Party);
             SaveContributors.Register(Party);
+
+            // Registration order matters — inventory before equipment
+            // so equipment restore can return prior items to the inventory pool if needed.
+            Inventory = new InventoryService(Data, bus);
+            Services.Register<IInventoryService>(Inventory);
+            SaveContributors.Register(Inventory);
+
+            // EquipmentManager looks up live runtime instances by stable character id (SourceDataId).
+            // This survives PartyService rebuilding its instance cache on Load, since SourceDataId is
+            // authored and never regenerated.
+            Equipment = new EquipmentManager(
+                Data,
+                Inventory.Container,
+                bus,
+                charId =>
+                {
+                    var active = Party.GetActiveCombatParty();
+                    for (int i = 0; i < active.Count; i++)
+                        if (active[i].SourceDataId == charId) return active[i];
+                    return null;
+                });
+            Services.Register<IEquipmentService>(Equipment);
+            SaveContributors.Register(Equipment);
+
+            // Bake starting inventory (idempotent — skips if container has items, e.g. after a save load).
+            StartingInventoryBaker.Bake(startingInventory, Inventory.Container, Data);
+
+            // Phase 7: Menu service.
+            if (menuRegistry != null && menuParent != null)
+            {
+                Menus = new MenuService(menuRegistry, menuParent, State, bus);
+                Services.Register<IMenuService>(Menus);
+            }
+            else
+            {
+                Debug.LogWarning("[JRPG.Bootstrap] MenuRegistry or menuParent missing — IMenuService not registered.", this);
+            }
 
             if (saveConfig == null)
             {

@@ -1,0 +1,21 @@
+{
+    "name": "JRPG.Inventory",
+    "rootNamespace": "JRPG.Inventory",
+    "references": [
+        "JRPG.Core",
+        "JRPG.Data",
+        "JRPG.Services",
+        "JRPG.Save",
+        "JRPG.Characters",
+        "JRPG.Party"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

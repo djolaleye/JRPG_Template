@@ -12,18 +12,22 @@ namespace JRPG.Data
     {
         private readonly Dictionary<string, CharacterData> _charactersById = new();
         private readonly Dictionary<string, EnemyData> _enemiesById = new();
+        private readonly Dictionary<string, ItemData> _itemsById = new();
 
         public IReadOnlyDictionary<string, CharacterData> CharactersById => _charactersById;
         public IReadOnlyDictionary<string, EnemyData> EnemiesById => _enemiesById;
+        public IReadOnlyDictionary<string, ItemData> ItemsById => _itemsById;
 
         public void Build(GameDatabase db)
         {
             if (db == null) throw new ArgumentNullException(nameof(db));
             _charactersById.Clear();
             _enemiesById.Clear();
+            _itemsById.Clear();
 
             Index(db.characters, _charactersById, "characters");
             Index(db.enemies, _enemiesById, "enemies");
+            Index(db.items, _itemsById, "items");
         }
 
         private static void Index<T>(List<T> list, Dictionary<string, T> map, string label) where T : GameDataBase
@@ -65,10 +69,16 @@ namespace JRPG.Data
                 {
                     if (_enemiesById.TryGetValue(id, out var e) && e is T te) { value = te; return true; }
                 }
+                // Items (and its subclasses like EquipmentData) — typeof(T) == ItemData OR T is a derived item type.
+                if (typeof(ItemData).IsAssignableFrom(typeof(T)) || typeof(T) == typeof(ItemData))
+                {
+                    if (_itemsById.TryGetValue(id, out var i) && i is T ti) { value = ti; return true; }
+                }
                 if (typeof(T) == typeof(GameDataBase))
                 {
                     if (_charactersById.TryGetValue(id, out var c) && c is T tc) { value = tc; return true; }
                     if (_enemiesById.TryGetValue(id, out var e) && e is T te) { value = te; return true; }
+                    if (_itemsById.TryGetValue(id, out var i) && i is T ti) { value = ti; return true; }
                 }
             }
             value = null;

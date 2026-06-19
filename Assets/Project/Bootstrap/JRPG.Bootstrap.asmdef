@@ -7,7 +7,9 @@
         "JRPG.Services",
         "JRPG.Characters",
         "JRPG.Save",
-        "JRPG.Party"
+        "JRPG.Party",
+        "JRPG.Inventory",
+        "JRPG.Menu"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

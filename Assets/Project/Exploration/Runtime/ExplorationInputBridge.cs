@@ -138,20 +138,18 @@ namespace JRPG.Exploration
 
         private void OnPause(InputAction.CallbackContext ctx)
         {
-            var state = AppContext.State;
-            if (state == null) return;
+            var services = AppContext.Services;
+            if (services == null) return;
 
-            var currentState = state.Current;
-            if (currentState.Mode == GameMode.Exploration && currentState.Overlay == OverlayState.None)
+            if (!services.TryResolve<IMenuService>(out var menus))
             {
-                state.SetState(new LayeredState(GameMode.Exploration, OverlayState.PauseMenu, InputContext.Menu));
-                if (AppContext.Services != null && AppContext.Services.TryResolve<IEventBus>(out var bus))
-                    bus.Publish(new MenuOpened("pause"));
+                Debug.LogWarning("[JRPG.Exploration] Pause: no IMenuService registered.");
+                return;
             }
-            else if (currentState.Mode == GameMode.Exploration && currentState.Overlay == OverlayState.PauseMenu)
-            {
-                state.SetState(new LayeredState(GameMode.Exploration, OverlayState.None, InputContext.Exploration));
-            }
+            
+            // Toggle pause: if a pause menu is already on top, close it; otherwise open it.
+            if (menus.ActiveMenuId == "pause") menus.Close();
+            else menus.Open("pause", null);
         }
 
         private void OnInteract(InputAction.CallbackContext ctx) => interactor?.TryInteract();
