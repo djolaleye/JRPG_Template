@@ -122,6 +122,9 @@ namespace JRPG.Core.Editor
             var listed = new HashSet<Object>();
             foreach (var c in db.characters) if (c != null) listed.Add(c);
             foreach (var e in db.enemies) if (e != null) listed.Add(e);
+            foreach (var it in db.items) if (it != null) listed.Add(it);
+            foreach (var a in db.combatActions) if (a != null) listed.Add(a);
+            foreach (var en in db.encounters) if (en != null) listed.Add(en);
 
             var guids = AssetDatabase.FindAssets("t:GameDataBase", new[] { SettingsDatabaseFolder });
             foreach (var g in guids)

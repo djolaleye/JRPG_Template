@@ -17,6 +17,18 @@ namespace JRPG.Characters
 
         public IReadOnlyList<StatModifier> Modifiers => _modifiers;
 
+        /// Deep copy of base stats and modifiers. Used to build battle-local stat blocks so temporary
+        /// combat modifiers cannot leak back into exploration/persistent state.
+        public StatBlockRuntime Clone()
+        {
+            var copy = new StatBlockRuntime();
+            foreach (var kv in _base)
+                copy._base[kv.Key] = kv.Value;
+            copy._modifiers.AddRange(_modifiers);
+            copy._cacheValid = false;
+            return copy;
+        }
+
         public void SetBase(StatType stat, int value)
         {
             _base[stat] = value;

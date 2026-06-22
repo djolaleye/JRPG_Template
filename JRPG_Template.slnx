@@ -25,6 +25,7 @@
   <Project Path="Unity.AI.Assistant.Editor.csproj" />
   <Project Path="Unity.Searcher.Editor.csproj" />
   <Project Path="Unity.VisualScripting.Core.csproj" />
+  <Project Path="JRPG.Combat.csproj" />
   <Project Path="Unity.VisualScripting.State.Editor.csproj" />
   <Project Path="Unity.AI.Navigation.Editor.ConversionSystem.csproj" />
   <Project Path="Unity.AI.Pbr.csproj" />
@@ -38,8 +39,8 @@
   <Project Path="JRPG.Core.csproj" />
   <Project Path="Unity.AI.ModelSelector.csproj" />
   <Project Path="Unity.AI.Animate.csproj" />
-  <Project Path="Unity.AI.Assistant.Tools.Editor.csproj" />
   <Project Path="JRPG.Save.csproj" />
+  <Project Path="Unity.AI.Assistant.Tools.Editor.csproj" />
   <Project Path="glTFast.Export.csproj" />
   <Project Path="Unity.Burst.Editor.csproj" />
   <Project Path="Unity.AI.Image.csproj" />
@@ -65,6 +66,7 @@
   <Project Path="Unity.AI.Generators.UI.AIDropdownIntegrations.csproj" />
   <Project Path="Unity.InputSystem.ForUI.csproj" />
   <Project Path="Unity.AI.Generators.Asset.csproj" />
+  <Project Path="JRPG.Data.csproj" />
   <Project Path="Unity.AI.Navigation.csproj" />
   <Project Path="Unity.AI.Toolkit.Asset.csproj" />
   <Project Path="Unity.Collections.CodeGen.csproj" />
@@ -75,7 +77,7 @@
   <Project Path="Assembly-CSharp-Editor.csproj" />
   <Project Path="JRPG.Inventory.csproj" />
   <Project Path="Unity.AI.Assistant.Annotations.Editor.csproj" />
-  <Project Path="JRPG.Data.csproj" />
+  <Project Path="JRPG.Combat.Editor.csproj" />
   <Project Path="Unity.Settings.Editor.csproj" />
   <Project Path="Unity.AI.MCP.Runtime.csproj" />
   <Project Path="Unity.InputSystem.TestFramework.csproj" />

@@ -13,10 +13,14 @@ namespace JRPG.Data
         private readonly Dictionary<string, CharacterData> _charactersById = new();
         private readonly Dictionary<string, EnemyData> _enemiesById = new();
         private readonly Dictionary<string, ItemData> _itemsById = new();
+        private readonly Dictionary<string, CombatActionData> _combatActionsById = new();
+        private readonly Dictionary<string, EncounterData> _encountersById = new();
 
         public IReadOnlyDictionary<string, CharacterData> CharactersById => _charactersById;
         public IReadOnlyDictionary<string, EnemyData> EnemiesById => _enemiesById;
         public IReadOnlyDictionary<string, ItemData> ItemsById => _itemsById;
+        public IReadOnlyDictionary<string, CombatActionData> CombatActionsById => _combatActionsById;
+        public IReadOnlyDictionary<string, EncounterData> EncountersById => _encountersById;
 
         public void Build(GameDatabase db)
         {
@@ -24,10 +28,14 @@ namespace JRPG.Data
             _charactersById.Clear();
             _enemiesById.Clear();
             _itemsById.Clear();
+            _combatActionsById.Clear();
+            _encountersById.Clear();
 
             Index(db.characters, _charactersById, "characters");
             Index(db.enemies, _enemiesById, "enemies");
             Index(db.items, _itemsById, "items");
+            Index(db.combatActions, _combatActionsById, "combatActions");
+            Index(db.encounters, _encountersById, "encounters");
         }
 
         private static void Index<T>(List<T> list, Dictionary<string, T> map, string label) where T : GameDataBase
@@ -74,11 +82,21 @@ namespace JRPG.Data
                 {
                     if (_itemsById.TryGetValue(id, out var i) && i is T ti) { value = ti; return true; }
                 }
+                if (typeof(T) == typeof(CombatActionData) || typeof(T).IsAssignableFrom(typeof(CombatActionData)))
+                {
+                    if (_combatActionsById.TryGetValue(id, out var a) && a is T ta) { value = ta; return true; }
+                }
+                if (typeof(T) == typeof(EncounterData) || typeof(T).IsAssignableFrom(typeof(EncounterData)))
+                {
+                    if (_encountersById.TryGetValue(id, out var en) && en is T ten) { value = ten; return true; }
+                }
                 if (typeof(T) == typeof(GameDataBase))
                 {
                     if (_charactersById.TryGetValue(id, out var c) && c is T tc) { value = tc; return true; }
                     if (_enemiesById.TryGetValue(id, out var e) && e is T te) { value = te; return true; }
                     if (_itemsById.TryGetValue(id, out var i) && i is T ti) { value = ti; return true; }
+                    if (_combatActionsById.TryGetValue(id, out var a) && a is T ta) { value = ta; return true; }
+                    if (_encountersById.TryGetValue(id, out var en) && en is T ten) { value = ten; return true; }
                 }
             }
             value = null;

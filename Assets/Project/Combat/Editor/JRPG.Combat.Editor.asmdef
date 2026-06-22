@@ -1,0 +1,21 @@
+{
+    "name": "JRPG.Combat.Editor",
+    "rootNamespace": "JRPG.Combat.Editor",
+    "references": [
+        "JRPG.Core",
+        "JRPG.Data",
+        "JRPG.Combat",
+        "JRPG.Bootstrap"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

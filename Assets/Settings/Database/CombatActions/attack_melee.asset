@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5de24234bbfc6f24d97ab62cc493692c, type: 3}
+  m_Name: attack_melee
+  m_EditorClassIdentifier: JRPG.Data::JRPG.Data.CombatActionData
+  id: attack_melee
+  displayName: Attack
+  description: 
+  category: 0
+  targetRule:
+    team: 2
+    selectionMode: 1
+    requireLiving: 1
+    allowSelf: 0
+  costs:
+  - type: 0
+    mpAmount: 0
+    itemId: 
+    quantity: 0
+  effects:
+  - type: 0
+    basePower: 6
+    statScale: 1
+    attackStat: 3
+    defenseStat: 5
+    scalingStat: 0
+    guardMultiplier: 0
+  usableByPlayers: 1
+  usableByEnemies: 1

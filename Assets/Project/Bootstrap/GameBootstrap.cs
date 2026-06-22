@@ -6,6 +6,7 @@ using JRPG.Save;
 using JRPG.Party;
 using JRPG.Inventory;
 using JRPG.Menu;
+using JRPG.Combat;
 
 namespace JRPG.Bootstrap
 {
@@ -36,6 +37,7 @@ namespace JRPG.Bootstrap
         public static InventoryService Inventory { get; private set; }
         public static EquipmentManager Equipment { get; private set; }
         public static MenuService Menus { get; private set; }
+        public static CombatService Combat { get; private set; }
 
         private void Awake()
         {
@@ -108,7 +110,13 @@ namespace JRPG.Bootstrap
             // Bake starting inventory (idempotent — skips if container has items, e.g. after a save load).
             StartingInventoryBaker.Bake(startingInventory, Inventory.Container, Data);
 
-            // Phase 7: Menu service.
+            // Combat service. Reads the active party (runtime instances) and consumes items via the
+            // lean IInventoryService. Battle state is transient; party HP/MP/SP is committed back to
+            // CharacterRuntimeInstance at battle end, so no separate combat save contributor is needed.
+            Combat = new CombatService(bus, State, Data, Party, Inventory);
+            Services.Register<ICombatService>(Combat);
+
+            // Menu service.
             if (menuRegistry != null && menuParent != null)
             {
                 Menus = new MenuService(menuRegistry, menuParent, State, bus);

@@ -15,10 +15,11 @@ namespace JRPG.Data
         /// </summary>
         public List<ItemData> items = new();
 
+        public List<CombatActionData> combatActions = new();
+        public List<EncounterData> encounters = new();
+
         // Later phases:
-        // public List<CombatActionData> combatActions;
         // public List<StatusEffectData> statuses;
         // public List<DialogueGraph> dialogueGraphs;
-        // public List<EncounterData> encounters;
     }
 }

@@ -1,0 +1,20 @@
+{
+    "name": "JRPG.Combat",
+    "rootNamespace": "JRPG.Combat",
+    "references": [
+        "JRPG.Core",
+        "JRPG.Data",
+        "JRPG.Services",
+        "JRPG.Characters",
+        "JRPG.Party"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
