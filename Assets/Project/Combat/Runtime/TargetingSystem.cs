@@ -15,17 +15,14 @@ namespace JRPG.Combat
             var rule = action.targetRule;
             if (rule == null) return result;
 
-            // 1. Determine the team pool relative to the acting combatant.
             var pool = GetPool(ctx, actor, rule.team);
 
             for (int i = 0; i < pool.Count; i++)
             {
                 var candidate = pool[i];
 
-                // 2. Remove defeated targets if requireLiving.
                 if (rule.requireLiving && candidate.IsDefeated) continue;
 
-                // 3. Self restriction.
                 bool isSelf = candidate == actor;
                 if (rule.selectionMode == TargetSelectionMode.Self && !isSelf) continue;
                 if (isSelf && !rule.allowSelf && rule.team != TargetTeam.Self) continue;
@@ -33,7 +30,6 @@ namespace JRPG.Combat
                 result.Add(candidate);
             }
 
-            // 4/5. Selection count + stable order. Pool order is already stable (party then enemy lists).
             return result;
         }
 

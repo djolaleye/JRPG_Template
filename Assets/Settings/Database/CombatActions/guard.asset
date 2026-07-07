@@ -23,7 +23,7 @@ MonoBehaviour:
     allowSelf: 1
   costs:
   - type: 0
-    mpAmount: 0
+    costAmount: 0
     itemId: 
     quantity: 0
   effects:

@@ -41,8 +41,10 @@ namespace JRPG.Combat
         public CombatantInstance FindCombatant(string combatantId)
         {
             if (string.IsNullOrEmpty(combatantId)) return null;
+
             for (int i = 0; i < partyCombatants.Count; i++)
                 if (partyCombatants[i].combatantId == combatantId) return partyCombatants[i];
+            
             for (int i = 0; i < enemyCombatants.Count; i++)
                 if (enemyCombatants[i].combatantId == combatantId) return enemyCombatants[i];
             return null;

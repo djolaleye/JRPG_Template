@@ -19,6 +19,7 @@ namespace JRPG.Combat
         private static bool AllDefeated(BattleContext ctx, CombatantTeam team)
         {
             var list = team == CombatantTeam.Party ? ctx.partyCombatants : ctx.enemyCombatants;
+            
             if (list.Count == 0) return true;
             for (int i = 0; i < list.Count; i++)
                 if (!list[i].IsDefeated) return false;

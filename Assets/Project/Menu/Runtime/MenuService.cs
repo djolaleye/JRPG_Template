@@ -42,6 +42,16 @@ namespace JRPG.Menu
             var go = UnityEngine.Object.Instantiate(entry.canvasPrefab, _parent);
             go.name = "Menu_" + menuId;
 
+            // Normalize the root RectTransform so the menu fills its parent at unit scale whether root or nested.
+            if (go.transform is RectTransform rt)
+            {
+                rt.localScale = Vector3.one;
+                rt.anchorMin = Vector2.zero;
+                rt.anchorMax = Vector2.one;
+                rt.offsetMin = Vector2.zero;
+                rt.offsetMax = Vector2.zero;
+            }
+
             var frame = new MenuFrame
             {
                 menuId = menuId,

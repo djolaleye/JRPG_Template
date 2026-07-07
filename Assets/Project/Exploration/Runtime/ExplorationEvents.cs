@@ -9,10 +9,6 @@ namespace JRPG.Exploration
         public InteractionTriggered(GameObject target, Vector3 position) { Target = target; Position = position; }
     }
 
-
-    public readonly struct CombatInitiationRequested
-    {
-        public readonly string Reason;
-        public CombatInitiationRequested(string reason) { Reason = reason; }
-    }
+    // CombatInitiationRequested moved to JRPG.Core (CombatEvents.cs) so the combat UI can subscribe
+    // without referencing JRPG.Exploration. ExplorationInputBridge still publishes it via `using JRPG.Core`.
 }

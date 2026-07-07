@@ -10,8 +10,7 @@ using JRPG.Services;
 namespace JRPG.Combat
 {
     /// Owns the active battle and orchestrates initialization, the turn loop, action submission,
-    /// win/loss evaluation, and end-of-battle commit/packaging. Implements the lean ICombatService;
-    /// richer methods returning combat types are used by the sandbox runner and Phase 8.
+    /// win/loss evaluation, and end-of-battle commit/packaging.
     public sealed class CombatService : ICombatService
     {
         private readonly IEventBus _bus;
@@ -48,7 +47,7 @@ namespace JRPG.Combat
         public BattleContext CurrentBattle => _battle;
         public BattleResultData LastResult { get; private set; }
 
-        // ---- ICombatService (lean) ----------------------------------------------------------
+        // ---- ICombatService 
 
         public void StartBattleFromActiveParty(string encounterId)
         {
@@ -143,6 +142,7 @@ namespace JRPG.Combat
                     CharacterRuntimeInstance inst = null;
                     for (int a = 0; a < active.Count; a++)
                         if (active[a].SourceDataId == id) { inst = active[a]; break; }
+
                     if (inst == null) inst = _characterFactory.Create(id);
                     if (inst != null) sources.Add(inst);
                 }
@@ -175,6 +175,7 @@ namespace JRPG.Combat
             }
         }
 
+
         // ---- Turn loop ----------------------------------------------------------------------
 
         private void AdvanceToNextActor()
@@ -186,7 +187,9 @@ namespace JRPG.Combat
                 if (_battle.turnQueue.Count == 0)
                 {
                     _battle.roundNumber++;
+
                     foreach (var c in _battle.AllCombatants()) c.hasActedThisRound = false;
+                    
                     _turnOrder.BuildQueue(_battle);
                     if (_battle.turnQueue.Count == 0) return; // no living combatants
                 }
@@ -210,6 +213,7 @@ namespace JRPG.Combat
         public void AdvanceEnemyTurn()
         {
             if (!IsInBattle) return;
+
             var actor = _battle.currentActor;
             if (actor == null || actor.team != CombatantTeam.Enemy) return;
 
@@ -217,21 +221,22 @@ namespace JRPG.Combat
             SubmitAction(actor.combatantId, choice.actionId, choice.targetCombatantIds);
         }
 
+
         // ---- Queries ------------------------------------------------------------------------
 
         public IReadOnlyList<CombatActionData> GetAvailableActions(string combatantId)
         {
-            var list = new List<CombatActionData>();
+            var availableActions = new List<CombatActionData>();
             var actor = _battle?.FindCombatant(combatantId);
-            if (actor == null) return list;
+            if (actor == null) return availableActions;
 
             foreach (var kv in _data.CombatActionsById)
             {
                 var action = kv.Value;
                 bool usable = actor.team == CombatantTeam.Party ? action.usableByPlayers : action.usableByEnemies;
-                if (usable) list.Add(action);
+                if (usable) availableActions.Add(action);
             }
-            return list;
+            return availableActions;
         }
 
         public IReadOnlyList<CombatantInstance> GetValidTargets(string combatantId, string actionId)
@@ -239,7 +244,22 @@ namespace JRPG.Combat
             var actor = _battle?.FindCombatant(combatantId);
             if (actor == null || !_data.TryGet<CombatActionData>(actionId, out var action))
                 return new List<CombatantInstance>();
+
             return _targeting.GetValidTargets(_battle, actor, action);
+        }
+
+        /// UI helper: can this combatant use the action right now ignoring target selection? Checks
+        /// team availability + cost affordability only. Used to grey out command/skill/item rows
+        /// (PreviewAction additionally requires a chosen target, so it's unsuitable for pre-target rows).
+        public bool CanAfford(string combatantId, string actionId)
+        {
+            var actor = _battle?.FindCombatant(combatantId);
+            if (actor == null || !_data.TryGet<CombatActionData>(actionId, out var action)) return false;
+
+            bool usable = actor.team == CombatantTeam.Party ? action.usableByPlayers : action.usableByEnemies;
+            if (!usable) return false;
+
+            return _resolver.CanPayCosts(actor, action, out _);
         }
 
         public ActionPreview PreviewAction(string combatantId, string actionId, IReadOnlyList<string> targetIds)
@@ -257,6 +277,7 @@ namespace JRPG.Combat
                 preview.predictedEffects.Add(new EffectResult { targetCombatantId = targets[i].combatantId });
             return preview;
         }
+
 
         // ---- Action submission --------------------------------------------------------------
 
@@ -334,6 +355,7 @@ namespace JRPG.Combat
 
             return true;
         }
+
 
         // ---- End of battle ------------------------------------------------------------------
 

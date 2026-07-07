@@ -18,7 +18,7 @@ namespace JRPG.Data
     }
 
     /// Plain effect data interpreted by the combat resolver. The fields form a small union — the
-    /// resolver reads only those relevant to <see cref="type"/> (mirrors the ItemEffect convention).
+    /// resolver reads only those relevant to <see cref="type"/>.
     [Serializable]
     public struct CombatEffect
     {

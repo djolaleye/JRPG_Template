@@ -10,14 +10,15 @@ namespace JRPG.Combat
         Enemy
     }
 
+    /// <summary>
     /// Battle-local runtime participant. Effects mutate these values during battle; party combatants
-    /// commit HP/MP/SP back to their CharacterRuntimeInstance at battle end. Enemy combatants are
-    /// discarded. No asset is ever modified.
+    /// commit HP/MP/SP back to their CharacterRuntimeInstance at battle end.
+    /// </summary>
     public class CombatantInstance
     {
-        public string combatantId;     // unique within battle, e.g. "party_char_hero" or "enemy_slime_0"
-        public string sourceDataId;    // CharacterData.Id or EnemyData.Id
-        public string sourceRuntimeId; // CharacterRuntimeInstance.InstanceId for party; empty for enemies
+        public string combatantId;
+        public string sourceDataId;
+        public string sourceRuntimeId;
 
         public CombatantTeam team;
         public string displayName;
@@ -29,7 +30,7 @@ namespace JRPG.Combat
         public int currentSP;
 
         public bool isGuarding;
-        public float guardDamageMultiplier = 1f; // applied to incoming damage while guarding
+        public float guardDamageMultiplier = 1f;
         public bool hasActedThisRound;
 
         public bool IsDefeated => currentHP <= 0;

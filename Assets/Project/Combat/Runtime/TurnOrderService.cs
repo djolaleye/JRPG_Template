@@ -9,12 +9,14 @@ namespace JRPG.Combat
         public void BuildQueue(BattleContext ctx)
         {
             var living = new List<CombatantInstance>();
-            foreach (var c in ctx.AllCombatants())
-                if (!c.IsDefeated) living.Add(c);
+
+            foreach (var combatant in ctx.AllCombatants())
+                if (!combatant.IsDefeated) living.Add(combatant);
 
             living.Sort(Compare);
 
             ctx.turnQueue.Clear();
+            
             for (int i = 0; i < living.Count; i++)
                 ctx.turnQueue.Enqueue(living[i].combatantId);
         }

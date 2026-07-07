@@ -5,7 +5,13 @@
         "JRPG.Core",
         "JRPG.Data",
         "JRPG.Combat",
-        "JRPG.Bootstrap"
+        "JRPG.Combat.UI",
+        "JRPG.Menu",
+        "JRPG.Exploration",
+        "JRPG.Bootstrap",
+        "Unity.InputSystem",
+        "Unity.TextMeshPro",
+        "Unity.ugui"
     ],
     "includePlatforms": [
         "Editor"

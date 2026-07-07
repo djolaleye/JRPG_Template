@@ -1,0 +1,27 @@
+{
+    "name": "JRPG.Combat.UI",
+    "rootNamespace": "JRPG.Combat.UI",
+    "references": [
+        "JRPG.Core",
+        "JRPG.Data",
+        "JRPG.Services",
+        "JRPG.Characters",
+        "JRPG.Party",
+        "JRPG.Inventory",
+        "JRPG.Save",
+        "JRPG.Combat",
+        "JRPG.Menu",
+        "Unity.InputSystem",
+        "Unity.TextMeshPro",
+        "Unity.ugui"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

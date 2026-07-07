@@ -57,4 +57,13 @@ namespace JRPG.Core
             Outcome = outcome;
         }
     }
+
+    /// Published when something (e.g. the exploration Attack input) requests a battle to begin.
+    /// Lives in Core so exploration can publish it and the combat UI can subscribe without a direct
+    /// assembly reference between those domains.
+    public readonly struct CombatInitiationRequested
+    {
+        public readonly string Reason;
+        public CombatInitiationRequested(string reason) { Reason = reason; }
+    }
 }

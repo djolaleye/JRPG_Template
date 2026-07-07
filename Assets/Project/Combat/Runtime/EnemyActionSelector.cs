@@ -14,8 +14,7 @@ namespace JRPG.Combat
         EnemyActionChoice ChooseAction(CombatantInstance enemy, BattleContext context);
     }
 
-    /// Deliberately boring Phase 6 AI: melee the first living party combatant. Weighted profiles,
-    /// boss scripting, and condition trees come later, after the core resolver is proven.
+    /// TEMP AI: melee the first living party combatant.
     public sealed class SimpleEnemyActionSelector : IEnemyActionSelector
     {
         public const string MeleeActionId = "attack_melee";

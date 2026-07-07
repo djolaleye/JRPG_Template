@@ -4,9 +4,7 @@ using JRPG.Core;
 
 namespace JRPG.Data
 {
-    /// Static description of a combat action. It does not know who is using it, who is targeted,
-    /// whether costs are affordable, or whether a target is valid — those are runtime concerns
-    /// handled by the combat service, targeting system, and action resolver.
+    /// Static description of a combat action.
     [CreateAssetMenu(menuName = "JRPG/Combat/Combat Action", fileName = "CombatAction")]
     public class CombatActionData : GameDataBase
     {

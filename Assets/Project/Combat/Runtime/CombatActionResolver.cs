@@ -5,9 +5,10 @@ using JRPG.Services;
 
 namespace JRPG.Combat
 {
+    /// <summary>
     /// The only place that executes actions. Validates, pays costs, and applies effects against
-    /// runtime combatants. It does not publish events, evaluate win/loss, or advance turns — that
-    /// orchestration belongs to CombatService.
+    /// runtime combatants. 
+    /// </summary>
     public sealed class CombatActionResolver
     {
         private readonly IInventoryService _inventory;
@@ -28,14 +29,29 @@ namespace JRPG.Combat
                 switch (cost.type)
                 {
                     case CombatCostType.MP:
-                        if (user.currentMP < cost.mpAmount)
+                        if (user.currentMP < cost.costAmount)
                         {
-                            reason = $"Not enough MP ({user.currentMP}/{cost.mpAmount}).";
+                            reason = $"Not enough MP ({user.currentMP}/{cost.costAmount}).";
+                            return false;
+                        }
+                        break;
+                    case CombatCostType.SP:
+                        if (user.currentSP < cost.costAmount)
+                        {
+                            reason = $"Not enough SP ({user.currentSP}/{cost.costAmount}).";
+                            return false;
+                        }
+                        break;
+                    case CombatCostType.HP:
+                        if (user.currentHP < cost.costAmount)
+                        {
+                            reason = $"Not enough HP ({user.currentHP}/{cost.costAmount}).";
                             return false;
                         }
                         break;
                     case CombatCostType.Item:
                         int need = Mathf.Max(1, cost.quantity);
+
                         if (_inventory == null || !_inventory.Has(cost.itemId, need))
                         {
                             reason = $"Missing item '{cost.itemId}' x{need}.";
@@ -76,13 +92,20 @@ namespace JRPG.Combat
         private void PayCosts(CombatantInstance user, CombatActionData action)
         {
             if (action.costs == null) return;
+
             for (int i = 0; i < action.costs.Count; i++)
             {
                 var cost = action.costs[i];
                 switch (cost.type)
                 {
                     case CombatCostType.MP:
-                        user.currentMP = Mathf.Max(0, user.currentMP - cost.mpAmount);
+                        user.currentMP = Mathf.Max(0, user.currentMP - cost.costAmount);
+                        break;
+                    case CombatCostType.SP:
+                        user.currentSP = Mathf.Max(0, user.currentSP - cost.costAmount);
+                        break;
+                    case CombatCostType.HP:
+                        user.currentHP = Mathf.Max(0, user.currentHP - cost.costAmount);
                         break;
                     case CombatCostType.Item:
                         _inventory?.Remove(cost.itemId, Mathf.Max(1, cost.quantity));
@@ -126,6 +149,7 @@ namespace JRPG.Combat
             float raw = effect.basePower
                         + actor.stats.GetFinal(effect.attackStat) * effect.statScale
                         - target.stats.GetFinal(effect.defenseStat) * 0.5f;
+
             int final = Mathf.Max(1, Mathf.RoundToInt(raw));
 
             if (target.isGuarding)
@@ -133,6 +157,7 @@ namespace JRPG.Combat
 
             int before = target.currentHP;
             target.currentHP = Mathf.Max(0, target.currentHP - final);
+
             int after = target.currentHP;
             bool defeated = after <= 0;
 
@@ -153,6 +178,7 @@ namespace JRPG.Combat
         private static void ApplyHeal(CombatantInstance actor, CombatEffect effect, CombatantInstance target, ActionResult result)
         {
             int amount = Mathf.RoundToInt(effect.basePower + actor.stats.GetFinal(effect.scalingStat) * effect.statScale);
+            
             int before = target.currentHP;
             target.currentHP = Mathf.Min(target.currentHP + amount, target.MaxHP);
             int after = target.currentHP;

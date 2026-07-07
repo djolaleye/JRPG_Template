@@ -33,3 +33,23 @@ MonoBehaviour:
     mode: 1
     overlay: 0
     input: 1
+  - menuId: combat_command
+    canvasPrefab: {fileID: 611929539224828377, guid: 0e7fda92f07102e4aba4edc504bb82cb, type: 3}
+    mode: 2
+    overlay: 2
+    input: 2
+  - menuId: combat_skills
+    canvasPrefab: {fileID: 1308221650301725285, guid: 62d7c40bb5fdb384dae55e8359707314, type: 3}
+    mode: 2
+    overlay: 2
+    input: 2
+  - menuId: combat_items
+    canvasPrefab: {fileID: 885276560973576346, guid: 9cc10954b2e2d3147b9db2dd91830b29, type: 3}
+    mode: 2
+    overlay: 2
+    input: 2
+  - menuId: combat_target
+    canvasPrefab: {fileID: 752373796015848358, guid: 2a295b813098bc34495e7965fbf9d905, type: 3}
+    mode: 2
+    overlay: 2
+    input: 3

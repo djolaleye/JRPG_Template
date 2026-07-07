@@ -167,7 +167,7 @@ namespace JRPG.Combat.Editor
             => new() { team = team, selectionMode = mode, requireLiving = requireLiving, allowSelf = allowSelf };
 
         private static List<CombatCost> NoCost() => new() { new CombatCost { type = CombatCostType.None } };
-        private static CombatCost MpCost(int amount) => new() { type = CombatCostType.MP, mpAmount = amount };
+        private static CombatCost MpCost(int amount) => new() { type = CombatCostType.MP, costAmount = amount };
         private static CombatCost ItemCost(string itemId, int qty) => new() { type = CombatCostType.Item, itemId = itemId, quantity = qty };
 
         private static CombatEffect Damage(int basePower, StatType atk, StatType def, float scale)

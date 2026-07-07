@@ -117,7 +117,7 @@ namespace JRPG.Menu
             RebuildAndFocus();
         }
 
-        private void OnCancel(InputAction.CallbackContext ctx)
+        protected virtual void OnCancel(InputAction.CallbackContext ctx)
         {
             Context.Menus?.Close();
         }

@@ -5,7 +5,7 @@ using JRPG.Core;
 
 namespace JRPG.Combat
 {
-    /// Phase 6 debug harness. Drives and inspects battles from the CombatSandbox scene with no UI.
+    /// Debug harness. Drives and inspects battles from the CombatSandbox scene with no UI.
     /// Resolves the combat service through AppContext (so JRPG.Combat does not depend on JRPG.Bootstrap)
     /// and exposes context-menu actions on the component.
     public sealed class CombatSandboxRunner : MonoBehaviour

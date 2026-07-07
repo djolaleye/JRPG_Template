@@ -3,9 +3,7 @@ using JRPG.Core;
 
 namespace JRPG.Combat
 {
-    /// Victory payload consumed by Phase 8 (XP, rewards, level-ups). Phase 6 populates it with fixed
-    /// or enemy-derived test values; the milestone is that victory produces a correctly shaped payload
-    /// emitted through the event bus.
+    /// Victory payload consumed by Progresion phase (XP, rewards, level-ups).
     public class BattleResultData
     {
         public string battleId;

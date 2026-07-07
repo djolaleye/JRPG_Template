@@ -22,8 +22,8 @@ MonoBehaviour:
     requireLiving: 1
     allowSelf: 1
   costs:
-  - type: 2
-    mpAmount: 0
+  - type: 4
+    costAmount: 0
     itemId: item_potion_small
     quantity: 1
   effects:
