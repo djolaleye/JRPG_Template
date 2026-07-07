@@ -1,0 +1,50 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 08aad1344c426c14c8517b3dc8062d4b, type: 3}
+  m_Name: growth_ally_hybrid
+  m_EditorClassIdentifier: JRPG.Data::JRPG.Data.CharacterGrowthData
+  id: growth_ally_hybrid
+  displayName: growth_ally_hybrid
+  description: 
+  characterId: char_ally
+  progressionCurveId: curve_default
+  levelUpMode: 2
+  attributePointsPerLevel: 2
+  fixedGrowthPerLevel:
+  - level: 2
+    stat: 4
+    value: 2
+  - level: 3
+    stat: 4
+    value: 2
+  - level: 4
+    stat: 4
+    value: 2
+  - level: 5
+    stat: 4
+    value: 2
+  - level: 6
+    stat: 4
+    value: 2
+  - level: 7
+    stat: 4
+    value: 2
+  - level: 8
+    stat: 4
+    value: 2
+  - level: 9
+    stat: 4
+    value: 2
+  - level: 10
+    stat: 4
+    value: 2
+  autoAllocationRules: []

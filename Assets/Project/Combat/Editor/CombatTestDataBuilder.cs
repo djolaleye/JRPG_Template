@@ -107,7 +107,6 @@ namespace JRPG.Combat.Editor
 
             asset.enemyIds = enemyIds;
             asset.battleSceneId = string.Empty;
-            asset.victoryRewardTableId = string.Empty;
             asset.escapable = escapable;
             SetStableId(asset, id);
 

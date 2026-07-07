@@ -19,5 +19,4 @@ MonoBehaviour:
   - enemy_slime
   - enemy_slime
   battleSceneId: 
-  victoryRewardTableId: 
   escapable: 0

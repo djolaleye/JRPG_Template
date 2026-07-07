@@ -3,7 +3,7 @@ using JRPG.Core;
 
 namespace JRPG.Combat
 {
-    /// Victory payload consumed by Progresion phase (XP, rewards, level-ups).
+    /// Victory payload consumed by Progression phase (XP, rewards, level-ups).
     public class BattleResultData
     {
         public string battleId;

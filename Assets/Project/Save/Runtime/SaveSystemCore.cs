@@ -192,6 +192,11 @@ namespace JRPG.Save
                     if (payload is EquipmentPayload eqP) dto.equipment = eqP.data;
                     else Debug.LogError($"[JRPG.Save] Unexpected payload type for key 'equipment': {payload?.GetType().Name}");
                     break;
+                case "progression":
+                    // ProgressionSaveData is itself a SaveDataBase, so no wrapper payload is needed.
+                    if (payload is ProgressionSaveData progP) dto.progression = progP;
+                    else Debug.LogError($"[JRPG.Save] Unexpected payload type for key 'progression': {payload?.GetType().Name}");
+                    break;
                 default:
                     Debug.LogWarning($"[JRPG.Save] Unknown SaveKey '{key}' (no field in GameSaveData).");
                     break;
@@ -212,6 +217,10 @@ namespace JRPG.Save
                     return new InventoryPayload { version = dto.version, data = dto.inventory };
                 case "equipment":
                     return new EquipmentPayload { version = dto.version, data = dto.equipment };
+                case "progression":
+                    if (dto.progression == null) return null;
+                    dto.progression.version = dto.version;
+                    return dto.progression;
                 default:
                     return null;
             }

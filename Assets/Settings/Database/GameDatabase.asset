@@ -15,6 +15,7 @@ MonoBehaviour:
   characters:
   - {fileID: 11400000, guid: 136577f59a7ad12418ed50b23d68483a, type: 2}
   - {fileID: 11400000, guid: 24a3676368e8ad749977febe6ee8dc46, type: 2}
+  - {fileID: 11400000, guid: 6f6d0073343c94a468e66b816f53ed3a, type: 2}
   enemies:
   - {fileID: 11400000, guid: 71d665905d374ab47ad84913cd444e99, type: 2}
   items:
@@ -29,3 +30,9 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 03712095e64a7804e88e0881988fbbc0, type: 2}
   encounters:
   - {fileID: 11400000, guid: 5cbdf5646041bb14c8f56bd7cb7af917, type: 2}
+  progressionCurves:
+  - {fileID: 11400000, guid: 714bdac78733152408079b8d0269bc32, type: 2}
+  characterGrowth:
+  - {fileID: 11400000, guid: c0f86299ec0095243acec607211dbbec, type: 2}
+  - {fileID: 11400000, guid: f3a47479b43365d4bac245355401040b, type: 2}
+  - {fileID: 11400000, guid: 29d9c9232de687446b4181352fef46cb, type: 2}

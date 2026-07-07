@@ -332,6 +332,8 @@ namespace JRPG.Party
 
         public IReadOnlyList<CharacterRuntimeInstance> GetActiveSpeakerCandidates() => GetActiveCombatParty();
 
+        public CharacterRuntimeInstance ResolveInstanceById(string characterId) => ResolveInstance(characterId);
+
         // ----- Scope stack -----
 
         public void PushScope(string scopeId,

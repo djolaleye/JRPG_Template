@@ -10,7 +10,8 @@
         "JRPG.Party",
         "JRPG.Inventory",
         "JRPG.Menu",
-        "JRPG.Combat"
+        "JRPG.Combat",
+        "JRPG.Progression"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

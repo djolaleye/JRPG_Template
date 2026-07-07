@@ -1,0 +1,29 @@
+{
+    "name": "JRPG.Progression.Editor",
+    "rootNamespace": "JRPG.Progression.Editor",
+    "references": [
+        "JRPG.Core",
+        "JRPG.Data",
+        "JRPG.Services",
+        "JRPG.Characters",
+        "JRPG.Save",
+        "JRPG.Combat",
+        "JRPG.Progression",
+        "JRPG.Progression.UI",
+        "JRPG.Menu",
+        "Unity.InputSystem",
+        "Unity.TextMeshPro",
+        "Unity.ugui"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -15,12 +15,16 @@ namespace JRPG.Data
         private readonly Dictionary<string, ItemData> _itemsById = new();
         private readonly Dictionary<string, CombatActionData> _combatActionsById = new();
         private readonly Dictionary<string, EncounterData> _encountersById = new();
+        private readonly Dictionary<string, ProgressionCurveData> _progressionCurvesById = new();
+        private readonly Dictionary<string, CharacterGrowthData> _characterGrowthById = new();
 
         public IReadOnlyDictionary<string, CharacterData> CharactersById => _charactersById;
         public IReadOnlyDictionary<string, EnemyData> EnemiesById => _enemiesById;
         public IReadOnlyDictionary<string, ItemData> ItemsById => _itemsById;
         public IReadOnlyDictionary<string, CombatActionData> CombatActionsById => _combatActionsById;
         public IReadOnlyDictionary<string, EncounterData> EncountersById => _encountersById;
+        public IReadOnlyDictionary<string, ProgressionCurveData> ProgressionCurvesById => _progressionCurvesById;
+        public IReadOnlyDictionary<string, CharacterGrowthData> CharacterGrowthById => _characterGrowthById;
 
         public void Build(GameDatabase db)
         {
@@ -30,12 +34,16 @@ namespace JRPG.Data
             _itemsById.Clear();
             _combatActionsById.Clear();
             _encountersById.Clear();
+            _progressionCurvesById.Clear();
+            _characterGrowthById.Clear();
 
             Index(db.characters, _charactersById, "characters");
             Index(db.enemies, _enemiesById, "enemies");
             Index(db.items, _itemsById, "items");
             Index(db.combatActions, _combatActionsById, "combatActions");
             Index(db.encounters, _encountersById, "encounters");
+            Index(db.progressionCurves, _progressionCurvesById, "progressionCurves");
+            Index(db.characterGrowth, _characterGrowthById, "characterGrowth");
         }
 
         private static void Index<T>(List<T> list, Dictionary<string, T> map, string label) where T : GameDataBase
@@ -90,6 +98,14 @@ namespace JRPG.Data
                 {
                     if (_encountersById.TryGetValue(id, out var en) && en is T ten) { value = ten; return true; }
                 }
+                if (typeof(T) == typeof(ProgressionCurveData) || typeof(T).IsAssignableFrom(typeof(ProgressionCurveData)))
+                {
+                    if (_progressionCurvesById.TryGetValue(id, out var pc) && pc is T tpc) { value = tpc; return true; }
+                }
+                if (typeof(T) == typeof(CharacterGrowthData) || typeof(T).IsAssignableFrom(typeof(CharacterGrowthData)))
+                {
+                    if (_characterGrowthById.TryGetValue(id, out var g) && g is T tg) { value = tg; return true; }
+                }
                 if (typeof(T) == typeof(GameDataBase))
                 {
                     if (_charactersById.TryGetValue(id, out var c) && c is T tc) { value = tc; return true; }
@@ -97,6 +113,8 @@ namespace JRPG.Data
                     if (_itemsById.TryGetValue(id, out var i) && i is T ti) { value = ti; return true; }
                     if (_combatActionsById.TryGetValue(id, out var a) && a is T ta) { value = ta; return true; }
                     if (_encountersById.TryGetValue(id, out var en) && en is T ten) { value = ten; return true; }
+                    if (_progressionCurvesById.TryGetValue(id, out var pc) && pc is T tpc) { value = tpc; return true; }
+                    if (_characterGrowthById.TryGetValue(id, out var g) && g is T tg) { value = tg; return true; }
                 }
             }
             value = null;

@@ -24,5 +24,8 @@ namespace JRPG.Save
         // Phase 6: inventory stacks + per-character equipment.
         public InventorySaveData inventory = new();
         public EquipmentSaveData equipment = new();
+
+        // Phase 8: per-character level/XP/attribute-point progression.
+        public ProgressionSaveData progression = new();
     }
 }

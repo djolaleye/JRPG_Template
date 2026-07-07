@@ -11,5 +11,10 @@ namespace JRPG.Party
         IReadOnlyList<CharacterRuntimeInstance> GetActiveCombatParty();
         CharacterRuntimeInstance GetPartyMemberInSlot(int index);
         IReadOnlyList<CharacterRuntimeInstance> GetActiveSpeakerCandidates();
+
+        /// Live runtime instance for any known character stable id (active, reserve, or guest),
+        /// created lazily on first request. Null when the id is unknown to the data registry.
+        /// Needed by progression to award reserve XP and re-apply growth on save restore.
+        CharacterRuntimeInstance ResolveInstanceById(string characterId);
     }
 }

@@ -1,0 +1,23 @@
+{
+    "name": "JRPG.Progression",
+    "rootNamespace": "JRPG.Progression",
+    "references": [
+        "JRPG.Core",
+        "JRPG.Data",
+        "JRPG.Services",
+        "JRPG.Characters",
+        "JRPG.Party",
+        "JRPG.Inventory",
+        "JRPG.Combat",
+        "JRPG.Save"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

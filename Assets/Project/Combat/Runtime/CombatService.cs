@@ -375,12 +375,17 @@ namespace JRPG.Combat
 
             if (outcome == BattleOutcome.Victory)
             {
+                // Phase 8: the post-battle flow (opened by progression on BattleResultPackaged)
+                // owns the return to exploration — combat must not force it here or it would stomp
+                // the reward/level-up overlays.
                 LastResult = PackageResult();
                 _bus.Publish(new BattleResultPackaged(_battle.battleId, outcome));
             }
-
-            // Phase 6 convenience: return to exploration. Phase 8 will intercept the victory chain.
-            _state.SetState(new LayeredState(GameMode.Exploration, OverlayState.None, InputContext.Exploration));
+            else
+            {
+                // Defeat/escape: no post-battle flow yet; return to exploration immediately.
+                _state.SetState(new LayeredState(GameMode.Exploration, OverlayState.None, InputContext.Exploration));
+            }
         }
 
         private void CommitPartyResources()

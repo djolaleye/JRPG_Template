@@ -36,6 +36,7 @@ MonoBehaviour:
     value: 5
   - stat: 9
     value: 5
-  growthDataId: 
+  growthDataId: growth_hero_fixed
   defaultSkillIds: []
   allowedSlots: 
+  recruitmentFlagIds: []

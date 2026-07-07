@@ -7,6 +7,7 @@ using JRPG.Party;
 using JRPG.Inventory;
 using JRPG.Menu;
 using JRPG.Combat;
+using JRPG.Progression;
 
 namespace JRPG.Bootstrap
 {
@@ -38,6 +39,7 @@ namespace JRPG.Bootstrap
         public static EquipmentManager Equipment { get; private set; }
         public static MenuService Menus { get; private set; }
         public static CombatService Combat { get; private set; }
+        public static ProgressionService Progression { get; private set; }
 
         private void Awake()
         {
@@ -115,6 +117,14 @@ namespace JRPG.Bootstrap
             // CharacterRuntimeInstance at battle end, so no separate combat save contributor is needed.
             Combat = new CombatService(bus, State, Data, Party, Inventory);
             Services.Register<ICombatService>(Combat);
+
+            // Progression service. Consumes BattleResultPackaged (reading CombatService.LastResult),
+            // owns the post-battle flow, and persists per-character level/XP/points. Registered as a
+            // save contributor AFTER Party so its restore re-stamps level/XP onto the instances
+            // PartyService lazily rebuilds at level 1.
+            Progression = new ProgressionService(Data, bus, Party, Party, Inventory, Combat);
+            Services.Register<IProgressionService>(Progression);
+            SaveContributors.Register(Progression);
 
             // Menu service.
             if (menuRegistry != null && menuParent != null)

@@ -36,6 +36,7 @@ MonoBehaviour:
     value: 7
   - stat: 9
     value: 5
-  growthDataId: 
+  growthDataId: growth_ally_hybrid
   defaultSkillIds: []
   allowedSlots: 
+  recruitmentFlagIds: []

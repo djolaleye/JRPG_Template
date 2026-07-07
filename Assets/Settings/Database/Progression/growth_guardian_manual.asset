@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 08aad1344c426c14c8517b3dc8062d4b, type: 3}
+  m_Name: growth_guardian_manual
+  m_EditorClassIdentifier: JRPG.Data::JRPG.Data.CharacterGrowthData
+  id: growth_guardian_manual
+  displayName: growth_guardian_manual
+  description: 
+  characterId: char_guardian
+  progressionCurveId: curve_default
+  levelUpMode: 1
+  attributePointsPerLevel: 3
+  fixedGrowthPerLevel: []
+  autoAllocationRules: []

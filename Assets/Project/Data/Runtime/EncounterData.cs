@@ -11,7 +11,6 @@ namespace JRPG.Data
     {
         public List<string> enemyIds = new();
         public string battleSceneId;
-        public string victoryRewardTableId; // Phase 8 placeholder.
         public bool escapable;
     }
 }

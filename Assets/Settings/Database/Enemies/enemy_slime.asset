@@ -37,5 +37,10 @@ MonoBehaviour:
   - stat: 9
     value: 1
   level: 1
-  baseXpReward: 5
-  baseCurrencyReward: 2
+  baseXpReward: 55
+  baseCurrencyReward: 15
+  possibleDrops:
+  - itemId: item_potion_small
+    dropChance: 1
+    minQuantity: 1
+    maxQuantity: 1
