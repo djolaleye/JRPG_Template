@@ -36,15 +36,6 @@ namespace JRPG.Exploration
             HookActions(true);
             _map.Enable();
 
-            // Visible health log so we can tell at a glance whether AppContext got initialized
-            // (i.e., whether Bootstrap ran before this scene). Without it, Pause/QuickSave/Attack
-            // handlers will silently return because they have no services to talk to.
-            if (AppContext.Services == null)
-                Debug.LogWarning("[JRPG.Exploration] AppContext.Services is null — GameBootstrap hasn't run. " +
-                                 "Pause/QuickSave/Attack handlers will still log receipt but cannot publish events or save.", this);
-            else
-                Debug.Log("[JRPG.Exploration] Input bridge enabled; AppContext OK.", this);
-
             var services = AppContext.Services;
             if (services != null && services.TryResolve<IEventBus>(out var bus))
             {
@@ -71,30 +62,24 @@ namespace JRPG.Exploration
                 Debug.LogError("[JRPG.Exploration] InputActionAsset is not assigned.", this);
                 return false;
             }
+
             _map = playerControls.FindActionMap(actionMapName, throwIfNotFound: false);
             if (_map == null)
             {
                 Debug.LogError($"[JRPG.Exploration] Action map '{actionMapName}' not found on asset '{playerControls.name}'.", this);
                 return false;
             }
+
             _moveAction      = _map.FindAction("Move",      throwIfNotFound: false);
-            WarnIfLookMissing();
             _sprintAction    = _map.FindAction("Sprint",    throwIfNotFound: false);
             _recenterAction  = _map.FindAction("Recenter",  throwIfNotFound: false);
             _pauseAction     = _map.FindAction("Pause",     throwIfNotFound: false);
-            _interactAction  = _map.FindAction("Interact",  throwIfNotFound: false);
+            _interactAction  = _map.FindAction("Interact",  throwIfNotFound: true);
             _attackAction    = _map.FindAction("Attack",    throwIfNotFound: false);
             _quicksaveAction = _map.FindAction("QuickSave", throwIfNotFound: false);
             return true;
         }
 
-        // Look is consumed by the Cinemachine InputAxisController directly; we don't need a reference here.
-        // The method exists so a missing 'Look' action surfaces clearly during development.
-        private void WarnIfLookMissing()
-        {
-            if (_map.FindAction("Look", throwIfNotFound: false) == null)
-                Debug.LogWarning("[JRPG.Exploration] Action 'Look' is missing on the asset — camera orbit input won't work.", this);
-        }
 
         private void HookActions(bool subscribe)
         {
@@ -152,7 +137,12 @@ namespace JRPG.Exploration
             else menus.Open("pause", null);
         }
 
-        private void OnInteract(InputAction.CallbackContext ctx) => interactor?.TryInteract();
+        private void OnInteract(InputAction.CallbackContext ctx)
+        {
+            interactor?.TryInteract();
+            Debug.Log("Interaction Attempt.");
+
+        } 
 
         private void OnAttack(InputAction.CallbackContext ctx)
         {

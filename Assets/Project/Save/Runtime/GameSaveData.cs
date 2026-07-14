@@ -27,5 +27,8 @@ namespace JRPG.Save
 
         // Phase 8: per-character level/XP/attribute-point progression.
         public ProgressionSaveData progression = new();
+
+        // Phase 9: story flags + completed dialogue markers.
+        public StorySaveData story = new();
     }
 }

@@ -197,6 +197,10 @@ namespace JRPG.Save
                     if (payload is ProgressionSaveData progP) dto.progression = progP;
                     else Debug.LogError($"[JRPG.Save] Unexpected payload type for key 'progression': {payload?.GetType().Name}");
                     break;
+                case "story":
+                    if (payload is StorySaveData storyP) dto.story = storyP;
+                    else Debug.LogError($"[JRPG.Save] Unexpected payload type for key 'story': {payload?.GetType().Name}");
+                    break;
                 default:
                     Debug.LogWarning($"[JRPG.Save] Unknown SaveKey '{key}' (no field in GameSaveData).");
                     break;
@@ -221,6 +225,10 @@ namespace JRPG.Save
                     if (dto.progression == null) return null;
                     dto.progression.version = dto.version;
                     return dto.progression;
+                case "story":
+                    if (dto.story == null) return null;
+                    dto.story.version = dto.version;
+                    return dto.story;
                 default:
                     return null;
             }

@@ -11,7 +11,8 @@
         "JRPG.Inventory",
         "JRPG.Menu",
         "JRPG.Combat",
-        "JRPG.Progression"
+        "JRPG.Progression",
+        "JRPG.Dialogue"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

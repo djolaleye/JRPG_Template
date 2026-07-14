@@ -24,6 +24,7 @@
   <Project Path="Unity.AI.Mesh.csproj" />
   <Project Path="Unity.AI.Assistant.Editor.csproj" />
   <Project Path="Unity.Searcher.Editor.csproj" />
+  <Project Path="JRPG.Dialogue.UI.csproj" />
   <Project Path="Unity.VisualScripting.Core.csproj" />
   <Project Path="JRPG.Combat.csproj" />
   <Project Path="Unity.VisualScripting.State.Editor.csproj" />
@@ -69,6 +70,7 @@
   <Project Path="Unity.AI.Generators.Asset.csproj" />
   <Project Path="JRPG.Data.csproj" />
   <Project Path="Unity.AI.Navigation.csproj" />
+  <Project Path="JRPG.Dialogue.Editor.csproj" />
   <Project Path="Unity.AI.Toolkit.Asset.csproj" />
   <Project Path="Unity.Collections.CodeGen.csproj" />
   <Project Path="Unity.AI.Assistant.AssetGenerators.Editor.csproj" />
@@ -78,6 +80,7 @@
   <Project Path="Assembly-CSharp-Editor.csproj" />
   <Project Path="JRPG.Inventory.csproj" />
   <Project Path="Unity.AI.Assistant.Annotations.Editor.csproj" />
+  <Project Path="JRPG.Dialogue.csproj" />
   <Project Path="JRPG.Combat.Editor.csproj" />
   <Project Path="Unity.Settings.Editor.csproj" />
   <Project Path="Unity.AI.MCP.Runtime.csproj" />

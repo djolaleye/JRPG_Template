@@ -1,0 +1,71 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da92e5e775aea304a8dd2af2f973a915, type: 3}
+  m_Name: dialogue_rival_intro
+  m_EditorClassIdentifier: JRPG.Data::JRPG.Data.DialogueGraphData
+  id: dialogue_rival_intro
+  displayName: Rival Intro
+  description: 
+  entryNodeId: n1
+  defaultImportance: 2
+  nodes:
+  - nodeId: n1
+    speakerRef: current_speaker
+    text: You made it this far, [ProtagonistName].
+    importance: 2
+    onEnterCommands: []
+    onExitCommands: []
+    nextNodeId: 
+    choices:
+    - choiceId: c_join
+      displayText: Join us.
+      nextNodeId: n_joined
+      conditions:
+      - type: 3
+        stringA: rival_respected
+        stringB: 
+        intA: 0
+        boolA: 1
+      commands:
+      - type: 3
+        stringA: char_ally
+        intA: 0
+        boolA: 0
+      - type: 1
+        stringA: item_potion_small
+        intA: 1
+        boolA: 0
+    - choiceId: c_fight
+      displayText: Fight me.
+      nextNodeId: 
+      conditions: []
+      commands:
+      - type: 5
+        stringA: encounter_test_slimes
+        intA: 0
+        boolA: 0
+    endGraphAfterThisNode: 0
+    exitResolution:
+      exitType: 0
+      targetId: 
+  - nodeId: n_joined
+    speakerRef: character:char_ally
+    text: Welcome to the party.
+    importance: 2
+    onEnterCommands: []
+    onExitCommands: []
+    nextNodeId: 
+    choices: []
+    endGraphAfterThisNode: 1
+    exitResolution:
+      exitType: 0
+      targetId: 

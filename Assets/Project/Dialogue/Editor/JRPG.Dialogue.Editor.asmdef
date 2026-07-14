@@ -1,0 +1,28 @@
+{
+    "name": "JRPG.Dialogue.Editor",
+    "rootNamespace": "JRPG.Dialogue.Editor",
+    "references": [
+        "JRPG.Core",
+        "JRPG.Data",
+        "JRPG.Services",
+        "JRPG.Dialogue",
+        "JRPG.Dialogue.UI",
+        "JRPG.Menu",
+        "JRPG.Exploration",
+        "JRPG.Bootstrap",
+        "Unity.InputSystem",
+        "Unity.TextMeshPro",
+        "Unity.ugui"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -8,6 +8,7 @@ using JRPG.Inventory;
 using JRPG.Menu;
 using JRPG.Combat;
 using JRPG.Progression;
+using JRPG.Dialogue;
 
 namespace JRPG.Bootstrap
 {
@@ -34,12 +35,13 @@ namespace JRPG.Bootstrap
         public static SaveRegistry SaveContributors { get; private set; }
         public static CharacterHolder Characters { get; private set; }
         public static PartyService Party { get; private set; }
-        public static SimpleRecruitmentConditionStore RecruitmentConditions { get; private set; }
         public static InventoryService Inventory { get; private set; }
         public static EquipmentManager Equipment { get; private set; }
         public static MenuService Menus { get; private set; }
         public static CombatService Combat { get; private set; }
         public static ProgressionService Progression { get; private set; }
+        public static StoryStateService Story { get; private set; }
+        public static DialogueService Dialogue { get; private set; }
 
         private void Awake()
         {
@@ -77,12 +79,15 @@ namespace JRPG.Bootstrap
             SaveContributors.Register(Characters);
             AppContext.SetSaveContributors(SaveContributors);
 
-            // Recruitment-condition evaluator: in-memory stub for now. Will be replaced by the
-            // story-flag store once the dialogue/world phase lands.
-            RecruitmentConditions = new SimpleRecruitmentConditionStore();
-            Services.Register<IRecruitmentConditionEvaluator>(RecruitmentConditions);
+            // Story-flag store (Phase 9). Doubles as the recruitment-condition evaluator so dialogue
+            // SetStoryFlag commands gate party recruitment, and persists via the save system. Built
+            // before PartyService because PartyService consumes the evaluator.
+            Story = new StoryStateService(bus);
+            Services.Register<IStoryStateService>(Story);
+            Services.Register<IRecruitmentConditionEvaluator>(Story);
+            SaveContributors.Register(Story);
 
-            Party = new PartyService(Data, bus, protagonistId, RecruitmentConditions);
+            Party = new PartyService(Data, bus, protagonistId, Story);
             Services.Register<IPartyService>(Party);
             SaveContributors.Register(Party);
 
@@ -125,6 +130,11 @@ namespace JRPG.Bootstrap
             Progression = new ProgressionService(Data, bus, Party, Party, Inventory, Combat);
             Services.Register<IProgressionService>(Progression);
             SaveContributors.Register(Progression);
+
+            // Dialogue service. Talks to party/inventory/combat/story through interfaces only, drives
+            // the presenter via IMenuService, and hands off StartBattle after dialogue closes.
+            Dialogue = new DialogueService(Services, bus, State, Data, Party, Inventory, Story);
+            Services.Register<IDialogueService>(Dialogue);
 
             // Menu service.
             if (menuRegistry != null && menuParent != null)

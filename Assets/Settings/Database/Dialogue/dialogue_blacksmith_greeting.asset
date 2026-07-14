@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da92e5e775aea304a8dd2af2f973a915, type: 3}
+  m_Name: dialogue_blacksmith_greeting
+  m_EditorClassIdentifier: JRPG.Data::JRPG.Data.DialogueGraphData
+  id: dialogue_blacksmith_greeting
+  displayName: Blacksmith Greeting
+  description: 
+  entryNodeId: n1
+  defaultImportance: 2
+  nodes:
+  - nodeId: n1
+    speakerRef: current_speaker
+    text: Welcome, [ProtagonistName].
+    importance: 2
+    onEnterCommands: []
+    onExitCommands: []
+    nextNodeId: n2
+    choices: []
+    endGraphAfterThisNode: 0
+    exitResolution:
+      exitType: 0
+      targetId: 
+  - nodeId: n2
+    speakerRef: current_speaker
+    text: Bring me ore if you find any.
+    importance: 2
+    onEnterCommands: []
+    onExitCommands: []
+    nextNodeId: 
+    choices: []
+    endGraphAfterThisNode: 1
+    exitResolution:
+      exitType: 0
+      targetId: 
