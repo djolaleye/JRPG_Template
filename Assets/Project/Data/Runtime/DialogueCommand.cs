@@ -11,7 +11,8 @@ namespace JRPG.Data
         ChangePartyScope,        // stringA = scopeId (Phase 9 stub)
         StartBattle,             // stringA = encounterId (handled via exit resolution)
         UnlockSkill,             // Phase 9 stub
-        ModifyRelationshipValue  // Phase 9 stub
+        ModifyRelationshipValue,  // Phase 9 stub
+        StartCutscene             // Phase 9 stub
     }
 
     /// Plain enum-tagged command data run on node enter/exit or choice selection, interpreted by

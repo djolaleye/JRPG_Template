@@ -55,8 +55,6 @@ namespace JRPG.Dialogue.Editor
         /// the Interactor's mask; else Default.
         private static int ResolveInteractableLayer()
         {
-            var sample = Object.FindObjectOfType<TestInteractable>();
-            if (sample != null) return sample.gameObject.layer;
 
             var interactor = Object.FindObjectOfType<Interactor>();
             if (interactor != null)

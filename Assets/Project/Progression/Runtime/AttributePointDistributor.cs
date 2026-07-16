@@ -16,6 +16,7 @@ namespace JRPG.Progression
         {
             StatType.Strength, StatType.Magic, StatType.Defense,
             StatType.Resistance, StatType.Speed, StatType.Luck,
+            StatType.Evasion,
         };
 
         private readonly IEventBus _bus;

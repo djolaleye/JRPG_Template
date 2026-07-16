@@ -1,0 +1,19 @@
+{
+    "name": "JRPG.Menu.Editor",
+    "rootNamespace": "JRPG.Menu.Editor",
+    "references": [
+        "JRPG.Menu",
+        "Unity.ugui"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

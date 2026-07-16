@@ -28,6 +28,9 @@ namespace JRPG.Exploration
             if (services == null || !services.TryResolve<ICombatService>(out var combat)) return;
             if (combat.IsInBattle) return;
 
+            // Only initiate from exploration — never while a menu, battle, or dialogue owns input.
+            if (AppContext.State == null || AppContext.State.Current.Input != InputContext.Exploration) return;
+
             var trigger = FindNearestTriggerInRange();
             if (trigger == null) return;
 

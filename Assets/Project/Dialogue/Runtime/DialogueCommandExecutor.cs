@@ -62,6 +62,7 @@ namespace JRPG.Dialogue
                 case DialogueCommandType.ChangePartyScope:
                 case DialogueCommandType.UnlockSkill:
                 case DialogueCommandType.ModifyRelationshipValue:
+                case DialogueCommandType.StartCutscene:
                     Debug.LogWarning($"[JRPG.Dialogue] Command {cmd.type} is a Phase 9 stub (no-op).");
                     break;
             }

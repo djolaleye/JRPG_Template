@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Unity.Cinemachine;
 using JRPG.Core;
 using JRPG.Services;
 
@@ -17,6 +18,8 @@ namespace JRPG.Exploration
         [SerializeField] private PlayerMovementController movement;
         [SerializeField] private Interactor interactor;
         [SerializeField] private CameraRigController cameraRig;
+        [Tooltip("Camera orbit input. Auto-found if left empty. Enabled only in the Exploration input context.")]
+        [SerializeField] private CinemachineInputAxisController cameraInput;
         [SerializeField] private int quicksaveSlot = 0;
 
         private InputActionMap _map;
@@ -114,9 +117,21 @@ namespace JRPG.Exploration
         {
             if (_map == null) return;
             var state = AppContext.State;
-            if (state == null) { _map.Enable(); return; }
-            if (state.Current.Input == InputContext.Exploration) _map.Enable();
+            bool exploration = state == null || state.Current.Input == InputContext.Exploration;
+
+            if (exploration) _map.Enable();
             else _map.Disable();
+
+            // Camera orbit is driven by Cinemachine's own input component, independent of the
+            // Exploration action map — so gate it explicitly to the exploration input context.
+            var cam = ResolveCameraInput();
+            if (cam != null) cam.enabled = exploration;
+        }
+
+        private CinemachineInputAxisController ResolveCameraInput()
+        {
+            if (cameraInput == null) cameraInput = FindAnyObjectByType<CinemachineInputAxisController>(FindObjectsInactive.Include);
+            return cameraInput;
         }
 
         private void OnRecenter(InputAction.CallbackContext ctx) => cameraRig?.RecenterBehindPlayer();

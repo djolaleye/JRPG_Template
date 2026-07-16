@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 712714813619904599}
   - component: {fileID: 1609238099998618870}
   - component: {fileID: 3760087679934920344}
-  - component: {fileID: 716601058158420881}
+  - component: {fileID: 2689623328447198443}
   m_Layer: 0
   m_Name: Viewport
   m_TagString: Untagged
@@ -77,7 +77,7 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &716601058158420881
+--- !u!114 &2689623328447198443
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -86,10 +86,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 88833183665877146}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 31a19414c41e5ae4aae2af33fee712f6, type: 3}
+  m_Script: {fileID: 11500000, guid: 3312d7739989d2b4e91e6319e9a96d76, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Mask
-  m_ShowMaskGraphic: 0
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.RectMask2D
+  m_Padding: {x: 0, y: 0, z: 0, w: 0}
+  m_Softness: {x: 0, y: 0}
 --- !u!1 &3261446769997238092
 GameObject:
   m_ObjectHideFlags: 0

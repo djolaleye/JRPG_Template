@@ -2,7 +2,6 @@
   <Project Path="Unity.AI.Sound.csproj" />
   <Project Path="Unity.Timeline.csproj" />
   <Project Path="Unity.PlasticSCM.Editor.csproj" />
-  <Project Path="JRPG.Party.csproj" />
   <Project Path="Unity.Mathematics.csproj" />
   <Project Path="Unity.Timeline.Editor.csproj" />
   <Project Path="Unity.Cinemachine.Editor.csproj" />
@@ -77,7 +76,6 @@
   <Project Path="Unity.Mathematics.Editor.csproj" />
   <Project Path="Unity.VisualScripting.SettingsProvider.Editor.csproj" />
   <Project Path="JRPG.Characters.csproj" />
-  <Project Path="Assembly-CSharp-Editor.csproj" />
   <Project Path="JRPG.Inventory.csproj" />
   <Project Path="Unity.AI.Assistant.Annotations.Editor.csproj" />
   <Project Path="JRPG.Dialogue.csproj" />
@@ -91,10 +89,12 @@
   <Project Path="Unity.AI.Pbr.Srp.csproj" />
   <Project Path="JRPG.Progression.csproj" />
   <Project Path="Assembly-CSharp.csproj" />
+  <Project Path="JRPG.Menu.Editor.csproj" />
   <Project Path="Unity.AI.Toolkit.Async.csproj" />
   <Project Path="JRPG.Combat.UI.csproj" />
   <Project Path="Unity.AI.Assistant.Bridge.Editor.csproj" />
   <Project Path="Unity.AI.Toolkit.Compliance.csproj" />
+  <Project Path="JRPG.Party.csproj" />
   <Project Path="Unity.InputSystem.DocCodeSamples.csproj" />
   <Project Path="Unity.AI.Toolkit.GenerationContextMenu.csproj" />
   <Project Path="JRPG.Progression.Editor.csproj" />
