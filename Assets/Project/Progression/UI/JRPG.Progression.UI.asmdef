@@ -8,7 +8,6 @@
         "JRPG.Characters",
         "JRPG.Party",
         "JRPG.Save",
-        "JRPG.Combat",
         "JRPG.Progression",
         "JRPG.Menu",
         "Unity.InputSystem",

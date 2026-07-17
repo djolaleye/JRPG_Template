@@ -1,19 +1,23 @@
 namespace JRPG.Combat
 {
-    /// Strict but small combat phase model. Phase 6 drives SelectCombatAction/SelectTargets from debug
-    /// code; Phase 7 replaces those with command menus and target-selection UI.
+    /// <summary>
+    /// Authoritative combat phase. Assigned by <see cref="CombatService"/>,
+    /// which owns its own selection flow (command → action → target → confirm) and reaches combat
+    /// solely through <c>SubmitAction</c>. A battle walks:
+    ///
+    ///   CalculateTurnOrder → AwaitPlayerInput | EnemyAI → ExecuteAction → ResolveEffects
+    ///                      → TurnTransition → CheckWinLoss → (next turn | EndBattle)
+    /// </summary>
     public enum CombatPhase
     {
         None,
-        InitBattle,
         BuildRuntimeCombatants,
         CalculateTurnOrder,
         AwaitPlayerInput,
         EnemyAI,
-        SelectCombatAction,
-        SelectTargets,
         ExecuteAction,
         ResolveEffects,
+        TurnTransition,
         CheckWinLoss,
         EndBattle
     }

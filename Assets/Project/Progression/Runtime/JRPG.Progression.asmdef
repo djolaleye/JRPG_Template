@@ -8,7 +8,6 @@
         "JRPG.Characters",
         "JRPG.Party",
         "JRPG.Inventory",
-        "JRPG.Combat",
         "JRPG.Save"
     ],
     "includePlatforms": [],

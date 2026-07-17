@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using System.Text;
 using TMPro;
 using UnityEngine;
@@ -21,7 +22,24 @@ namespace JRPG.Combat.UI
         [SerializeField] private string autoStartEncounterId = "";
         [SerializeField] private TMP_Text statusText;
 
+        /// Cross-menu selection state for the command → action → target → confirm flow. UI-only: the
+        /// engine is not told anything until ConfirmCombatActionAction submits.
         public string PendingActionId { get; set; }
+        public IReadOnlyList<string> PendingTargetIds => _pendingTargetIds;
+
+        private readonly List<string> _pendingTargetIds = new();
+
+        public void SetPendingTargets(IEnumerable<string> combatantIds)
+        {
+            _pendingTargetIds.Clear();
+            if (combatantIds != null) _pendingTargetIds.AddRange(combatantIds);
+        }
+
+        public void ClearPendingSelection()
+        {
+            PendingActionId = null;
+            _pendingTargetIds.Clear();
+        }
 
         private IEventBus _bus;
         private IMenuService _menus;
@@ -97,7 +115,7 @@ namespace JRPG.Combat.UI
         private void OnBattleEnded(BattleEnded e)
         {
             _turnPending = false;
-            PendingActionId = null;
+            ClearPendingSelection();
             _menus?.CloseAll();
             _lastActionSummary = $"Battle ended: {e.Outcome}";
             RefreshStatus();

@@ -97,20 +97,7 @@ namespace JRPG.Bootstrap
             Services.Register<IInventoryService>(Inventory);
             SaveContributors.Register(Inventory);
 
-            // EquipmentManager looks up live runtime instances by stable character id (SourceDataId).
-            // This survives PartyService rebuilding its instance cache on Load, since SourceDataId is
-            // authored and never regenerated.
-            Equipment = new EquipmentManager(
-                Data,
-                Inventory.Container,
-                bus,
-                charId =>
-                {
-                    var active = Party.GetActiveCombatParty();
-                    for (int i = 0; i < active.Count; i++)
-                        if (active[i].SourceDataId == charId) return active[i];
-                    return null;
-                });
+            Equipment = new EquipmentManager(Data, Inventory.Container, bus, charId => Party.ResolveInstanceById(charId));
             Services.Register<IEquipmentService>(Equipment);
             SaveContributors.Register(Equipment);
 
@@ -123,11 +110,11 @@ namespace JRPG.Bootstrap
             Combat = new CombatService(bus, State, Data, Party, Inventory);
             Services.Register<ICombatService>(Combat);
 
-            // Progression service. Consumes BattleResultPackaged (reading CombatService.LastResult),
-            // owns the post-battle flow, and persists per-character level/XP/points. Registered as a
-            // save contributor AFTER Party so its restore re-stamps level/XP onto the instances
-            // PartyService lazily rebuilds at level 1.
-            Progression = new ProgressionService(Data, bus, Party, Party, Inventory, Combat);
+            // Progression service. Consumes BattleResultPackaged (which now carries the packaged
+            // result directly, so Progression no longer references JRPG.Combat), owns the post-battle
+            // flow, and persists per-character level/XP/points. Registered as a save contributor AFTER
+            // Party so its restore re-stamps level/XP onto the instances PartyService rebuilds at level 1.
+            Progression = new ProgressionService(Data, bus, Party, Party, Inventory);
             Services.Register<IProgressionService>(Progression);
             SaveContributors.Register(Progression);
 

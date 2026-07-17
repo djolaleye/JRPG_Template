@@ -74,12 +74,14 @@ namespace JRPG.Menu
             if (_machine.Top != null)
             {
                 if (_machine.Top.canvasInstance != null) _machine.Top.canvasInstance.SetActive(true);
-                // Restore the layered state captured when the now-top frame was opened.
-                _state.SetState(_machine.Top.priorState);
+
+                var entry = _registry.Find(_machine.Top.menuId);
+                if (entry != null) _state.SetState(new LayeredState(entry.mode, entry.overlay, entry.input));
+                else _state.SetState(_machine.Top.priorState);
             }
             else
             {
-                // Empty stack — return to the layered state captured for the frame we just popped.
+                // Empty stack — the popped frame's priorState is the pre-menu gameplay state.
                 _state.SetState(top.priorState);
             }
 

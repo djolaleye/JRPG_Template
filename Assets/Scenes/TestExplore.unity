@@ -252,6 +252,7 @@ MonoBehaviour:
   movement: {fileID: 208555904}
   interactor: {fileID: 208555903}
   cameraRig: {fileID: 208555902}
+  cameraInput: {fileID: 0}
   quicksaveSlot: 0
 --- !u!114 &208555901
 MonoBehaviour:
@@ -1501,7 +1502,6 @@ GameObject:
   - component: {fileID: 1956232045}
   - component: {fileID: 1956232044}
   - component: {fileID: 1956232043}
-  - component: {fileID: 1956232042}
   m_Layer: 0
   m_Name: Capsule
   m_TagString: Untagged
@@ -1509,19 +1509,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1956232042
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1956232041}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: eb5b36085259f33409a1fbe782816e35, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: JRPG.Exploration::JRPG.Exploration.TestInteractable
-  label: Test Object
 --- !u!136 &1956232043
 CapsuleCollider:
   m_ObjectHideFlags: 0

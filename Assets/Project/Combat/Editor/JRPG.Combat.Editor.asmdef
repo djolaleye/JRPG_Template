@@ -4,6 +4,7 @@
     "references": [
         "JRPG.Core",
         "JRPG.Data",
+        "JRPG.Services",
         "JRPG.Combat",
         "JRPG.Combat.UI",
         "JRPG.Menu",

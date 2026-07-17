@@ -1,13 +1,14 @@
 using System.Collections.Generic;
 using JRPG.Core;
 using JRPG.Data;
-using JRPG.Inventory;
 using JRPG.Menu;
 using JRPG.Services;
 
 namespace JRPG.Combat.UI
 {
-    /// Lists Item-category combat actions, filtered to combat-usable items, with quantities.
+    /// Lists Item-category combat actions whose item is authored usable-in-combat, with quantities.
+    /// Eligibility ("may I use this here?") and ownership ("do I have any?") are separate questions:
+    /// the first decides whether the row exists at all, the second only whether it is selectable.
     public sealed class CombatItemListController : MenuController
     {
         protected override IReadOnlyList<RowModel> BuildRows()
@@ -19,22 +20,19 @@ namespace JRPG.Combat.UI
             if (combat == null || string.IsNullOrEmpty(actorId) || Context?.Services == null) return rows;
 
             Context.Services.TryResolve<IInventoryService>(out var inv);
-
-            // Set of item ids that pass the combat-usable filter (usableInCombat consumables).
-            var combatUsable = new HashSet<string>();
-            if (inv is InventoryService invc)
-            {
-                var state = AppContext.State?.Current ?? default;
-                foreach (var stack in invc.Filter(state, ContextualFilterRequest.CombatItems()))
-                    combatUsable.Add(stack.itemId);
-            }
+            var data = AppContext.Data as DataRegistry;
 
             foreach (var action in combat.GetAvailableActions(actorId))
             {
                 if (action.category != CombatActionCategory.Item) continue;
+
                 string itemId = CombatRowFormat.FirstItemCostId(action);
                 if (string.IsNullOrEmpty(itemId)) continue;
-                if (combatUsable.Count > 0 && !combatUsable.Contains(itemId)) continue;
+
+                // Checked before the row is built, and fails closed: an unresolvable registry or item
+                // hides the row rather than listing everything. CombatActionResolver enforces the same
+                // rule at submission, so a row that slips through still cannot execute.
+                if (!ItemCombatRules.IsUsableInCombat(data, itemId)) continue;
 
                 int qty = inv?.GetQuantity(itemId) ?? 0;
                 rows.Add(new RowModel

@@ -66,17 +66,29 @@ namespace JRPG.Inventory
                 failureReason = "unknown equipment id";
                 return false;
             }
+
             if (equip.allowedCharacterIds != null && equip.allowedCharacterIds.Count > 0
                 && !equip.allowedCharacterIds.Contains(target.SourceDataId))
             {
                 failureReason = "character not allowed";
                 return false;
             }
+
             if (target.level < equip.requiredLevel)
             {
                 failureReason = $"requires level {equip.requiredLevel}";
                 return false;
             }
+
+            // Respect the character's own equippable slots. Empty/absent list = no restriction
+            if (_registry.TryGet<CharacterData>(target.SourceDataId, out var charData)
+                && charData.allowedSlots != null && charData.allowedSlots.Count > 0
+                && !charData.allowedSlots.Contains(equip.slot))
+            {
+                failureReason = $"character cannot equip the {equip.slot} slot";
+                return false;
+            }
+            
             if (_container.GetQuantity(equipItemId) <= 0)
             {
                 failureReason = "not in inventory";
@@ -114,8 +126,8 @@ namespace JRPG.Inventory
         {
             failureReason = null;
             if (target == null) { failureReason = "target null"; return false; }
-            if (!_byChar.TryGetValue(target.SourceDataId, out var state)) return false;
-            if (!state.slotToItemId.TryGetValue(slot, out var itemId) || string.IsNullOrEmpty(itemId)) return false;
+            if (!_byChar.TryGetValue(target.SourceDataId, out var state)) { failureReason = "nothing equipped"; return false; }
+            if (!state.slotToItemId.TryGetValue(slot, out var itemId) || string.IsNullOrEmpty(itemId)) { failureReason = $"slot {slot} is empty"; return false; }
 
             state.slotToItemId.Remove(slot);
 
@@ -175,7 +187,14 @@ namespace JRPG.Inventory
                 if (entry == null || string.IsNullOrEmpty(entry.charInstanceId)) continue;
 
                 var instance = _resolveInstance(entry.charInstanceId);
-                if (instance == null) continue;
+                if (instance == null)
+                {
+                    // A payload referencing an unknown character would silently lose its gear. Surface
+                    // it: with ResolveInstanceById this should only happen for an id no longer in the
+                    // roster (e.g. removed from the database between save and load).
+                    UnityEngine.Debug.LogWarning($"[JRPG.Inventory] Equipment restore skipped '{entry.charInstanceId}' — no such character in the current roster.");
+                    continue;
+                }
 
                 var rtState = GetOrCreate(entry.charInstanceId);
                 for (int j = 0; j < entry.slots.Count; j++)

@@ -128,6 +128,7 @@ namespace JRPG.Party
             else if (next == CharacterRosterState.Reserve) _state.reserveOrder.Add(id);
 
             _state.stateByCharacterId[id] = next;
+            _bus.Publish(new CharacterRosterStateChanged(id, prev, next));
             _bus.Publish(new PartyChanged());
         }
 
@@ -153,6 +154,7 @@ namespace JRPG.Party
                 throw new InvalidOperationException($"PartyService: cannot recruit '{id}' from state {prev}.");
 
             _state.stateByCharacterId[id] = CharacterRosterState.Recruited;
+            _bus.Publish(new CharacterRosterStateChanged(id, prev, CharacterRosterState.Recruited));
             _bus.Publish(new CharacterRecruited(id));
             _bus.Publish(new PartyChanged());
         }
@@ -307,7 +309,7 @@ namespace JRPG.Party
         {
             if (!IsCharacterPresentForDialogue(id)) return false;
 
-            var inst = ResolveInstance(id);
+            var inst = ResolveInstanceById(id);
             return inst != null && inst.currentHP > 0;
         }
 
@@ -318,7 +320,7 @@ namespace JRPG.Party
             var list = new List<CharacterRuntimeInstance>(_state.activeOrder.Count);
             for (int i = 0; i < _state.activeOrder.Count; i++)
             {
-                var inst = ResolveInstance(_state.activeOrder[i]);
+                var inst = ResolveInstanceById(_state.activeOrder[i]);
                 if (inst != null) list.Add(inst);
             }
             return list;
@@ -327,12 +329,22 @@ namespace JRPG.Party
         public CharacterRuntimeInstance GetPartyMemberInSlot(int index)
         {
             if (index < 0 || index >= _state.activeOrder.Count) return null;
-            return ResolveInstance(_state.activeOrder[index]);
+            return ResolveInstanceById(_state.activeOrder[index]);
         }
 
         public IReadOnlyList<CharacterRuntimeInstance> GetActiveSpeakerCandidates() => GetActiveCombatParty();
 
-        public CharacterRuntimeInstance ResolveInstanceById(string characterId) => ResolveInstance(characterId);
+        public CharacterRuntimeInstance ResolveInstanceById(string characterId)
+        {
+            if (string.IsNullOrEmpty(characterId)) return null;
+            if (_instances.TryGetValue(characterId, out var inst)) return inst;
+            if (!_registry.TryGet<CharacterData>(characterId, out _)) return null;
+
+            inst = _factory.Create(characterId);
+            _instances[characterId] = inst;
+
+            return inst;
+        } 
 
         // ----- Scope stack -----
 
@@ -536,18 +548,6 @@ namespace JRPG.Party
         }
 
         // ----- Helpers -----
-
-        private CharacterRuntimeInstance ResolveInstance(string id)
-        {
-            if (string.IsNullOrEmpty(id)) return null;
-            if (_instances.TryGetValue(id, out var inst)) return inst;
-            if (!_registry.TryGet<CharacterData>(id, out _)) return null;
-
-            inst = _factory.Create(id);
-            _instances[id] = inst;
-
-            return inst;
-        }
 
         private int EffectiveMaxActiveMembers()
         {

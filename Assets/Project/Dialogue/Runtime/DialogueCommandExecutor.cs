@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using JRPG.Core;
@@ -48,6 +49,22 @@ namespace JRPG.Dialogue
                     _inventory?.Remove(cmd.stringA, Mathf.Max(1, cmd.intA));
                     break;
 
+                case DialogueCommandType.MeetCharacter:
+                    MeetCharacter(cmd.stringA);
+                    break;
+
+                case DialogueCommandType.EvaluateRecruitment:
+                    EvaluateRecruitment(cmd.stringA);
+                    break;
+
+                case DialogueCommandType.SetCharacterGuest:
+                    SetGuest(cmd.stringA);
+                    break;
+
+                case DialogueCommandType.SetCharacterUnavailable:
+                    SetUnavailable(cmd.stringA);
+                    break;
+
                 case DialogueCommandType.RecruitCharacter:
                     Recruit(cmd.stringA);
                     break;
@@ -56,7 +73,7 @@ namespace JRPG.Dialogue
                     // Deferred: dialogue ends cleanly first, then DialogueService starts the battle.
                     if (session != null && !string.IsNullOrEmpty(cmd.stringA))
                         session.pendingExit = new DialogueExitResolution { exitType = DialogueExitType.StartBattle, targetId = cmd.stringA };
-                    
+
                     break;
 
                 case DialogueCommandType.ChangePartyScope:
@@ -70,15 +87,100 @@ namespace JRPG.Dialogue
             _bus?.Publish(new DialogueCommandExecuted(graphId, cmd.type.ToString()));
         }
 
-        /// Walk a brand-new character through the legal roster transitions to Recruited.
-        private void Recruit(string characterId)
+        private void MeetCharacter(string id)
         {
-            if (_party == null || string.IsNullOrEmpty(characterId)) return;
-            if (_party.IsRecruited(characterId)) return;
+            if (!Guard(id, out var state)) return;
+            if (state != CharacterRosterState.Unmet) return; // already met
+            
+            TrySetState(id, CharacterRosterState.Met);
+        }
 
-            if (_party.GetState(characterId) == CharacterRosterState.Unmet) _party.SetState(characterId, CharacterRosterState.Met);
-            if (_party.GetState(characterId) == CharacterRosterState.Met) _party.SetState(characterId, CharacterRosterState.Recruitable);
-            _party.Recruit(characterId);
+        /// Promotes Met → Recruitable, but only when recruitmentFlagIds are satisfied via the
+        /// recruitment-condition evaluator.
+        private void EvaluateRecruitment(string id)
+        {
+            if (!Guard(id, out _)) return;
+
+            _party.TryPromoteToRecruitable(id);
+        }
+
+        private void SetGuest(string id)
+        {
+            if (!Guard(id, out var state)) return;
+            if (state == CharacterRosterState.Guest) return;
+           
+            if (state != CharacterRosterState.Met && state != CharacterRosterState.Unavailable)
+            {
+                Debug.LogWarning($"[JRPG.Dialogue] SetCharacterGuest '{id}' ignored — Guest is only reachable from Met or Unavailable (is {state}).");
+                return;
+            }
+
+            TrySetState(id, CharacterRosterState.Guest);
+        }
+
+        private void SetUnavailable(string id)
+        {
+            if (!Guard(id, out var state)) return;
+            if (state == CharacterRosterState.Unavailable) return;
+
+            if (state == CharacterRosterState.Unmet)
+            {
+                Debug.LogWarning($"[JRPG.Dialogue] SetCharacterUnavailable '{id}' ignored — meet the character first.");
+                return;
+            }
+
+            TrySetState(id, CharacterRosterState.Unavailable);
+        }
+
+        private void Recruit(string id)
+        {
+            if (!Guard(id, out var state)) return;
+            if (_party.IsRecruited(id)) return;
+
+            if (state != CharacterRosterState.Recruitable)
+            {
+                Debug.LogWarning($"[JRPG.Dialogue] RecruitCharacter '{id}' ignored — character must be Recruitable (is {state}). Run EvaluateRecruitment after its recruitment flags are set.");
+                return;
+            }
+
+            TryRun(() => _party.Recruit(id), id, "recruit");
+        }
+
+
+        private bool Guard(string id, out CharacterRosterState state)
+        {
+            state = CharacterRosterState.Unmet;
+
+            if (_party == null || string.IsNullOrEmpty(id)) return false;
+
+            if (!_party.HasCharacter(id))
+            {
+                Debug.LogWarning($"[JRPG.Dialogue] Roster command targets unknown character '{id}'.");
+                return false;
+            }
+            
+            if (_party.IsLocked(id))
+            {
+                Debug.LogWarning($"[JRPG.Dialogue] Roster command on '{id}' ignored — character is locked.");
+                return false;
+            }
+
+            state = _party.GetState(id);
+
+            return true;
+        }
+
+        private void TrySetState(string id, CharacterRosterState next)
+            => TryRun(() => _party.SetState(id, next), id, $"set {next}");
+
+        /// Final safety net for the numeric edge throws (active cap, last-active demotion)
+        private void TryRun(Action action, string id, string what)
+        {
+            try { action(); }
+            catch (Exception e)
+            {
+                Debug.LogWarning($"[JRPG.Dialogue] Could not {what} '{id}': {e.Message}");
+            }
         }
     }
 }

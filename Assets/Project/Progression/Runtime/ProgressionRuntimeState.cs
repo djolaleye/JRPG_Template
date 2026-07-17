@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using JRPG.Combat;
+using JRPG.Core;
 
 namespace JRPG.Progression
 {

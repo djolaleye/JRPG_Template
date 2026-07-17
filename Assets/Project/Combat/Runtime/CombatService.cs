@@ -39,7 +39,7 @@ namespace JRPG.Combat
             _data = data;
             _party = party;
             _inventory = inventory;
-            _resolver = new CombatActionResolver(inventory);
+            _resolver = new CombatActionResolver(inventory, data);
             _characterFactory = new RuntimeCharacterFactory(data);
         }
 
@@ -115,7 +115,9 @@ namespace JRPG.Combat
             ctx.phase = CombatPhase.CalculateTurnOrder;
             _turnOrder.BuildQueue(ctx);
 
-            // Phase 6: no runtime command UI, so input is Disabled. The debug harness submits directly.
+            // Input stays Disabled until a menu claims it: CombatFlowController opens combat_command on
+            // the first party TurnStarted, and MenuService applies that entry's input context from the
+            // ContextualCanvasRegistry. Enemy turns never re-enable input.
             _state.SetState(new LayeredState(GameMode.Combat, OverlayState.None, InputContext.Disabled));
             _bus.Publish(new BattleStarted(ctx.battleId, ctx.encounterId ?? string.Empty));
 
@@ -283,6 +285,12 @@ namespace JRPG.Combat
 
         public ActionResult SubmitAction(string combatantId, string actionId, IReadOnlyList<string> targetIds)
         {
+            if (!IsInBattle) return ActionResult.Fail(combatantId, actionId, "No active battle.");
+
+            // Only a turn that is actually awaiting a decision may be submitted into, preventing duplicate submit
+            if (_battle.phase != CombatPhase.AwaitPlayerInput && _battle.phase != CombatPhase.EnemyAI)
+                return ActionResult.Fail(combatantId, actionId, $"Not accepting a submission in phase {_battle.phase}.");
+
             if (!TryValidateSubmission(combatantId, actionId, targetIds, out var actor, out var action, out var targets, out var reason))
                 return ActionResult.Fail(combatantId, actionId, reason);
 
@@ -296,21 +304,44 @@ namespace JRPG.Combat
             _bus.Publish(new BattleActionResolved(_battle.battleId, actor.combatantId, action.Id, result.success));
             _actionsResolved++;
 
+            EnterTurnTransition(result);
+            return result;
+        }
+
+        /// The point between one action resolving and the next combatant turn beginning. 
+        /// holds 'between turns' responsibilities: finalize the action, check the
+        /// outcome, advance or rebuild the turn order, reset round state, prepare the next combatant,
+        /// and publish "TurnStarted".
+        private void EnterTurnTransition(ActionResult result)
+        {
+            _battle.phase = CombatPhase.TurnTransition;
+
+            _battle.pendingAction = null;
+            _battle.pendingTargets = null;
+
+            // Phase 10 interruption evaluation point: battle triggers are evaluated here before turn advance.
+            // Phase 11 status timing (turn-end / round-end ticks) hooks in here too.
+            OnTurnTransition();
+
             _battle.phase = CombatPhase.CheckWinLoss;
             var outcome = _outcome.Evaluate(_battle);
             if (outcome != BattleOutcome.None)
             {
-                result.battleEnded = true;
-                result.battleOutcome = outcome;
+                if (result != null)
+                {
+                    result.battleEnded = true;
+                    result.battleOutcome = outcome;
+                }
+
                 EndBattle(outcome);
-            }
-            else
-            {
-                AdvanceToNextActor();
+                return;
             }
 
-            return result;
+            AdvanceToNextActor();
         }
+
+        /// Extension seam for Phase 10 (CombatSequenceInterrupter) and Phase 11 (status timing).
+        private void OnTurnTransition() { }
 
         private bool TryValidateSubmission(string combatantId, string actionId, IReadOnlyList<string> targetIds,
             out CombatantInstance actor, out CombatActionData action, out List<CombatantInstance> targets, out string reason)
@@ -375,15 +406,12 @@ namespace JRPG.Combat
 
             if (outcome == BattleOutcome.Victory)
             {
-                // Phase 8: the post-battle flow (opened by progression on BattleResultPackaged)
-                // owns the return to exploration — combat must not force it here or it would stomp
-                // the reward/level-up overlays.
                 LastResult = PackageResult();
-                _bus.Publish(new BattleResultPackaged(_battle.battleId, outcome));
+                _bus.Publish(new BattleResultPackaged(_battle.battleId, outcome, LastResult));
             }
             else
             {
-                // Defeat/escape: no post-battle flow yet; return to exploration immediately.
+                // TODO: Defeat/escape post-battle flow; for now, return to exploration immediately.
                 _state.SetState(new LayeredState(GameMode.Exploration, OverlayState.None, InputContext.Exploration));
             }
         }

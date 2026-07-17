@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using JRPG.Characters;
-using JRPG.Combat;
 using JRPG.Core;
 using JRPG.Data;
 using JRPG.Party;
@@ -22,7 +21,6 @@ namespace JRPG.Progression
         private readonly IPartyService _party;
         private readonly IPartyRuntimeQueries _partyRuntime;
         private readonly IInventoryService _inventory;
-        private readonly CombatService _combat;
 
         private readonly ProgressionEngine _engine;
         private readonly LevelUpApplier _applier = new();
@@ -35,14 +33,13 @@ namespace JRPG.Progression
         public int DropSeed { get; set; } = 20;
 
         public ProgressionService(DataRegistry data, IEventBus bus, IPartyService party,
-            IPartyRuntimeQueries partyRuntime, IInventoryService inventory, CombatService combat)
+            IPartyRuntimeQueries partyRuntime, IInventoryService inventory)
         {
             _data = data;
             _bus = bus;
             _party = party;
             _partyRuntime = partyRuntime;
             _inventory = inventory;
-            _combat = combat;
 
             _engine = new ProgressionEngine(data);
             _distributor = new AttributePointDistributor(bus);
@@ -84,10 +81,9 @@ namespace JRPG.Progression
         {
             if (battleResult.Outcome != BattleOutcome.Victory) return;
 
-            var result = _combat.LastResult;
-            if (result == null || result.battleId != battleResult.BattleId)
+            if (battleResult.Result is not BattleResultData result)
             {
-                Debug.LogError("[JRPG.Progression] BattleResultPackaged received but CombatService.LastResult does not match.");
+                Debug.LogError("[JRPG.Progression] BattleResultPackaged carried no usable result.");
                 return;
             }
 

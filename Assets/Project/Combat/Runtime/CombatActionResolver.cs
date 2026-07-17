@@ -12,10 +12,12 @@ namespace JRPG.Combat
     public sealed class CombatActionResolver
     {
         private readonly IInventoryService _inventory;
+        private readonly DataRegistry _data;
 
-        public CombatActionResolver(IInventoryService inventory)
+        public CombatActionResolver(IInventoryService inventory, DataRegistry data)
         {
             _inventory = inventory;
+            _data = data;
         }
 
         public bool CanPayCosts(CombatantInstance user, CombatActionData action, out string reason)
@@ -51,6 +53,14 @@ namespace JRPG.Combat
                         break;
                     case CombatCostType.Item:
                         int need = Mathf.Max(1, cost.quantity);
+
+                        // Item menu already filters on usableInCombat. Extra defense -
+                        // refuse an ineligible item however the submission arrived
+                        if (!ItemCombatRules.IsUsableInCombat(_data, cost.itemId))
+                        {
+                            reason = $"Item '{cost.itemId}' is not usable in combat.";
+                            return false;
+                        }
 
                         if (_inventory == null || !_inventory.Has(cost.itemId, need))
                         {

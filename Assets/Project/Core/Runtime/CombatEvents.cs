@@ -1,8 +1,8 @@
 namespace JRPG.Core
 {
-    /// Combat events carry primitives only (matching the GameStateChanged/PartyChanged precedent) so
-    /// any assembly can subscribe without referencing JRPG.Combat. The full ActionResult/BattleResultData
-    /// are returned directly by CombatService methods and exposed via CombatService.LastResult.
+    /// Combat events carry primitives (and the Core-owned IBattleResult) so any assembly can subscribe
+    /// without referencing JRPG.Combat. BattleResultPackaged carries the packaged IBattleResult directly;
+    /// the mutable ActionResult is still returned from CombatService.SubmitAction to its caller.
 
     public readonly struct BattleStarted
     {
@@ -51,10 +51,15 @@ namespace JRPG.Core
     {
         public readonly string BattleId;
         public readonly BattleOutcome Outcome;
-        public BattleResultPackaged(string battleId, BattleOutcome outcome)
+        /// The packaged result, read-only. Subscribers consume this directly — no need to reach back
+        /// into CombatService.LastResult. (A reference field in a struct still satisfies the bus's
+        /// where T : struct constraint.)
+        public readonly IBattleResult Result;
+        public BattleResultPackaged(string battleId, BattleOutcome outcome, IBattleResult result)
         {
             BattleId = battleId;
             Outcome = outcome;
+            Result = result;
         }
     }
 

@@ -22,7 +22,7 @@ namespace JRPG.Combat.UI
                     id = t.combatantId,
                     label = $"{t.displayName}  HP {t.currentHP}/{t.MaxHP}",
                     enabled = true,
-                    action = new SubmitCombatTargetAction(t.combatantId),
+                    action = new ChooseCombatTargetAction(t.combatantId),
                     context = Context
                 });
             }

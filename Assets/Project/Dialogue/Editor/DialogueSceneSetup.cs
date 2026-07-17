@@ -17,7 +17,7 @@ namespace JRPG.Dialogue.Editor
             EditorSceneManager.OpenScene("Assets/Scenes/TestExplore.unity", OpenSceneMode.Single);
             var scene = EditorSceneManager.GetActiveScene();
 
-            if (Object.FindObjectOfType<DialogueDebugPanel>() == null)
+            if (Object.FindFirstObjectByType<DialogueDebugPanel>() == null)
                 new GameObject("DialogueDebugPanel").AddComponent<DialogueDebugPanel>();
 
             int layer = ResolveInteractableLayer();
@@ -56,7 +56,7 @@ namespace JRPG.Dialogue.Editor
         private static int ResolveInteractableLayer()
         {
 
-            var interactor = Object.FindObjectOfType<Interactor>();
+            var interactor = Object.FindFirstObjectByType<Interactor>();
             if (interactor != null)
             {
                 var so = new SerializedObject(interactor);

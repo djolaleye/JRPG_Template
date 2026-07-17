@@ -16,17 +16,20 @@ namespace JRPG.Menu
 
             var state = AppContext.State?.Current ?? default;
             var filtered = inv.Filter(state, ContextualFilterRequest.ExplorationTab());
+
             for (int i = 0; i < filtered.Count; i++)
             {
                 var stack = filtered[i];
                 inv.Filter(state, ContextualFilterRequest.ExplorationTab()); // no-op kept for clarity
                 if (!TryResolveItem(inv, stack.itemId, out var item)) continue;
+
                 var rowContext = new MenuContext
                 {
                     Services = Context.Services,
                     Menus = Context.Menus,
                     SelectedItemId = stack.itemId
                 };
+
                 bool enabled = item.usageRule != null && item.usageRule.usableInExploration;
                 var row = new RowModel
                 {
@@ -37,6 +40,7 @@ namespace JRPG.Menu
                     action = new UseItemAction(),
                     context = rowContext
                 };
+                
                 rows.Add(row);
             }
             return rows;

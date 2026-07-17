@@ -1,4 +1,6 @@
 using System.Text;
+using UnityEngine;
+using JRPG.Core;
 using JRPG.Data;
 
 namespace JRPG.Combat.UI
@@ -21,6 +23,7 @@ namespace JRPG.Combat.UI
                     case CombatCostType.MP: Append(sb, $"MP {cost.costAmount}"); break;
                     case CombatCostType.SP: Append(sb, $"SP {cost.costAmount}"); break;
                     case CombatCostType.HP: Append(sb, $"HP {cost.costAmount}"); break;
+                    case CombatCostType.Item: Append(sb, $"{ItemName(cost.itemId)} x{Mathf.Max(1, cost.quantity)}"); break;
                 }
             }
             return sb.ToString();
@@ -32,6 +35,31 @@ namespace JRPG.Combat.UI
             for (int i = 0; i < a.costs.Count; i++)
                 if (a.costs[i].type == CombatCostType.Item) return a.costs[i].itemId;
             return null;
+        }
+
+        /// Resolves authored action data for a menu row. The registry reaches the presentation layer
+        /// only through AppContext (JRPG.Combat.UI has no composition root of its own).
+        public static bool TryGetAction(string actionId, out CombatActionData action)
+        {
+            action = null;
+            return !string.IsNullOrEmpty(actionId)
+                && AppContext.Data is DataRegistry data
+                && data.TryGet(actionId, out action);
+        }
+
+        public static bool IsSelfTarget(string actionId)
+            => TryGetAction(actionId, out var action)
+               && action.targetRule != null
+               && action.targetRule.selectionMode == TargetSelectionMode.Self;
+
+        private static string ItemName(string itemId)
+        {
+            if (!string.IsNullOrEmpty(itemId)
+                && AppContext.Data is DataRegistry data
+                && data.TryGet<ItemData>(itemId, out var item)
+                && !string.IsNullOrEmpty(item.displayName))
+                return item.displayName;
+            return string.IsNullOrEmpty(itemId) ? "Item" : itemId;
         }
 
         private static void Append(StringBuilder sb, string s)

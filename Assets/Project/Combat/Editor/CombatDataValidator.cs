@@ -62,8 +62,11 @@ namespace JRPG.Combat.Editor
                         if (cost.type != CombatCostType.Item) continue;
                         if (string.IsNullOrEmpty(cost.itemId) || !itemsById.TryGetValue(cost.itemId, out var item))
                             errors.Add($"Combat action '{label}' item cost references missing item '{cost.itemId}'.");
-                        else if (!item.usageRule.usableInCombat)
-                            warnings.Add($"Combat action '{label}' consumes item '{cost.itemId}', which is not flagged usableInCombat.");
+                        else if (!ItemCombatRules.IsUsableInCombat(item))
+                            // An error, not a warning: CombatActionResolver now refuses this cost, so the
+                            // action is unexecutable — it would never appear in the item menu and would be
+                            // rejected if submitted directly. (Also null-safe on usageRule, unlike before.)
+                            errors.Add($"Combat action '{label}' consumes item '{cost.itemId}', which is not usable in combat — the action can never execute.");
                     }
                 }
             }

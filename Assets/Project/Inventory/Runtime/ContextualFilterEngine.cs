@@ -37,9 +37,10 @@ namespace JRPG.Inventory
             switch (request.context)
             {
                 case FilterContext.CombatItemMenu:
+                    // Combat usability is the shared rule (see ItemCombatRules — CombatActionResolver
+                    // enforces the same one); the category narrowing is this screen's own concern.
                     return item.category == ItemCategory.Consumable
-                        && item.usageRule != null
-                        && item.usageRule.usableInCombat;
+                        && ItemCombatRules.IsUsableInCombat(item);
 
                 case FilterContext.ExplorationInventoryTab:
                     // Show everything, key items are visible (their use is just refused).
