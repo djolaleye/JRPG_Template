@@ -27,6 +27,9 @@ namespace JRPG.Combat
         public bool isBattleOver;
         public BattleOutcome outcome = BattleOutcome.None;
 
+        /// Battle-local firing state for mid-battle dialogue triggers
+        public BattleTriggerRuntimeState triggerState = new();
+
         /// Maps a party combatantId to the persistent runtime instance it was built from, so HP/MP/SP
         /// can be committed back at battle end.
         public Dictionary<string, CharacterRuntimeInstance> partySources = new();

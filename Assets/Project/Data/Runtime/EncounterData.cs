@@ -12,5 +12,8 @@ namespace JRPG.Data
         public List<string> enemyIds = new();
         public string battleSceneId;
         public bool escapable;
+
+        /// Ids of BattleTriggerData assets evaluated during this encounter (mid-battle dialogue interruptions).
+        public List<string> battleTriggerIds = new();
     }
 }

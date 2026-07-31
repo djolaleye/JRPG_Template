@@ -19,6 +19,7 @@ namespace JRPG.Dialogue.Editor
         private const string MenuRowPath = "Assets/UI/MenuRow.prefab";
         private const string InputAssetPath = "Assets/Settings/Input/InputSystem_Actions.inputactions";
         private const string MenuId = "dialogue_interactive";
+        private const string CombatMenuId = "dialogue_combat";
 
         [MenuItem("JRPG/Setup/Build Phase 9 Dialogue UI")]
         public static void Build()
@@ -36,7 +37,7 @@ namespace JRPG.Dialogue.Editor
             RegisterEntry(saved);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            Debug.Log("[JRPG.Dialogue] Built DialoguePresenter prefab + registered 'dialogue_interactive'.");
+            Debug.Log("[JRPG.Dialogue] Built DialoguePresenter prefab + registered 'dialogue_interactive' and 'dialogue_combat'.");
         }
 
         private static GameObject BuildPresenter(RowUIController rowPrefab, InputActionAsset input)
@@ -131,13 +132,24 @@ namespace JRPG.Dialogue.Editor
         {
             var registry = FindRegistry();
             if (registry == null) { Debug.LogError("[JRPG.Dialogue] No ContextualCanvasRegistry — prefab built but not registered."); return; }
-            var entry = registry.Find(MenuId);
-            if (entry == null) { entry = new ContextualCanvasRegistry.Entry { menuId = MenuId }; registry.entries.Add(entry); }
+
+            // Exploration-mode interactive dialogue.
+            Upsert(registry, MenuId, prefab, GameMode.Exploration);
+            // Combat-mode interactive dialogue (same presenter prefab) so a mid-battle interruption keeps
+            // GameMode.Combat and Close restores the battle's layered state.
+            Upsert(registry, CombatMenuId, prefab, GameMode.Combat);
+
+            EditorUtility.SetDirty(registry);
+        }
+
+        private static void Upsert(ContextualCanvasRegistry registry, string menuId, GameObject prefab, GameMode mode)
+        {
+            var entry = registry.Find(menuId);
+            if (entry == null) { entry = new ContextualCanvasRegistry.Entry { menuId = menuId }; registry.entries.Add(entry); }
             entry.canvasPrefab = prefab;
-            entry.mode = GameMode.Exploration;
+            entry.mode = mode;
             entry.overlay = OverlayState.DialogueInteractive;
             entry.input = InputContext.Dialogue;
-            EditorUtility.SetDirty(registry);
         }
 
         private static ContextualCanvasRegistry FindRegistry()

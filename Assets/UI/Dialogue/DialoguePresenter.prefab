@@ -429,6 +429,7 @@ MonoBehaviour:
   choicePopulator: {fileID: 3193183896007120572}
   playerControls: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   actionMapName: Menu
+  presentationProfile: {fileID: 11400000, guid: 408cc8ff91b315b41b5e67bee41d10f5, type: 2}
 --- !u!1 &4657732091216781400
 GameObject:
   m_ObjectHideFlags: 0

@@ -15,14 +15,16 @@ namespace JRPG.Dialogue
         private readonly IInventoryService _inventory;
         private readonly IStoryStateService _story;
         private readonly IEventBus _bus;
+        private readonly IServiceRegistry _services;
 
         public DialogueCommandExecutor(IPartyService party, IInventoryService inventory,
-            IStoryStateService story, IEventBus bus)
+            IStoryStateService story, IEventBus bus, IServiceRegistry services)
         {
             _party = party;
             _inventory = inventory;
             _story = story;
             _bus = bus;
+            _services = services;
         }
 
         public void ExecuteAll(List<DialogueCommand> commands, DialogueSessionRuntime session, string graphId)
@@ -76,6 +78,21 @@ namespace JRPG.Dialogue
 
                     break;
 
+                case DialogueCommandType.QueueCombatAction:
+                    if (TryResolveInterruption(out var qi))
+                        qi.QueueCombatAction(cmd.stringA, cmd.stringB, null);
+                    break;
+
+                case DialogueCommandType.SetEnemyActionProfile:
+                    if (TryResolveInterruption(out var pi))
+                        pi.SetEnemyActionProfile(cmd.stringA);
+                    break;
+
+                case DialogueCommandType.SetBattleTrigger:
+                    if (TryResolveInterruption(out var bi))
+                        bi.SetBattleTrigger(cmd.stringA, cmd.boolA);
+                    break;
+
                 case DialogueCommandType.ChangePartyScope:
                 case DialogueCommandType.UnlockSkill:
                 case DialogueCommandType.ModifyRelationshipValue:
@@ -85,6 +102,12 @@ namespace JRPG.Dialogue
             }
 
             _bus?.Publish(new DialogueCommandExecuted(graphId, cmd.type.ToString()));
+        }
+
+        private bool TryResolveInterruption(out ICombatInterruptionService interruption)
+        {
+            interruption = null;
+            return _services != null && _services.TryResolve(out interruption);
         }
 
         private void MeetCharacter(string id)

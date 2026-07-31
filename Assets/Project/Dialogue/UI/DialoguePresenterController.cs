@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using JRPG.Core;
+using JRPG.Data;
 using JRPG.Menu;
 using JRPG.Services;
 
@@ -20,10 +21,18 @@ namespace JRPG.Dialogue.UI
         [SerializeField] private InputActionAsset playerControls;
         [SerializeField] private string actionMapName = "Menu";
 
+        [Tooltip("Importance → presentation mapping.")]
+        [SerializeField] private DialoguePresentationProfile presentationProfile;
+
         private InputActionMap _map;
         private InputAction _navigate, _submit, _cancel;
         private IEventBus _bus;
         private int _selectedIndex = -1;
+
+        private Color _defaultSpeakerColor = Color.white;
+        private bool _capturedDefaultColor;
+        /// True while the current node is emphasized/blocking (Critical): cancel/skip is suppressed.
+        private bool _blocksInput;
 
         private DialogueService Dialogue
             => AppContext.Services != null && AppContext.Services.TryResolve<IDialogueService>(out var d) ? d as DialogueService : null;
@@ -54,6 +63,8 @@ namespace JRPG.Dialogue.UI
             if (speakerName != null) speakerName.text = snap.speaker.displayName ?? "";
             if (body != null) body.text = snap.body ?? "";
 
+            ApplyImportance(snap.importance);
+
             if (snap.hasChoices)
             {
                 var rows = new List<RowModel>();
@@ -68,6 +79,40 @@ namespace JRPG.Dialogue.UI
                 choicePopulator?.Populate(null);
                 _selectedIndex = -1;
                 if (continuePrompt != null) continuePrompt.SetActive(true);
+            }
+        }
+
+        /// Drives presentation from DialogueImportance via the DialoguePresentationProfile
+        private void ApplyImportance(DialogueImportance importance)
+        {
+            var entry = presentationProfile != null ? presentationProfile.Resolve(importance) : Fallback(importance);
+            _blocksInput = entry.blocksInput;
+
+            if (speakerName != null)
+            {
+                if (!_capturedDefaultColor) { _defaultSpeakerColor = speakerName.color; _capturedDefaultColor = true; }
+                speakerName.color = Emphasize(entry.emphasisKey, importance, _defaultSpeakerColor);
+            }
+        }
+
+        private static DialoguePresentationProfile.PresentationEntry Fallback(DialogueImportance importance)
+            => new()
+            {
+                importance = importance,
+                usesPassiveOverlay = importance == DialogueImportance.Passive,
+                blocksInput = importance == DialogueImportance.Critical,
+            };
+
+        private static Color Emphasize(string emphasisKey, DialogueImportance importance, Color fallback)
+        {
+            string key = string.IsNullOrEmpty(emphasisKey) ? importance.ToString().ToLowerInvariant() : emphasisKey.ToLowerInvariant();
+            
+            switch (key)
+            {
+                case "critical": return new Color(1f, 0.55f, 0.45f);
+                case "system":   return new Color(0.72f, 0.74f, 0.8f);
+                case "tutorial": return new Color(0.55f, 0.85f, 1f);
+                default:         return fallback;
             }
         }
 
@@ -108,7 +153,12 @@ namespace JRPG.Dialogue.UI
             else d.Advance();
         }
 
-        private void OnCancel(InputAction.CallbackContext ctx) { /* dialogue can't be cancelled mid-flow in Phase 9 */ }
+        private void OnCancel(InputAction.CallbackContext ctx)
+        {
+            // Dialogue can't be cancelled mid-flow; Critical/blocking nodes additionally suppress any
+            // skip affordance. (No-op today, but honored as skip/advance-hold behavior is added.)
+            if (_blocksInput) return;
+        }
 
         private void OnNavigate(InputAction.CallbackContext ctx)
         {

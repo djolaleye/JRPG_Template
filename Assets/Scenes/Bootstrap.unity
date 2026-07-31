@@ -299,8 +299,10 @@ MonoBehaviour:
   startingInventory: {fileID: 11400000, guid: 291207a538dd73a4890fc605455102e7, type: 2}
   menuRegistry: {fileID: 11400000, guid: b765a5933c648f342bdc6d99ca622621, type: 2}
   menuParent: {fileID: 1399471559}
+  dialoguePresentationProfile: {fileID: 11400000, guid: 408cc8ff91b315b41b5e67bee41d10f5, type: 2}
   protagonistId: char_hero
   logProbeOutput: 1
+  autoStartExploration: 1
 --- !u!4 &1139393244
 Transform:
   m_ObjectHideFlags: 0

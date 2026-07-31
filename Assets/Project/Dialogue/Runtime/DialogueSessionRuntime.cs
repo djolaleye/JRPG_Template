@@ -20,6 +20,10 @@ namespace JRPG.Dialogue
         public LayeredState previousState;
         public bool isComplete;
 
+        /// The ContextualCanvasRegistry menu id the presenter was opened under (interactive vs combat),
+        /// so EndInternal closes exactly what it opened.
+        public string presenterMenuId;
+
         /// Set by a StartBattle command; overrides the terminal node's exit resolution on end.
         public DialogueExitResolution? pendingExit;
     }

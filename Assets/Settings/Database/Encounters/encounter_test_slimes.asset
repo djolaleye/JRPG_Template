@@ -20,3 +20,6 @@ MonoBehaviour:
   - enemy_slime
   battleSceneId: 
   escapable: 0
+  battleTriggerIds:
+  - trigger_slime_hp_passive
+  - trigger_slime_turn_interactive

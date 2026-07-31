@@ -43,6 +43,7 @@ namespace JRPG.Combat.UI
 
         private IEventBus _bus;
         private IMenuService _menus;
+        private ICombatInterruptionService _interrupter;
         private CombatService _combat;
 
         private bool _turnPending;
@@ -60,7 +61,10 @@ namespace JRPG.Combat.UI
         {
             _bus = AppContext.Bus;
             if (AppContext.Services != null)
+            {
                 AppContext.Services.TryResolve(out _menus);
+                AppContext.Services.TryResolve(out _interrupter);
+            }
 
             if (_bus != null)
             {
@@ -125,6 +129,15 @@ namespace JRPG.Combat.UI
 
         private void Update()
         {
+            // While an interactive interruption is holding combat, do not pump the turn loop. Open
+            // (deferred) interruption dialogue — one frame after the submitting menu action's
+            // teardown. Leave _turnPending set so the current turn resumes automatically once the dialogue resolves.
+            if (_interrupter != null && _interrupter.IsInterruptionActive)
+            {
+                _interrupter.PumpPendingInterruptionDialogue();
+                return;
+            }
+
             if (!_turnPending) return;
             _turnPending = false;
 
@@ -150,6 +163,11 @@ namespace JRPG.Combat.UI
         private IEnumerator EnemyTurnRoutine(string enemyId)
         {
             yield return new WaitForSeconds(enemyTurnDelay);
+
+            // If an interruption became active during the delay, defer: re-arm so the turn resumes
+            // after the dialogue resolves.
+            if (_interrupter != null && _interrupter.IsInterruptionActive) { _turnPending = true; yield break; }
+
             var combat = Combat;
             if (combat != null && combat.IsInBattle && combat.CurrentBattle.currentActor?.combatantId == enemyId)
                 combat.AdvanceEnemyTurn();

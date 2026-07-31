@@ -21,6 +21,7 @@ namespace JRPG.Data
         public List<ProgressionCurveData> progressionCurves = new();
         public List<CharacterGrowthData> characterGrowth = new();
         public List<DialogueGraphData> dialogueGraphs = new();
+        public List<BattleTriggerData> battleTriggers = new();
 
         // Later phases:
         // public List<StatusEffectData> statuses;

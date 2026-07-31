@@ -18,6 +18,7 @@ namespace JRPG.Data
         private readonly Dictionary<string, ProgressionCurveData> _progressionCurvesById = new();
         private readonly Dictionary<string, CharacterGrowthData> _characterGrowthById = new();
         private readonly Dictionary<string, DialogueGraphData> _dialogueGraphsById = new();
+        private readonly Dictionary<string, BattleTriggerData> _battleTriggersById = new();
 
         public IReadOnlyDictionary<string, CharacterData> CharactersById => _charactersById;
         public IReadOnlyDictionary<string, EnemyData> EnemiesById => _enemiesById;
@@ -27,6 +28,7 @@ namespace JRPG.Data
         public IReadOnlyDictionary<string, ProgressionCurveData> ProgressionCurvesById => _progressionCurvesById;
         public IReadOnlyDictionary<string, CharacterGrowthData> CharacterGrowthById => _characterGrowthById;
         public IReadOnlyDictionary<string, DialogueGraphData> DialogueGraphsById => _dialogueGraphsById;
+        public IReadOnlyDictionary<string, BattleTriggerData> BattleTriggersById => _battleTriggersById;
 
         public void Build(GameDatabase db)
         {
@@ -39,6 +41,7 @@ namespace JRPG.Data
             _progressionCurvesById.Clear();
             _characterGrowthById.Clear();
             _dialogueGraphsById.Clear();
+            _battleTriggersById.Clear();
 
             Index(db.characters, _charactersById, "characters");
             Index(db.enemies, _enemiesById, "enemies");
@@ -48,6 +51,7 @@ namespace JRPG.Data
             Index(db.progressionCurves, _progressionCurvesById, "progressionCurves");
             Index(db.characterGrowth, _characterGrowthById, "characterGrowth");
             Index(db.dialogueGraphs, _dialogueGraphsById, "dialogueGraphs");
+            Index(db.battleTriggers, _battleTriggersById, "battleTriggers");
         }
 
         private static void Index<T>(List<T> list, Dictionary<string, T> map, string label) where T : GameDataBase
@@ -114,6 +118,10 @@ namespace JRPG.Data
                 {
                     if (_dialogueGraphsById.TryGetValue(id, out var dg) && dg is T tdg) { value = tdg; return true; }
                 }
+                if (typeof(T) == typeof(BattleTriggerData) || typeof(T).IsAssignableFrom(typeof(BattleTriggerData)))
+                {
+                    if (_battleTriggersById.TryGetValue(id, out var bt) && bt is T tbt) { value = tbt; return true; }
+                }
                 if (typeof(T) == typeof(GameDataBase))
                 {
                     if (_charactersById.TryGetValue(id, out var c) && c is T tc) { value = tc; return true; }
@@ -124,6 +132,7 @@ namespace JRPG.Data
                     if (_progressionCurvesById.TryGetValue(id, out var pc) && pc is T tpc) { value = tpc; return true; }
                     if (_characterGrowthById.TryGetValue(id, out var g) && g is T tg) { value = tg; return true; }
                     if (_dialogueGraphsById.TryGetValue(id, out var dg) && dg is T tdg) { value = tdg; return true; }
+                    if (_battleTriggersById.TryGetValue(id, out var bt) && bt is T tbt) { value = tbt; return true; }
                 }
             }
             value = null;

@@ -26,6 +26,10 @@ namespace JRPG.Bootstrap
         [SerializeField] private ContextualCanvasRegistry menuRegistry;
         [SerializeField] private Transform menuParent;
 
+        [Tooltip("Optional (Phase 10): importance→presentation mapping for mid-battle/contextual dialogue. " +
+                 "If unset, a built-in fallback is used (Passive→passive overlay, Critical→blocks input).")]
+        [SerializeField] private DialoguePresentationProfile dialoguePresentationProfile;
+
         [Tooltip("Stable id of the protagonist character. Seeded directly to Active and locked to Active/Reserve transitions.")]
         [SerializeField] private string protagonistId = "char_hero";
 
@@ -112,6 +116,16 @@ namespace JRPG.Bootstrap
             // the presenter via IMenuService, and hands off StartBattle after dialogue closes.
             var dialogue = new DialogueService(services, bus, state, data, party, inventory, story);
             services.Register<IDialogueService>(dialogue);
+
+            // Phase 10 mid-battle interruption evaluator. Bridges combat↔dialogue: it uses CombatService
+            // concretely but is exposed only as ICombatInterruptionService, and resolves IDialogueService
+            // lazily (dialogue is constructed just above; combat below cannot depend on it directly).
+            var interrupter = new CombatSequenceInterrupter(combat, data, services, bus)
+            {
+                PresentationProfile = dialoguePresentationProfile,
+            };
+            combat.Interrupter = interrupter;
+            services.Register<ICombatInterruptionService>(interrupter);
 
             // Menu service
             if (menuRegistry != null && menuParent != null)

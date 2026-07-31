@@ -45,6 +45,7 @@ namespace JRPG.Combat
         public bool IsInBattle => _battle != null && !_battle.isBattleOver;
         public BattleContext CurrentBattle => _battle;
         public BattleResultData LastResult { get; private set; }
+        public CombatSequenceInterrupter Interrupter { get; set; }
 
         // ---- ICombatService 
 
@@ -308,11 +309,24 @@ namespace JRPG.Combat
         {
             _battle.phase = CombatPhase.TurnTransition;
 
-            // Phase 10 interruption evaluation point: battle triggers are evaluated here before turn advance.
             // Phase 11 status timing (turn-end / round-end ticks) hooks in here too.
-            OnTurnTransition();
+            _battle.triggerState.heldResult = result;
+            if (OnTurnTransition(result))
+            {
+                // An interactive interruption is holding this transition. The win/loss check and turn
+                // advance are deferred to CompleteHeldTurnTransition(), invoked when the dialogue resolves.
+                return;
+            }
+            _battle.triggerState.heldResult = null;
 
+            CompleteTurnTransition(result);
+        }
+
+        /// The deferred tail of a turn transition: win/loss evaluation then advance-or-end.
+        private void CompleteTurnTransition(ActionResult result)
+        {
             _battle.phase = CombatPhase.CheckWinLoss;
+
             var outcome = _outcome.Evaluate(_battle);
             if (outcome != BattleOutcome.None)
             {
@@ -329,8 +343,23 @@ namespace JRPG.Combat
             AdvanceToNextActor();
         }
 
+        /// Called by the interrupter once an interactive interruption
+        /// dialogue that held a turn transition has fully resolved.
+        internal void CompleteHeldTurnTransition()
+        {
+            if (_battle == null || _battle.isBattleOver) return;
+
+            var result = _battle.triggerState.heldResult;
+
+            _battle.triggerState.heldResult = null;
+            
+            CompleteTurnTransition(result);
+        }
+
         /// Extension seam for Phase 10 (CombatSequenceInterrupter) and Phase 11 (status timing).
-        private void OnTurnTransition() { }
+        /// Returns true if an interactive interruption is now holding the turn transition.
+        private bool OnTurnTransition(ActionResult result)
+            => Interrupter != null && Interrupter.EvaluateAtTurnTransition(_battle, result);
 
         private bool TryValidateSubmission(string combatantId, string actionId, IReadOnlyList<string> targetIds,
             out CombatantInstance actor, out CombatActionData action, out List<CombatantInstance> targets, out string reason)

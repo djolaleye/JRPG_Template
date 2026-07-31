@@ -93,3 +93,8 @@ MonoBehaviour:
     mode: 1
     overlay: 1
     input: 1
+  - menuId: dialogue_combat
+    canvasPrefab: {fileID: 3550907986852103298, guid: 3477d9b132fb4de4b8ce532135fa9fca, type: 3}
+    mode: 2
+    overlay: 4
+    input: 4

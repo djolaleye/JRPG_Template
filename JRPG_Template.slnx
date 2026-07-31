@@ -37,6 +37,7 @@
   <Project Path="Unity.AI.Toolkit.Accounts.csproj" />
   <Project Path="Unity.PerformanceTesting.csproj" />
   <Project Path="JRPG.Core.csproj" />
+  <Project Path="JRPG.Services.csproj" />
   <Project Path="Unity.AI.ModelSelector.csproj" />
   <Project Path="Unity.AI.Animate.csproj" />
   <Project Path="JRPG.Save.csproj" />
@@ -59,7 +60,6 @@
   <Project Path="JRPG.Menu.csproj" />
   <Project Path="Unity.AI.Navigation.Editor.csproj" />
   <Project Path="Unity.AI.Toolkit.GenerationObjectPicker.csproj" />
-  <Project Path="JRPG.Services.csproj" />
   <Project Path="Unity.AI.Assistant.API.Editor.csproj" />
   <Project Path="glTFast.Documentation.Examples.csproj" />
   <Project Path="JRPG.Progression.UI.csproj" />

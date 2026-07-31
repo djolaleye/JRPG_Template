@@ -16,5 +16,6 @@ namespace JRPG.Services
         void Advance();
         void Choose(string choiceId);
         void EndDialogue(DialogueEndReason reason);
+        void ShowPassiveLine(string graphId, DialogueStartContext context, float autoDismissSeconds);
     }
 }

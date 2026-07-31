@@ -1,0 +1,54 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da92e5e775aea304a8dd2af2f973a915, type: 3}
+  m_Name: dialogue_slime_parley_interactive
+  m_EditorClassIdentifier: JRPG.Data::JRPG.Data.DialogueGraphData
+  id: dialogue_slime_parley_interactive
+  displayName: Slime Parley (interactive)
+  description: 
+  entryNodeId: n1
+  defaultImportance: 2
+  nodes:
+  - nodeId: n1
+    speakerRef: protagonist
+    text: Round three already? These slimes are more stubborn than they look.
+    importance: 2
+    onEnterCommands: []
+    onExitCommands: []
+    nextNodeId: n2
+    choices: []
+    endGraphAfterThisNode: 0
+    exitResolution:
+      exitType: 0
+      targetId: 
+  - nodeId: n2
+    speakerRef: current_speaker
+    text: The slimes gurgle a challenge. Press on?
+    importance: 2
+    onEnterCommands: []
+    onExitCommands: []
+    nextNodeId: 
+    choices:
+    - choiceId: c_fight
+      displayText: Press the attack!
+      nextNodeId: 
+      conditions: []
+      commands: []
+    - choiceId: c_steady
+      displayText: Steady... hold formation.
+      nextNodeId: 
+      conditions: []
+      commands: []
+    endGraphAfterThisNode: 0
+    exitResolution:
+      exitType: 5
+      targetId: 
