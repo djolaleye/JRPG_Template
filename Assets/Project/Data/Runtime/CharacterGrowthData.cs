@@ -25,7 +25,8 @@ namespace JRPG.Data
         /// Flat stat gains granted when reaching the entry's level (FixedGrowth/Hybrid modes).
         public List<StatGrowthEntry> fixedGrowthPerLevel = new();
 
-        /// Weights for future auto-allocation
+        /// [Planned — Phase 12] Weights for auto-allocation of attribute points. Authored but not
+        /// yet read; allocation is manual today.
         public List<StatAllocationRule> autoAllocationRules = new();
 
 #if UNITY_EDITOR

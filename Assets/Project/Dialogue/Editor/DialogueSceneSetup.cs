@@ -51,8 +51,7 @@ namespace JRPG.Dialogue.Editor
             EditorUtility.SetDirty(go);
         }
 
-        /// Prefer the existing TestInteractable's layer (it's already interactable); else derive from
-        /// the Interactor's mask; else Default.
+        /// Derive the interactable layer from the Interactor's mask; else Default.
         private static int ResolveInteractableLayer()
         {
 

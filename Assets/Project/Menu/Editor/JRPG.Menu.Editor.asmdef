@@ -2,8 +2,10 @@
     "name": "JRPG.Menu.Editor",
     "rootNamespace": "JRPG.Menu.Editor",
     "references": [
+        "JRPG.Core",
         "JRPG.Menu",
-        "Unity.ugui"
+        "Unity.ugui",
+        "Unity.TextMeshPro"
     ],
     "includePlatforms": [
         "Editor"

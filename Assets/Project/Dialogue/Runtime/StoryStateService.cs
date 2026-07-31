@@ -6,8 +6,8 @@ using JRPG.Services;
 namespace JRPG.Dialogue
 {
     /// In-memory story-flag store that persists via the save system. Also serves as the
-    /// IRecruitmentConditionEvaluator (superseding SimpleRecruitmentConditionStore), so dialogue
-    /// SetStoryFlag commands directly gate party recruitment. Publishes StoryFlagChanged.
+    /// IRecruitmentConditionEvaluator, so dialogue SetStoryFlag commands directly gate party
+    /// recruitment. Publishes StoryFlagChanged.
     public sealed class StoryStateService : IStoryStateService, IRecruitmentConditionEvaluator, ISaveable
     {
         private readonly IEventBus _bus;

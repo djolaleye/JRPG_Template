@@ -23,7 +23,7 @@ namespace JRPG.Inventory
             {
                 if (stack == null || stack.quantity <= 0) continue;
                 if (!registry.TryGet<ItemData>(stack.itemId, out var item) || item == null) continue;
-                if (!PassesContext(item, state, request, registry)) continue;
+                if (!PassesContext(item, state, request)) continue;
                 if (request.categoryFilter.HasValue && item.category != request.categoryFilter.Value) continue;
 
                 result.Add(stack);
@@ -32,7 +32,9 @@ namespace JRPG.Inventory
             return result;
         }
 
-        private static bool PassesContext(ItemData item, LayeredState state, ContextualFilterRequest request, DataRegistry registry)
+        // `state` is the reserved context seam for state-aware filtering (e.g. usableInExploration /
+        // requiredStoryFlag gating) — wired in Phase 12 inventory presentation; unused today.
+        private static bool PassesContext(ItemData item, LayeredState state, ContextualFilterRequest request)
         {
             switch (request.context)
             {

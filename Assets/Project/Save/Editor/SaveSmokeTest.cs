@@ -4,7 +4,7 @@ using UnityEditor;
 using UnityEngine;
 using JRPG.Core;
 using JRPG.Data;
-using JRPG.Characters;
+using JRPG.Party;
 using JRPG.Save;
 
 namespace JRPG.Save.Editor
@@ -67,54 +67,43 @@ namespace JRPG.Save.Editor
 
             var bus = new EventBus();
             var state = new GameStateController(bus, new LayeredState(GameMode.Exploration, OverlayState.None, InputContext.Exploration));
-            var contribs = new SaveRegistry();
-            var holder = new CharacterHolder(registry);
-            contribs.Register(holder);
-            var svc = new SaveSystemCore(contribs, config, bus, state);
 
-            // Build a hero and mutate it.
-            var factory = new RuntimeCharacterFactory(registry);
-            var hero = factory.Create("char_hero");
-            hero.currentHP = 33;
-            hero.level = 7;
-            hero.currentXp = 999;
-            hero.stats.AddModifier(new StatModifier(StatType.Strength, ModifierType.Flat, 4f, "level_up_x", true));
-            hero.stats.AddModifier(new StatModifier(StatType.Strength, ModifierType.PercentMult, 2f, "temp_rage", false));
-            int finalStrPreSave = hero.stats.GetFinal(StatType.Strength);
-            holder.Instances.Add(hero);
+            // Save side: mutate the roster on a real PartyService contributor (the "characters"
+            // proof-of-structure contributor was removed in save v2).
+            const string ally = "char_ally";
+            var party1 = new PartyService(registry, bus, "char_hero", null);
+            party1.SetState(ally, CharacterRosterState.Met);
+            party1.SetState(ally, CharacterRosterState.Recruitable);
+            party1.Recruit(ally);                                  // -> Recruited
+            party1.SetState(ally, CharacterRosterState.Reserve);   // Recruited -> Reserve
 
-            int snapshotLevel = hero.level;
-            int snapshotHp = hero.currentHP;
-            int snapshotXp = hero.currentXp;
-            string snapshotInstanceId = hero.InstanceId;
+            var heroPre = party1.GetState("char_hero");            // Active (protagonist)
+            var allyPre = party1.GetState(ally);                   // Reserve
 
-            if (!svc.Save(0)) return "FAIL: Save returned false (CanSave gating?)";
+            var contribs1 = new SaveRegistry();
+            contribs1.Register(party1);
+            var svc1 = new SaveSystemCore(contribs1, config, bus, state);
+            if (!svc1.Save(0)) return "FAIL: Save returned false (CanSave gating?)";
 
             filePath = Path.Combine(Application.persistentDataPath, config.directoryName, string.Format(config.fileNameFormat, 0));
             if (!File.Exists(filePath)) return "FAIL: Expected save file at " + filePath;
             var json = File.ReadAllText(filePath);
 
-            // Tear down: clear holder, then load.
-            holder.Instances.Clear();
-            if (!svc.Load(0)) return "FAIL: Load returned false";
-            if (holder.Instances.Count != 1) return "FAIL: Expected 1 restored instance, got " + holder.Instances.Count;
-            var restored = holder.Instances[0];
+            // Load side: a fresh PartyService (default roster) restores from the file.
+            var party2 = new PartyService(registry, bus, "char_hero", null);
+            var contribs2 = new SaveRegistry();
+            contribs2.Register(party2);
+            var svc2 = new SaveSystemCore(contribs2, config, bus, state);
+            if (!svc2.Load(0)) return "FAIL: Load returned false";
 
-            int restoredFinalStr = restored.stats.GetFinal(StatType.Strength);
-            int expectedRestoredStr = hero.stats.GetBase(StatType.Strength) + 4; // base + permanent flat only
-
-            bool ok =
-                restored.level == snapshotLevel &&
-                restored.currentHP == snapshotHp &&
-                restored.currentXp == snapshotXp &&
-                restored.InstanceId == snapshotInstanceId &&
-                restoredFinalStr == expectedRestoredStr;
+            var heroPost = party2.GetState("char_hero");
+            var allyPost = party2.GetState(ally);
+            bool ok = heroPost == heroPre && allyPost == allyPre;
 
             string summary =
                 $"Round-trip {(ok ? "PASSED" : "FAILED")}\n" +
-                $"  pre-save: lvl={snapshotLevel} hp={snapshotHp} xp={snapshotXp} finalStr={finalStrPreSave} (with temp rage)\n" +
-                $"  restored: lvl={restored.level} hp={restored.currentHP} xp={restored.currentXp} finalStr={restoredFinalStr} (expected {expectedRestoredStr}; temp rage stripped)\n" +
-                $"  instanceId match={restored.InstanceId == snapshotInstanceId}\n" +
+                $"  pre-save:  hero={heroPre}  {ally}={allyPre}\n" +
+                $"  restored:  hero={heroPost}  {ally}={allyPost}\n" +
                 $"  json size={json.Length} chars; version={ExtractVersion(json)}";
             return summary;
         }
@@ -132,7 +121,7 @@ namespace JRPG.Save.Editor
             // Not an allowed state: MainMenu.
             var state = new GameStateController(bus, new LayeredState(GameMode.MainMenu, OverlayState.None, InputContext.Menu));
             var contribs = new SaveRegistry();
-            contribs.Register(new CharacterHolder(registry));
+            contribs.Register(new PartyService(registry, bus, "char_hero", null));
             var svc = new SaveSystemCore(contribs, config, bus, state);
 
             bool result = svc.Save(0);

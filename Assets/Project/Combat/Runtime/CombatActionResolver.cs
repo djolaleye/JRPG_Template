@@ -95,7 +95,6 @@ namespace JRPG.Combat
                     ApplyEffect(actor, action.effects[i], action, targets, result);
             }
 
-            actor.hasActedThisRound = true;
             return result;
         }
 

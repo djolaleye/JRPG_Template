@@ -5,12 +5,13 @@ using JRPG.Data;
 
 namespace JRPG.Combat
 {
-    /// Active battle snapshot owned by CombatService. May be read by debug tools, but only
-    /// CombatService and its internal collaborators mutate it.
+    /// Active battle snapshot owned by CombatService. 
     public class BattleContext
     {
         public string battleId;
         public string encounterId;
+        // [Planned — Phase 11] Escape rules. Plumbed from EncounterData.escapable but not yet read;
+        // BattleOutcome.Escaped is likewise unreachable until the escape action exists.
         public bool escapable;
 
         public List<CombatantInstance> partyCombatants = new();
@@ -22,8 +23,6 @@ namespace JRPG.Combat
         public CombatPhase phase = CombatPhase.None;
 
         public CombatantInstance currentActor;
-        public CombatActionData pendingAction;
-        public List<CombatantInstance> pendingTargets = new();
 
         public bool isBattleOver;
         public BattleOutcome outcome = BattleOutcome.None;

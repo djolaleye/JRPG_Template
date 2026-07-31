@@ -10,8 +10,9 @@ namespace JRPG.Data
         public bool targetLivingAlliesOnly;
         public bool consumedOnUse = true;
 
-        // TODO(dialogue/world phase): wire this against the real story-flag store.
-        // Currently authored but unevaluated; null/empty always passes.
+        // [Planned — Phase 12] Gate visibility/use on a story flag.
+        //  ContextualFilterEngine has no story access, won't be wired until
+        //  Phase 12 inventory presentation via the reserved `state` seam. Null/empty always passes.
         public string requiredStoryFlag;
     }
 }

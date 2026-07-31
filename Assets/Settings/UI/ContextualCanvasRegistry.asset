@@ -88,3 +88,8 @@ MonoBehaviour:
     mode: 2
     overlay: 2
     input: 3
+  - menuId: system
+    canvasPrefab: {fileID: 8140327527979777517, guid: 79a2c8088f8df9c4cb3bfb98c1ae6aaa, type: 3}
+    mode: 1
+    overlay: 1
+    input: 1

@@ -8,7 +8,7 @@ namespace JRPG.Menu
         {
             RowModel.Simple("party", "Party", new OpenSubmenuAction("party"), Context),
             RowModel.Simple("inventory", "Inventory", new OpenSubmenuAction("inventory"), Context),
-            RowModel.Simple("system", "System", new CloseMenuAction(), Context, enabled: false),
+            RowModel.Simple("system", "System", new OpenSubmenuAction("system"), Context),
             RowModel.Simple("exit", "Exit", new CloseAllAction(), Context),
         };
     }

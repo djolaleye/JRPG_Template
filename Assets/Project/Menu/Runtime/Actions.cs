@@ -30,6 +30,33 @@ namespace JRPG.Menu
     }
 
     /// <summary>
+    /// Writes a save to <see cref="_slot"/> through <see cref="ISaveService"/>. Gated by the service's
+    /// own <c>CanSave</c> — the single authority — so the row disables itself wherever saving is
+    /// disallowed.
+    /// </summary>
+    public sealed class SaveGameAction : IMenuAction
+    {
+        private readonly int _slot;
+        public SaveGameAction(int slot) { _slot = slot; }
+
+        public bool CanExecute(MenuContext c)
+            => c.Services != null && c.Services.TryResolve<ISaveService>(out var save) && save.CanSave();
+
+        public void Execute(MenuContext c)
+        {
+            if (c.Services == null || !c.Services.TryResolve<ISaveService>(out var save)) return;
+            
+            bool ok = save.Save(_slot);
+            Debug.Log($"[JRPG.Menu] Save to slot {_slot}: {(ok ? "OK" : "rejected")}");
+        }
+
+        public string GetDisabledReason(MenuContext c)
+            => c.Services != null && c.Services.TryResolve<ISaveService>(out _)
+                ? "Can't save here."
+                : "No save service.";
+    }
+
+    /// <summary>
     /// Use the item identified by <see cref="MenuContext.SelectedItemId"/> on the active subject
     /// (defaults to the first active party member).
     /// </summary>

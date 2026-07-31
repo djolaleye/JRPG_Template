@@ -12,7 +12,8 @@ namespace JRPG.Save
     }
 
     /// <summary>
-    /// Wire format wrapper for the "player" SaveKey, mirroring the CharactersPayload pattern.
+    /// Wire-format wrapper for the "player" SaveKey: JsonUtility can't serialize a polymorphic
+    /// SaveDataBase, so each contributor wraps its DTO in a sealed per-key payload.
     /// </summary>
     [Serializable]
     public sealed class PlayerPayload : SaveDataBase

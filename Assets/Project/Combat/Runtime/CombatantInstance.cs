@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using JRPG.Characters;
 using JRPG.Data;
 
@@ -31,11 +30,8 @@ namespace JRPG.Combat
 
         public bool isGuarding;
         public float guardDamageMultiplier = 1f;
-        public bool hasActedThisRound;
 
         public bool IsDefeated => currentHP <= 0;
-
-        public List<StatModifier> temporaryModifiers = new();
 
         public int MaxHP => stats.GetFinal(StatType.MaxHP);
         public int MaxMP => stats.GetFinal(StatType.MaxMP);

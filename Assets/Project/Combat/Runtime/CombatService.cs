@@ -29,7 +29,6 @@ namespace JRPG.Combat
 
         private BattleContext _battle;
         private float _battleStartTime;
-        private int _actionsResolved;
 
         public CombatService(IEventBus bus, GameStateController state, DataRegistry data,
             IPartyRuntimeQueries party, IInventoryService inventory)
@@ -110,7 +109,6 @@ namespace JRPG.Combat
             _battle = ctx;
             LastResult = null;
             _battleStartTime = Time.realtimeSinceStartup;
-            _actionsResolved = 0;
 
             ctx.phase = CombatPhase.CalculateTurnOrder;
             _turnOrder.BuildQueue(ctx);
@@ -189,9 +187,6 @@ namespace JRPG.Combat
                 if (_battle.turnQueue.Count == 0)
                 {
                     _battle.roundNumber++;
-
-                    foreach (var c in _battle.AllCombatants()) c.hasActedThisRound = false;
-                    
                     _turnOrder.BuildQueue(_battle);
                     if (_battle.turnQueue.Count == 0) return; // no living combatants
                 }
@@ -295,14 +290,11 @@ namespace JRPG.Combat
                 return ActionResult.Fail(combatantId, actionId, reason);
 
             _battle.phase = CombatPhase.ExecuteAction;
-            _battle.pendingAction = action;
-            _battle.pendingTargets = targets;
 
             var result = _resolver.Resolve(actor, action, targets);
             _battle.phase = CombatPhase.ResolveEffects;
 
             _bus.Publish(new BattleActionResolved(_battle.battleId, actor.combatantId, action.Id, result.success));
-            _actionsResolved++;
 
             EnterTurnTransition(result);
             return result;
@@ -315,9 +307,6 @@ namespace JRPG.Combat
         private void EnterTurnTransition(ActionResult result)
         {
             _battle.phase = CombatPhase.TurnTransition;
-
-            _battle.pendingAction = null;
-            _battle.pendingTargets = null;
 
             // Phase 10 interruption evaluation point: battle triggers are evaluated here before turn advance.
             // Phase 11 status timing (turn-end / round-end ticks) hooks in here too.

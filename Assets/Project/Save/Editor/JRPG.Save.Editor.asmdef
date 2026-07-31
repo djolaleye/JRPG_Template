@@ -6,6 +6,7 @@
         "JRPG.Data",
         "JRPG.Services",
         "JRPG.Characters",
+        "JRPG.Party",
         "JRPG.Save"
     ],
     "includePlatforms": [

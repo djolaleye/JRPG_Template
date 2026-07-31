@@ -12,10 +12,11 @@ using JRPG.Dialogue;
 
 namespace JRPG.Bootstrap
 {
-
-    /// Single composition root. The only place concrete service implementations are wired up.
-    /// Lives in the first-loaded scene.
-
+    /// <summary>
+    /// Root — the only place concrete service implementations are wired up. Lives
+    /// in the first-loaded scene. Services are constructed as locals and published exclusively through
+    /// <see cref="AppContext"/> and the <see cref="ServiceRegistry"/>
+    /// </summary>
     [DefaultExecutionOrder(-10000)]
     public class GameBootstrap : MonoBehaviour
     {
@@ -27,28 +28,20 @@ namespace JRPG.Bootstrap
 
         [Tooltip("Stable id of the protagonist character. Seeded directly to Active and locked to Active/Reserve transitions.")]
         [SerializeField] private string protagonistId = "char_hero";
+
+        [Tooltip("Run bootstrap smoke probe (diagnostic logging of resolved services and state changes).")]
         [SerializeField] private bool logProbeOutput = true;
 
-        public static ServiceRegistry Services { get; private set; }
-        public static DataRegistry Data { get; private set; }
-        public static GameStateController State { get; private set; }
-        public static SaveRegistry SaveContributors { get; private set; }
-        public static CharacterHolder Characters { get; private set; }
-        public static PartyService Party { get; private set; }
-        public static InventoryService Inventory { get; private set; }
-        public static EquipmentManager Equipment { get; private set; }
-        public static MenuService Menus { get; private set; }
-        public static CombatService Combat { get; private set; }
-        public static ProgressionService Progression { get; private set; }
-        public static StoryStateService Story { get; private set; }
-        public static DialogueService Dialogue { get; private set; }
+        [Tooltip("Transition straight into Exploration after boot. This is the interim entry point until " +
+                 "the Phase 12 main-menu New Game flow exists.")]
+        [SerializeField] private bool autoStartExploration = true;
 
         private void Awake()
         {
             var bus = new EventBus();
-            Services = new ServiceRegistry();
-            Services.Register<IEventBus>(bus);
-            Services.Register<IServiceRegistry>(Services);
+            var services = new ServiceRegistry();
+            services.Register<IEventBus>(bus);
+            services.Register<IServiceRegistry>(services);
 
             if (database == null)
             {
@@ -56,10 +49,10 @@ namespace JRPG.Bootstrap
                 return;
             }
 
-            Data = new DataRegistry();
+            var data = new DataRegistry();
             try
             {
-                Data.Build(database);
+                data.Build(database);
             }
             catch (System.Exception e)
             {
@@ -67,89 +60,92 @@ namespace JRPG.Bootstrap
                 return;
             }
 
-            State = new GameStateController(bus, new LayeredState(GameMode.MainMenu, OverlayState.None, InputContext.Menu));
+            var state = new GameStateController(bus, new LayeredState(GameMode.MainMenu, OverlayState.None, InputContext.Menu));
 
             // Publish to JRPG.Core.AppContext so other assemblies can resolve services without a
-            // direct reference on JRPG.Bootstrap (Bootstrap remains the only place that constructs them).
-            AppContext.Initialize(Services, bus, State);
-            AppContext.SetData(Data);
+            // direct reference on JRPG.Bootstrap.
+            AppContext.Initialize(services, bus, state);
+            AppContext.SetData(data);
 
-            SaveContributors = new SaveRegistry();
-            Characters = new CharacterHolder(Data);
-            SaveContributors.Register(Characters);
-            AppContext.SetSaveContributors(SaveContributors);
+            var saveContributors = new SaveRegistry();
+            AppContext.SetSaveContributors(saveContributors);
 
-            // Story-flag store (Phase 9). Doubles as the recruitment-condition evaluator so dialogue
-            // SetStoryFlag commands gate party recruitment, and persists via the save system. Built
-            // before PartyService because PartyService consumes the evaluator.
-            Story = new StoryStateService(bus);
-            Services.Register<IStoryStateService>(Story);
-            Services.Register<IRecruitmentConditionEvaluator>(Story);
-            SaveContributors.Register(Story);
+            // Story-flag store. Doubles as the recruitment-condition evaluator so dialogue
+            // Built before PartyService because PartyService consumes the evaluator.
+            var story = new StoryStateService(bus);
+            services.Register<IStoryStateService>(story);
+            services.Register<IRecruitmentConditionEvaluator>(story);
+            saveContributors.Register(story);
 
-            Party = new PartyService(Data, bus, protagonistId, Story);
-            Services.Register<IPartyService>(Party);
-            SaveContributors.Register(Party);
+            var party = new PartyService(data, bus, protagonistId, story);
+            services.Register<IPartyService>(party);
+            saveContributors.Register(party);
 
             // Registration order matters — inventory before equipment
             // so equipment restore can return prior items to the inventory pool if needed.
-            Inventory = new InventoryService(Data, bus);
-            Services.Register<IInventoryService>(Inventory);
-            SaveContributors.Register(Inventory);
+            var inventory = new InventoryService(data, bus);
+            services.Register<IInventoryService>(inventory);
+            saveContributors.Register(inventory);
 
-            Equipment = new EquipmentManager(Data, Inventory.Container, bus, charId => Party.ResolveInstanceById(charId));
-            Services.Register<IEquipmentService>(Equipment);
-            SaveContributors.Register(Equipment);
+            // EquipmentManager resolves live instances by stable character id via ResolveInstanceById,
+            // which covers active/reserve/guest members and rebuilds a cleared instance on load.
+            var equipment = new EquipmentManager(data, inventory.Container, bus, charId => party.ResolveInstanceById(charId));
+            services.Register<IEquipmentService>(equipment);
+            saveContributors.Register(equipment);
 
-            // Bake starting inventory (idempotent — skips if container has items, e.g. after a save load).
-            StartingInventoryBaker.Bake(startingInventory, Inventory.Container, Data);
+            // Bake starting inventory (idempotent).
+            StartingInventoryBaker.Bake(startingInventory, inventory.Container, data);
 
             // Combat service. Reads the active party (runtime instances) and consumes items via the
-            // lean IInventoryService. Battle state is transient; party HP/MP/SP is committed back to
-            // CharacterRuntimeInstance at battle end, so no separate combat save contributor is needed.
-            Combat = new CombatService(bus, State, Data, Party, Inventory);
-            Services.Register<ICombatService>(Combat);
+            // lean IInventoryService.
+            var combat = new CombatService(bus, state, data, party, inventory);
+            services.Register<ICombatService>(combat);
 
-            // Progression service. Consumes BattleResultPackaged (which now carries the packaged
-            // result directly, so Progression no longer references JRPG.Combat), owns the post-battle
-            // flow, and persists per-character level/XP/points. Registered as a save contributor AFTER
-            // Party so its restore re-stamps level/XP onto the instances PartyService rebuilds at level 1.
-            Progression = new ProgressionService(Data, bus, Party, Party, Inventory);
-            Services.Register<IProgressionService>(Progression);
-            SaveContributors.Register(Progression);
+            // Progression service. Consumes BattleResultPackaged (which carries the packaged result,
+            // owns the post-battle flow, and persists per-character level/XP/points.
+            // Registered as a save contributor after Party to re-stamp level/XP onto the instances PartyService rebuilds at level 1.
+            var progression = new ProgressionService(data, bus, party, party, inventory);
+            services.Register<IProgressionService>(progression);
+            saveContributors.Register(progression);
 
             // Dialogue service. Talks to party/inventory/combat/story through interfaces only, drives
             // the presenter via IMenuService, and hands off StartBattle after dialogue closes.
-            Dialogue = new DialogueService(Services, bus, State, Data, Party, Inventory, Story);
-            Services.Register<IDialogueService>(Dialogue);
+            var dialogue = new DialogueService(services, bus, state, data, party, inventory, story);
+            services.Register<IDialogueService>(dialogue);
 
-            // Menu service.
+            // Menu service
             if (menuRegistry != null && menuParent != null)
             {
-                Menus = new MenuService(menuRegistry, menuParent, State, bus);
-                Services.Register<IMenuService>(Menus);
+                var menus = new MenuService(menuRegistry, menuParent, state, bus);
+                services.Register<IMenuService>(menus);
             }
             else
             {
                 Debug.LogWarning("[JRPG.Bootstrap] MenuRegistry or menuParent missing — IMenuService not registered.", this);
             }
 
+            // Save service (only if a config is assigned).
             if (saveConfig == null)
             {
                 Debug.LogWarning("[JRPG.Bootstrap] SaveFileConfig is missing; save service not registered.", this);
             }
             else
             {
-                var saveService = new SaveSystemCore(SaveContributors, saveConfig, bus, State);
-                Services.Register<ISaveService>(saveService);
+                var saveService = new SaveSystemCore(saveContributors, saveConfig, bus, state);
+                services.Register<ISaveService>(saveService);
             }
 
+            // Diagnostic only.
             if (logProbeOutput)
             {
-                var probe = new BootstrapSmokeProbe(bus, Services, Data);
+                var probe = new BootstrapSmokeProbe(bus, services, data);
                 probe.Run();
-                State.SetState(new LayeredState(GameMode.Exploration, OverlayState.None, InputContext.Exploration));
             }
+
+            // Interim entry point: drop into Exploration so gameplay (and saving) is reachable. The
+            // Phase 12 main-menu New Game flow will replace this with an explicit session-start path.
+            if (autoStartExploration)
+                state.SetState(new LayeredState(GameMode.Exploration, OverlayState.None, InputContext.Exploration));
         }
     }
 }

@@ -9,10 +9,12 @@ namespace JRPG.Data
         public EquipmentSlot slot = EquipmentSlot.MeleeWeapon;
         public List<StatModifier> statModifiers = new();
         public List<string> allowedCharacterIds = new();
-        public List<string> allowedClassTags = new();
         [Min(1)] public int requiredLevel = 1;
 
-        // Placeholder lists honored when the relevant systems exist.
+        // [Planned — Phase 11] Combat integration for these is not built yet; no system reads them.
+        // (statusImmunities is typed List<StatType> — TEMP, to be revisited when the
+        // status model lands; a status immunity should key off a status id, not a stat.)
+        public List<string> allowedClassTags = new();
         public List<string> passiveEffectIds = new();
         public List<StatType> statusImmunities = new();
         public List<string> actionUnlockIds = new();

@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using JRPG.Core;
@@ -12,7 +11,8 @@ namespace JRPG.Save
     /// CanSave gates writes against the layered game state.
     public sealed class SaveSystemCore : ISaveService
     {
-        public const int CurrentSaveVersion = 1;
+        // v2: removed the always-empty "characters" contributor (superseded by "party"/"progression").
+        public const int CurrentSaveVersion = 2;
 
         private readonly SaveRegistry _registry;
         private readonly SaveFileConfig _config;
@@ -28,26 +28,35 @@ namespace JRPG.Save
         }
 
 
-        /// Saving is allowed only in safe states: Exploration + None overlay, with Exploration or Menu input.
+        /// <summary>
+        /// The single authority on save eligibility. Allowed only from exploration, in one of two
+        /// shapes:
+        ///   Exploration + None      + (Exploration | Menu)   — overworld / quicksave / a plain menu
+        ///   Exploration + PauseMenu + Menu                   — the pause menu's Save route
+        /// </summary>
         public bool CanSave()
         {
-            var currentState = _state.Current;
+            var s = _state.Current;
+            if (s.Mode != GameMode.Exploration) return false;
 
-            if (currentState.Mode != GameMode.Exploration) return false;
-            if (currentState.Overlay != OverlayState.None) return false;
+            if (s.Overlay == OverlayState.None)
+                return s.Input == InputContext.Exploration || s.Input == InputContext.Menu;
 
-            return currentState.Input == InputContext.Exploration || currentState.Input == InputContext.Menu;
+            if (s.Overlay == OverlayState.PauseMenu)
+                return s.Input == InputContext.Menu;
+
+            return false;
         }
 
         public bool Save(int slot)
         {
-            _bus.Publish(new SaveRequested(slot));
-
             if (!CanSave())
             {
                 Debug.LogWarning($"[JRPG.Save] Save(slot {slot}) rejected: not in an allowed state (current={_state.Current}).");
                 return false;
             }
+
+            _bus.Publish(new SaveRequested(slot));
 
             var dto = new GameSaveData { version = CurrentSaveVersion };
             foreach (var kv in _registry.Contributors)
@@ -127,9 +136,9 @@ namespace JRPG.Save
                     return false;
                 }
             }
-            if (dto.characters == null)
+            if (dto.party == null)
             {
-                Debug.LogError("[JRPG.Save] Load: 'characters' list is null.");
+                Debug.LogError("[JRPG.Save] Load: 'party' payload is null.");
                 return false;
             }
 
@@ -148,14 +157,37 @@ namespace JRPG.Save
             return true;
         }
 
-        /// Minimal forward-only migration hook. Override per phase as the schema evolves.
-        /// Returns true if the dto is upgraded to CurrentSaveVersion (or already compatible).
+        /// <summary>
+        /// Sequential forward-only migrator: applies one step per version until the dto reaches
+        /// <see cref="CurrentSaveVersion"/>. Each step transforms in place; an unknown step fails the
+        /// load rather than silently loading mismatched data. Add a case per future schema bump.
+        /// </summary>
         private bool Migrate(GameSaveData dto, int fromVersion)
         {
-            Debug.Log($"[JRPG.Save] Migrate: from v{fromVersion} to v{CurrentSaveVersion} (no-op stub).");
+            int v = fromVersion;
+            while (v < CurrentSaveVersion)
+            {
+                switch (v)
+                {
+                    case 1:
+                        MigrateV1ToV2(dto);
+                        break;
+                    default:
+                        Debug.LogError($"[JRPG.Save] No migration step defined from v{v}.");
+                        return false;
+                }
+                v++;
+            }
             dto.version = CurrentSaveVersion;
+            Debug.Log($"[JRPG.Save] Migrated save from v{fromVersion} to v{CurrentSaveVersion}.");
             return true;
         }
+
+        /// v1 → v2:  "characters" contributor was removed (it was always empty, superseded by the
+        /// party/progression payloads). JsonUtility already drops the now-unknown field on read, so
+        /// there is no data to transform. Step remains explicit so version bump is auditable
+        /// and sequential pipeline is extended.
+        private static void MigrateV1ToV2(GameSaveData dto) { }
 
         private string SlotPath(int slot)
         {
@@ -167,15 +199,11 @@ namespace JRPG.Save
         }
 
         // Slot a contributor's CaptureState() result into the right GameSaveData field by SaveKey.
-        // Phase 3 only knows about the "characters" key; later phases extend this.
+        // Each registered contributor's SaveKey needs a case here (and a matching GameSaveData field).
         private static void ApplyPayloadByKey(GameSaveData dto, string key, SaveDataBase payload)
         {
             switch (key)
             {
-                case "characters":
-                    if (payload is CharactersPayload cp) dto.characters = cp.entries;
-                    else Debug.LogError($"[JRPG.Save] Unexpected payload type for key 'characters': {payload?.GetType().Name}");
-                    break;
                 case "player":
                     if (payload is PlayerPayload pp) dto.player = pp.data;
                     else Debug.LogError($"[JRPG.Save] Unexpected payload type for key 'player': {payload?.GetType().Name}");
@@ -211,8 +239,6 @@ namespace JRPG.Save
         {
             switch (key)
             {
-                case "characters":
-                    return new CharactersPayload { version = dto.version, entries = dto.characters };
                 case "player":
                     return new PlayerPayload { version = dto.version, data = dto.player };
                 case "party":
@@ -233,14 +259,5 @@ namespace JRPG.Save
                     return null;
             }
         }
-    }
-
-
-    /// Wire format wrapper so a contributor (CharacterHolder) can hand a list of CharacterSaveData
-    /// to the save core via the non-generic ISaveable contract.
-    [Serializable]
-    public sealed class CharactersPayload : SaveDataBase
-    {
-        public List<JRPG.Characters.CharacterSaveData> entries = new();
     }
 }
