@@ -36,6 +36,13 @@ namespace JRPG.Combat
         public int hpBefore;
         public int hpAfter;
         public bool wasDefeated;
+        public bool missed;
+        public bool critical;
+        public bool absorbed;
+        public bool immune;
+        public JRPG.Data.Element element;
+        /// Set by status/buff executors so UI and tests can report what landed.
+        public string statusId;
     }
 
     /// Lightweight non-mutating prediction of an action's effects, used by debug tools and (later) UI.

@@ -44,6 +44,9 @@ namespace JRPG.Combat
 
         public bool IsInBattle => _battle != null && !_battle.isBattleOver;
         public BattleContext CurrentBattle => _battle;
+        /// Exposed so later phases (statuses, elements, passives) can register executors and swap
+        /// damage-pipeline stages without reaching through CombatService for every rule.
+        public CombatActionResolver Resolver => _resolver;
         public BattleResultData LastResult { get; private set; }
         public CombatSequenceInterrupter Interrupter { get; set; }
 
@@ -292,7 +295,7 @@ namespace JRPG.Combat
 
             _battle.phase = CombatPhase.ExecuteAction;
 
-            var result = _resolver.Resolve(actor, action, targets);
+            var result = _resolver.Resolve(actor, action, targets, _battle);
             _battle.phase = CombatPhase.ResolveEffects;
 
             _bus.Publish(new BattleActionResolved(_battle.battleId, actor.combatantId, action.Id, result.success));

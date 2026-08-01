@@ -64,9 +64,9 @@
   <Project Path="glTFast.Documentation.Examples.csproj" />
   <Project Path="JRPG.Progression.UI.csproj" />
   <Project Path="Unity.AI.Generators.UI.AIDropdownIntegrations.csproj" />
+  <Project Path="JRPG.Data.csproj" />
   <Project Path="Unity.InputSystem.ForUI.csproj" />
   <Project Path="Unity.AI.Generators.Asset.csproj" />
-  <Project Path="JRPG.Data.csproj" />
   <Project Path="Unity.AI.Navigation.csproj" />
   <Project Path="JRPG.Dialogue.Editor.csproj" />
   <Project Path="Unity.AI.Toolkit.Asset.csproj" />

@@ -13,12 +13,29 @@ namespace JRPG.Combat
     {
         private readonly IInventoryService _inventory;
         private readonly DataRegistry _data;
+        private readonly EffectExecutorRegistry _executors;
+        private readonly DamagePipeline _damage;
+        private readonly System.Random _rng;
+        private readonly EffectContext _ctx = new();
 
-        public CombatActionResolver(IInventoryService inventory, DataRegistry data)
+        /// Effect execution and damage calculation are injectable so battles stay deterministic and
+        /// individual rules can be swapped without touching this class.
+        public CombatActionResolver(IInventoryService inventory, DataRegistry data,
+            EffectExecutorRegistry executors = null, DamagePipeline damage = null, System.Random rng = null)
         {
             _inventory = inventory;
             _data = data;
+            _executors = executors ?? EffectExecutorRegistry.CreateStandard();
+            _damage = damage ?? DamagePipelineFactory.CreateStandard();
+            _rng = rng ?? new System.Random(DefaultCombatSeed);
         }
+
+        /// Fixed default seed for reproducible combat - unless a
+        /// caller supplies its own Random.
+        public const int DefaultCombatSeed = 20;
+
+        public EffectExecutorRegistry Executors => _executors;
+        public DamagePipeline Damage => _damage;
 
         public bool CanPayCosts(CombatantInstance user, CombatActionData action, out string reason)
         {
@@ -73,9 +90,10 @@ namespace JRPG.Combat
             return true;
         }
 
-        /// Validate → pay costs → apply effects. Targets must already be resolved/validated by the
-        /// caller (CombatService) against the action's TargetRule.
-        public ActionResult Resolve(CombatantInstance actor, CombatActionData action, List<CombatantInstance> targets)
+        /// Validate → pay costs → dispatch effects to their executors. Targets must already be
+        /// resolved/validated by the caller (CombatService) against the action's TargetRule.
+        public ActionResult Resolve(CombatantInstance actor, CombatActionData action,
+            List<CombatantInstance> targets, BattleContext battle = null)
         {
             var result = new ActionResult
             {
@@ -92,7 +110,25 @@ namespace JRPG.Combat
             if (action.effects != null)
             {
                 for (int i = 0; i < action.effects.Count; i++)
-                    ApplyEffect(actor, action.effects[i], action, targets, result);
+                {
+                    var effect = action.effects[i];
+
+                    _ctx.actor = actor;
+                    _ctx.effect = effect;
+                    _ctx.action = action;
+                    _ctx.targets = targets;
+                    _ctx.result = result;
+                    _ctx.battle = battle;
+                    _ctx.data = _data;
+                    _ctx.inventory = _inventory;
+                    _ctx.damage = _damage;
+                    _ctx.rng = _rng;
+
+                    // Chance-gated effects (0 means "always").
+                    if (!_ctx.Roll(effect.chance)) continue;
+
+                    _executors.Execute(_ctx);
+                }
             }
 
             return result;
@@ -123,83 +159,5 @@ namespace JRPG.Combat
             }
         }
 
-        private static void ApplyEffect(CombatantInstance actor, CombatEffect effect, CombatActionData action,
-            List<CombatantInstance> targets, ActionResult result)
-        {
-            switch (effect.type)
-            {
-                case CombatEffectType.Guard:
-                    actor.isGuarding = true;
-                    actor.guardDamageMultiplier = effect.guardMultiplier <= 0f ? 0.5f : effect.guardMultiplier;
-                    result.effects.Add(new EffectResult
-                    {
-                        targetCombatantId = actor.combatantId,
-                        effectType = nameof(CombatEffectType.Guard),
-                        amount = 0,
-                        hpBefore = actor.currentHP,
-                        hpAfter = actor.currentHP,
-                    });
-                    break;
-
-                case CombatEffectType.Damage:
-                    for (int i = 0; i < targets.Count; i++)
-                        ApplyDamage(actor, effect, targets[i], result);
-                    break;
-
-                case CombatEffectType.Heal:
-                    for (int i = 0; i < targets.Count; i++)
-                        ApplyHeal(actor, effect, targets[i], result);
-                    break;
-            }
-        }
-
-        private static void ApplyDamage(CombatantInstance actor, CombatEffect effect, CombatantInstance target, ActionResult result)
-        {
-            float raw = effect.basePower
-                        + actor.stats.GetFinal(effect.attackStat) * effect.statScale
-                        - target.stats.GetFinal(effect.defenseStat) * 0.5f;
-
-            int final = Mathf.Max(1, Mathf.RoundToInt(raw));
-
-            if (target.isGuarding)
-                final = Mathf.Max(1, Mathf.RoundToInt(final * target.guardDamageMultiplier));
-
-            int before = target.currentHP;
-            target.currentHP = Mathf.Max(0, target.currentHP - final);
-
-            int after = target.currentHP;
-            bool defeated = after <= 0;
-
-            result.effects.Add(new EffectResult
-            {
-                targetCombatantId = target.combatantId,
-                effectType = nameof(CombatEffectType.Damage),
-                amount = final,
-                hpBefore = before,
-                hpAfter = after,
-                wasDefeated = defeated,
-            });
-
-            if (defeated && !result.defeatedCombatantIds.Contains(target.combatantId))
-                result.defeatedCombatantIds.Add(target.combatantId);
-        }
-
-        private static void ApplyHeal(CombatantInstance actor, CombatEffect effect, CombatantInstance target, ActionResult result)
-        {
-            int amount = Mathf.RoundToInt(effect.basePower + actor.stats.GetFinal(effect.scalingStat) * effect.statScale);
-            
-            int before = target.currentHP;
-            target.currentHP = Mathf.Min(target.currentHP + amount, target.MaxHP);
-            int after = target.currentHP;
-
-            result.effects.Add(new EffectResult
-            {
-                targetCombatantId = target.combatantId,
-                effectType = nameof(CombatEffectType.Heal),
-                amount = after - before,
-                hpBefore = before,
-                hpAfter = after,
-            });
-        }
     }
 }

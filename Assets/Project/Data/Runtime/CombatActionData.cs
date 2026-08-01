@@ -16,5 +16,11 @@ namespace JRPG.Data
 
         public bool usableByPlayers = true;
         public bool usableByEnemies = true;
+
+        public Element element = Element.Physical;
+        [Range(0f, 1f)] public float accuracy = 1f;
+
+        [Tooltip("Turns this action is unavailable to the same combatant after use.")]
+        [Min(0)] public int cooldownTurns;
     }
 }
