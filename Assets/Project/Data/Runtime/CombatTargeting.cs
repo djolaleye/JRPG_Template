@@ -6,7 +6,8 @@ namespace JRPG.Data
     {
         Self,
         Allies,
-        Enemies
+        Enemies,
+        All
     }
 
     public enum TargetSelectionMode

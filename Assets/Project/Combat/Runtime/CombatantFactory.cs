@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using JRPG.Characters;
 using JRPG.Data;
 
@@ -7,6 +8,13 @@ namespace JRPG.Combat
     /// Kept separate from the state machine so conversion rules are inspectable and testable.
     public sealed class CombatantFactory
     {
+        private readonly DataRegistry _data;
+
+        public CombatantFactory(DataRegistry data = null)
+        {
+            _data = data;
+        }
+
         /// Party combatant. Clones the character's stat block so temporary combat modifiers cannot
         /// leak into exploration state. Current HP/MP/SP are copied from the live instance and are
         /// committed back at battle end via sourceRuntimeId.
@@ -15,7 +23,7 @@ namespace JRPG.Combat
             var stats = character.stats.Clone();
             stats.Recalculate();
 
-            return new CombatantInstance
+            var combatant = new CombatantInstance
             {
                 combatantId = $"party_{character.SourceDataId}",
                 sourceDataId = character.SourceDataId,
@@ -27,6 +35,9 @@ namespace JRPG.Combat
                 currentMP = character.currentMP,
                 currentSP = character.currentSP,
             };
+
+            BuildCharacterProfile(combatant, character);
+            return combatant;
         }
 
         /// Enemy combatant. Battle-local and discarded when combat ends; resources start full.
@@ -40,7 +51,7 @@ namespace JRPG.Combat
             }
             stats.Recalculate();
 
-            return new CombatantInstance
+            var combatant = new CombatantInstance
             {
                 combatantId = $"enemy_{enemy.Id}_{enemyIndex}",
                 sourceDataId = enemy.Id,
@@ -52,6 +63,58 @@ namespace JRPG.Combat
                 currentMP = stats.GetFinal(StatType.MaxMP),
                 currentSP = stats.GetFinal(StatType.MaxSP),
             };
+
+            combatant.profile.AddAffinities(enemy.elementAffinities);
+
+            AddRange(combatant.profile.statusImmunities, enemy.statusImmunityIds);
+            AddRange(combatant.profile.passiveEffectIds, enemy.passiveEffectIds);
+
+            return combatant;
+        }
+
+        /// Innate character traits + everything currently equipped, merged once.
+        private void BuildCharacterProfile(CombatantInstance combatant, CharacterRuntimeInstance character)
+        {
+            if (_data == null) return;
+
+            if (_data.TryGet<CharacterData>(character.SourceDataId, out var charData) && charData != null)
+            {
+                combatant.profile.AddAffinities(charData.elementAffinities);
+
+                AddRange(combatant.profile.statusImmunities, charData.statusImmunityIds);
+                AddRange(combatant.profile.passiveEffectIds, charData.passiveEffectIds);
+            }
+
+            var equipped = character.equippedItemIds;
+            if (equipped == null) return;
+
+            for (int i = 0; i < equipped.Count; i++)
+            {
+                if (string.IsNullOrEmpty(equipped[i])) continue;
+                if (!_data.TryGet<EquipmentData>(equipped[i], out var equip) || equip == null) continue;
+
+                combatant.profile.AddAffinities(equip.elementAffinities);
+                
+                AddRange(combatant.profile.statusImmunities, equip.statusImmunityIds);
+                AddRange(combatant.profile.passiveEffectIds, equip.passiveEffectIds);
+                AddRange(combatant.profile.unlockedActionIds, equip.actionUnlockIds);
+            }
+        }
+
+        private static void AddRange(HashSet<string> set, List<string> values)
+        {
+            if (values == null) return;
+
+            for (int i = 0; i < values.Count; i++)
+                if (!string.IsNullOrEmpty(values[i])) set.Add(values[i]);
+        }
+
+        private static void AddRange(List<string> list, List<string> values)
+        {
+            if (values == null) return;
+
+            for (int i = 0; i < values.Count; i++)
+                if (!string.IsNullOrEmpty(values[i]) && !list.Contains(values[i])) list.Add(values[i]);
         }
     }
 }

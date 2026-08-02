@@ -19,7 +19,7 @@ namespace JRPG.Combat
         private readonly IPartyRuntimeQueries _party;
         private readonly IInventoryService _inventory;
 
-        private readonly CombatantFactory _factory = new();
+        private readonly CombatantFactory _factory;
         private readonly TurnOrderService _turnOrder = new();
         private readonly TargetingSystem _targeting = new();
         private readonly CombatActionResolver _resolver;
@@ -38,7 +38,9 @@ namespace JRPG.Combat
             _data = data;
             _party = party;
             _inventory = inventory;
-            _resolver = new CombatActionResolver(inventory, data);
+            _factory = new CombatantFactory(data);
+            _resolver = new CombatActionResolver(inventory, data,
+                damage: DamagePipelineFactory.CreateStandard(data?.ElementMatrix));
             _characterFactory = new RuntimeCharacterFactory(data);
         }
 
@@ -205,6 +207,11 @@ namespace JRPG.Combat
                 actor.isGuarding = false;
                 actor.guardDamageMultiplier = 1f;
 
+                // Status timing: turn start.
+                _resolver.Status.Process(StatusTiming.TurnStart, actor);
+
+                if (actor.IsDefeated) continue;
+
                 _battle.phase = actor.team == CombatantTeam.Party ? CombatPhase.AwaitPlayerInput : CombatPhase.EnemyAI;
                 _bus.Publish(new TurnStarted(actor.combatantId));
                 return;
@@ -295,8 +302,16 @@ namespace JRPG.Combat
 
             _battle.phase = CombatPhase.ExecuteAction;
 
+            // Status timing: before/after the action resolves.
+            _resolver.Status.Process(StatusTiming.BeforeAction, actor);
+
             var result = _resolver.Resolve(actor, action, targets, _battle);
             _battle.phase = CombatPhase.ResolveEffects;
+
+            for (int i = 0; i < targets.Count; i++)
+                if (targets[i] != null && targets[i] != actor) _resolver.Status.OnDamaged(targets[i], result);
+
+            _resolver.Status.Process(StatusTiming.AfterAction, actor, result);
 
             _bus.Publish(new BattleActionResolved(_battle.battleId, actor.combatantId, action.Id, result.success));
 
@@ -325,9 +340,15 @@ namespace JRPG.Combat
             CompleteTurnTransition(result);
         }
 
-        /// The deferred tail of a turn transition: win/loss evaluation then advance-or-end.
+        /// The deferred tail of a turn transition: status ticks, win/loss evaluation, then advance-or-end.
         private void CompleteTurnTransition(ActionResult result)
         {
+            var actedCombatant = _battle.currentActor;
+            if (actedCombatant != null) _resolver.Status.Process(StatusTiming.TurnEnd, actedCombatant, result);
+
+            if (_battle.turnQueue.Count == 0)
+                _resolver.Status.ProcessAll(StatusTiming.RoundEnd, _battle, result);
+
             _battle.phase = CombatPhase.CheckWinLoss;
 
             var outcome = _outcome.Evaluate(_battle);
@@ -381,6 +402,9 @@ namespace JRPG.Combat
             bool usable = actor.team == CombatantTeam.Party ? action.usableByPlayers : action.usableByEnemies;
             if (!usable) { reason = "Action not available to this combatant."; return false; }
 
+            // Statuses may forbid this action entirely.
+            if (_resolver.Status.IsActionBlocked(actor, action, out reason)) return false;
+
             if (!_resolver.CanPayCosts(actor, action, out reason)) return false;
 
             // Resolve and validate targets against the action's TargetRule.
@@ -420,6 +444,10 @@ namespace JRPG.Combat
             _battle.phase = CombatPhase.EndBattle;
             _battle.isBattleOver = true;
             _battle.outcome = outcome;
+
+            // Status timing: last chance for on-battle-end statuses, then every status is cleared.
+            _resolver.Status.ProcessAll(StatusTiming.OnBattleEnd, _battle);
+            _resolver.Status.ClearAll(_battle);
 
             CommitPartyResources();
 

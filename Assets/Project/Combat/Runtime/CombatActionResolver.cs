@@ -14,6 +14,7 @@ namespace JRPG.Combat
         private readonly IInventoryService _inventory;
         private readonly DataRegistry _data;
         private readonly EffectExecutorRegistry _executors;
+        private readonly StatusProcessor _status;
         private readonly DamagePipeline _damage;
         private readonly System.Random _rng;
         private readonly EffectContext _ctx = new();
@@ -21,14 +22,17 @@ namespace JRPG.Combat
         /// Effect execution and damage calculation are injectable so battles stay deterministic and
         /// individual rules can be swapped without touching this class.
         public CombatActionResolver(IInventoryService inventory, DataRegistry data,
-            EffectExecutorRegistry executors = null, DamagePipeline damage = null, System.Random rng = null)
+            EffectExecutorRegistry executors = null, DamagePipeline damage = null, System.Random rng = null,
+            StatusProcessor status = null)
         {
             _inventory = inventory;
             _data = data;
             _executors = executors ?? EffectExecutorRegistry.CreateStandard();
-            _damage = damage ?? DamagePipelineFactory.CreateStandard();
+            _status = status ?? new StatusProcessor(data);
+            _damage = damage ?? DamagePipelineFactory.CreateStandard(data?.ElementMatrix, _status);
             _rng = rng ?? new System.Random(DefaultCombatSeed);
         }
+
 
         /// Fixed default seed for reproducible combat - unless a
         /// caller supplies its own Random.
@@ -36,6 +40,7 @@ namespace JRPG.Combat
 
         public EffectExecutorRegistry Executors => _executors;
         public DamagePipeline Damage => _damage;
+        public StatusProcessor Status => _status;
 
         public bool CanPayCosts(CombatantInstance user, CombatActionData action, out string reason)
         {
@@ -123,9 +128,10 @@ namespace JRPG.Combat
                     _ctx.inventory = _inventory;
                     _ctx.damage = _damage;
                     _ctx.rng = _rng;
+                    _ctx.status = _status;
 
                     // Chance-gated effects (0 means "always").
-                    if (!_ctx.Roll(effect.chance)) continue;
+                    if (!_ctx.Roll(effect.executionChance)) continue;
 
                     _executors.Execute(_ctx);
                 }

@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5de24234bbfc6f24d97ab62cc493692c, type: 3}
-  m_Name: skill_fire_01
+  m_Name: skill_water_01
   m_EditorClassIdentifier: JRPG.Data::JRPG.Data.CombatActionData
-  id: skill_fire_01
-  displayName: Fire
+  id: skill_water_01
+  displayName: Water Gun
   description: 
   category: 3
   targetRule:
@@ -22,17 +22,30 @@ MonoBehaviour:
     requireLiving: 1
     allowSelf: 0
   costs:
-  - type: 1
-    costAmount: 4
+  - type: 2
+    costAmount: 5
     itemId: 
     quantity: 0
   effects:
   - type: 0
-    basePower: 8
-    statScale: 1
+    basePower: 6
+    statScale: 0
     attackStat: 4
     defenseStat: 6
+    element: 7
     scalingStat: 0
     guardMultiplier: 0
+    chance: 0
+    statusId: 
+    duration: 0
+    stacks: 0
+    buffStat: 0
+    buffModifierType: 0
+    buffValue: 0
+    resourceType: 0
+    resourceDelta: 0
+    stringArg: 
+    boolArg: 0
   usableByPlayers: 1
-  usableByEnemies: 0
+  usableByEnemies: 1
+  cooldownTurns: 0

@@ -20,5 +20,9 @@ namespace JRPG.Data
         /// </summary>
         [Tooltip("Story-flag / event IDs that must all be satisfied before this character can become Recruitable.")]
         public List<string> recruitmentFlagIds = new();
+
+        public List<ElementAffinityEntry> elementAffinities = new();
+        public List<string> statusImmunityIds = new();
+        public List<string> passiveEffectIds = new();
     }
 }

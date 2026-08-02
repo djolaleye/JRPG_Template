@@ -37,7 +37,13 @@ namespace JRPG.Combat
             return new EffectExecutorRegistry()
                 .Register(new DamageEffectExecutor())
                 .Register(new HealEffectExecutor())
-                .Register(new GuardEffectExecutor());
+                .Register(new ReviveEffectExecutor())
+                .Register(new GuardEffectExecutor())
+                .Register(new ApplyStatusEffectExecutor())
+                .Register(new RemoveStatusEffectExecutor())
+                .Register(new BuffStatEffectExecutor(debuff: false))
+                .Register(new BuffStatEffectExecutor(debuff: true))
+                .Register(new ResourceChangeEffectExecutor());
         }
     }
 }

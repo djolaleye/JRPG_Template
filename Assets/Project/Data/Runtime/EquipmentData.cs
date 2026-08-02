@@ -19,6 +19,12 @@ namespace JRPG.Data
         public List<StatType> statusImmunities = new();
         public List<string> actionUnlockIds = new();
 
+        [Tooltip("Elemental responses granted by wearing this")]
+        public List<ElementAffinityEntry> elementAffinities = new();
+
+        [Tooltip("Statuses this equipment makes the wearer immune to.")]
+        public List<string> statusImmunityIds = new();
+
 #if UNITY_EDITOR
         protected override void OnValidate()
         {

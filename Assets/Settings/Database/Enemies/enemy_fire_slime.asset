@@ -10,41 +10,45 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0333d16c31ddca04c912443e88d0c057, type: 3}
-  m_Name: enemy_slime
+  m_Name: enemy_fire_slime
   m_EditorClassIdentifier: JRPG.Data::JRPG.Data.EnemyData
-  id: enemy_slime
-  displayName: Slime
-  description: Sample low-level enemy.
+  id: enemy_fire_slime
+  displayName: Fire Slime
+  description: Sample low-level elemental enemy.
   baseStats:
   - stat: 0
-    value: 18
+    value: 20
   - stat: 1
-    value: 0
+    value: 5
   - stat: 2
-    value: 0
+    value: 3
   - stat: 3
-    value: 4
+    value: 3
   - stat: 4
-    value: 0
+    value: 3
   - stat: 5
-    value: 3
+    value: 4
   - stat: 6
-    value: 2
-  - stat: 7
     value: 3
+  - stat: 7
+    value: 4
   - stat: 8
     value: 2
   - stat: 9
     value: 1
-  level: 1
-  baseXpReward: 55
+  level: 3
+  baseXpReward: 70
   baseCurrencyReward: 15
   possibleDrops:
-  - itemId: item_potion_small
-    dropChance: 1
+  - itemId: item_bomb_fire
+    dropChance: 0.6
     minQuantity: 1
     maxQuantity: 1
-  elementAffinities: []
+  elementAffinities:
+  - element: 2
+    affinity: 2
+  - element: 7
+    affinity: 1
   statusImmunityIds: []
   passiveEffectIds: []
   actionProfileId: 

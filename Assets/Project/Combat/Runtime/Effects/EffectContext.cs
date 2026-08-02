@@ -23,14 +23,15 @@ namespace JRPG.Combat
         public IInventoryService inventory;
         public DamagePipeline damage;
         public System.Random rng;
+        public StatusProcessor status;
 
         /// Deterministic roll helper for chance-gated effects.
-        public bool Roll(float chance)
+        public bool Roll(float executionChance)
         {
-            if (chance >= 1f) return true;
-            if (chance <= 0f) return true;   // unauthored (0) means "always"
+            if (executionChance >= 1f) return true;
+            if (executionChance <= 0f) return true;
 
-            return rng == null || rng.NextDouble() < chance;
+            return rng == null || rng.NextDouble() < executionChance;
         }
     }
 }

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using JRPG.Characters;
 using JRPG.Data;
 
@@ -30,6 +31,11 @@ namespace JRPG.Combat
 
         public bool isGuarding;
         public float guardDamageMultiplier = 1f;
+
+        /// Snapshot of elemental affinities / immunities / passives
+        public CombatProfile profile = new();
+
+        public readonly List<StatusEffectInstance> activeStatuses = new();
 
         public bool IsDefeated => currentHP <= 0;
 

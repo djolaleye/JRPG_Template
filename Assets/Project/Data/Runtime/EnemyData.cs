@@ -17,7 +17,13 @@ namespace JRPG.Data
 
         /// Item drops rolled once per defeated instance of this enemy (progression reward resolver.) 
         public List<ItemDropEntry> possibleDrops = new();
-        // Later: actionProfileId.
+
+        public List<ElementAffinityEntry> elementAffinities = new();
+        public List<string> statusImmunityIds = new();
+        public List<string> passiveEffectIds = new();
+
+        [Tooltip("EnemyActionProfileData id driving enemy AI.")]
+        public string actionProfileId;
     }
 
     [Serializable]

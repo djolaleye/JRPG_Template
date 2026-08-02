@@ -18,6 +18,7 @@ MonoBehaviour:
   enemyIds:
   - enemy_slime
   - enemy_slime
+  - enemy_fire_slime
   battleSceneId: 
   escapable: 0
   battleTriggerIds:

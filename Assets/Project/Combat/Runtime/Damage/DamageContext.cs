@@ -42,7 +42,7 @@ namespace JRPG.Combat
             critical = false;
             absorbed = false;
             immune = false;
-            element = action != null ? action.element : Element.Physical;
+            element = effect.element;
         }
     }
 }

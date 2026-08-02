@@ -1,28 +1,40 @@
+using JRPG.Data;
+
 namespace JRPG.Combat
 {
     /// Builds the standard damage pipeline. Central place for the full stage list.
     ///
-    /// Stages marked "placeholder" are currently inert, holding their slot in the ordering; later sub-phases
-    /// swap them so ordering never has to be re-derived:
-    ///   EquipmentStage → 11.4, AccuracyEvasionStage → 11.3+, ElementalStage → 11.2,
-    ///   CriticalStage → 11.3+, StatusModifierStage → 11.3, PassiveModifierStage → 11.4.
+    /// Stages marked "placeholder" are currently inert, holding their slot in the ordering.
+    /// TODO:
+    ///   EquipmentStage → 11.4, PassiveModifierStage → 11.4.
     public static class DamagePipelineFactory
     {
-        public static DamagePipeline CreateStandard()
+        /// <param name="elementMatrix">
+        /// Elemental table (DataRegistry.ElementMatrix). When null the elemental slot stays a
+        /// no-op, so combat still runs on a database with no matrix authored.
+        /// </param>
+        /// <param name="status">
+        /// Status authority driving accuracy/crit/damage modifiers. When null those stages are inert.
+        /// </param>
+        /// <param name="tuning">Stat-contribution knobs; defaults are zero-impact (see CombatTuning).</param>
+        public static DamagePipeline CreateStandard(ElementInteractionMatrix elementMatrix = null,
+            StatusProcessor status = null, CombatTuning tuning = null)
         {
+            tuning ??= CombatTuning.Default;
+
             return new DamagePipeline()
-                .Add(new BasePowerStage())        // 1
-                .Add(new AttackerStatStage())     // 2
-                .Add(new EquipmentStage())        // 3  (placeholder)
-                .Add(new AccuracyEvasionStage())  // 4  (placeholder)
-                .Add(new DefenseStage())          // 5
-                .Add(new ElementalStage())        // 6  (placeholder)
-                .Add(new CriticalStage())         // 7  (placeholder)
-                .Add(new StatusModifierStage())   // 8  (placeholder)
-                .Add(new PassiveModifierStage())  // 9  (placeholder)
-                .Add(new DifficultyStage())       // 10 (placeholder)
-                .Add(new GuardStage())            // 11
-                .Add(new ClampRoundStage());      // 12
+                .Add(new BasePowerStage())                          // 1
+                .Add(new AttackerStatStage())                       // 2
+                .Add(new EquipmentStage())                          // 3  (placeholder)
+                .Add(new AccuracyEvasionStage(status, tuning))      // 4
+                .Add(new DefenseStage())                            // 5
+                .Add(new ElementalStage(elementMatrix))             // 6
+                .Add(new CriticalStage(status, tuning))             // 7
+                .Add(new StatusModifierStage(status))               // 8
+                .Add(new PassiveModifierStage())                    // 9  (placeholder)
+                .Add(new DifficultyStage())                         // 10 (placeholder)
+                .Add(new GuardStage())                              // 11
+                .Add(new ClampRoundStage());                        // 12
         }
     }
 }

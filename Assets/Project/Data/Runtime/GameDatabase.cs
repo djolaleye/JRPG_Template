@@ -22,8 +22,7 @@ namespace JRPG.Data
         public List<CharacterGrowthData> characterGrowth = new();
         public List<DialogueGraphData> dialogueGraphs = new();
         public List<BattleTriggerData> battleTriggers = new();
-
-        // Later phases:
-        // public List<StatusEffectData> statuses;
+        public List<StatusEffectData> statuses = new();
+        public ElementInteractionMatrix elementMatrix;
     }
 }

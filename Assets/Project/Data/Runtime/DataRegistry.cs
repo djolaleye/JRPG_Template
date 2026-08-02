@@ -19,6 +19,7 @@ namespace JRPG.Data
         private readonly Dictionary<string, CharacterGrowthData> _characterGrowthById = new();
         private readonly Dictionary<string, DialogueGraphData> _dialogueGraphsById = new();
         private readonly Dictionary<string, BattleTriggerData> _battleTriggersById = new();
+        private readonly Dictionary<string, StatusEffectData> _statusesById = new();
 
         public IReadOnlyDictionary<string, CharacterData> CharactersById => _charactersById;
         public IReadOnlyDictionary<string, EnemyData> EnemiesById => _enemiesById;
@@ -29,6 +30,10 @@ namespace JRPG.Data
         public IReadOnlyDictionary<string, CharacterGrowthData> CharacterGrowthById => _characterGrowthById;
         public IReadOnlyDictionary<string, DialogueGraphData> DialogueGraphsById => _dialogueGraphsById;
         public IReadOnlyDictionary<string, BattleTriggerData> BattleTriggersById => _battleTriggersById;
+        public IReadOnlyDictionary<string, StatusEffectData> StatusesById => _statusesById;
+
+        /// The authored elemental interaction table (Phase 11); null when the database has none.
+        public ElementInteractionMatrix ElementMatrix { get; private set; }
 
         public void Build(GameDatabase db)
         {
@@ -42,6 +47,7 @@ namespace JRPG.Data
             _characterGrowthById.Clear();
             _dialogueGraphsById.Clear();
             _battleTriggersById.Clear();
+            _statusesById.Clear();
 
             Index(db.characters, _charactersById, "characters");
             Index(db.enemies, _enemiesById, "enemies");
@@ -52,6 +58,9 @@ namespace JRPG.Data
             Index(db.characterGrowth, _characterGrowthById, "characterGrowth");
             Index(db.dialogueGraphs, _dialogueGraphsById, "dialogueGraphs");
             Index(db.battleTriggers, _battleTriggersById, "battleTriggers");
+            Index(db.statuses, _statusesById, "statuses");
+
+            ElementMatrix = db.elementMatrix;
         }
 
         private static void Index<T>(List<T> list, Dictionary<string, T> map, string label) where T : GameDataBase
@@ -122,6 +131,10 @@ namespace JRPG.Data
                 {
                     if (_battleTriggersById.TryGetValue(id, out var bt) && bt is T tbt) { value = tbt; return true; }
                 }
+                if (typeof(T) == typeof(StatusEffectData) || typeof(T).IsAssignableFrom(typeof(StatusEffectData)))
+                {
+                    if (_statusesById.TryGetValue(id, out var st) && st is T tst) { value = tst; return true; }
+                }
                 if (typeof(T) == typeof(GameDataBase))
                 {
                     if (_charactersById.TryGetValue(id, out var c) && c is T tc) { value = tc; return true; }
@@ -133,6 +146,7 @@ namespace JRPG.Data
                     if (_characterGrowthById.TryGetValue(id, out var g) && g is T tg) { value = tg; return true; }
                     if (_dialogueGraphsById.TryGetValue(id, out var dg) && dg is T tdg) { value = tdg; return true; }
                     if (_battleTriggersById.TryGetValue(id, out var bt) && bt is T tbt) { value = tbt; return true; }
+                    if (_statusesById.TryGetValue(id, out var st) && st is T tst) { value = tst; return true; }
                 }
             }
             value = null;

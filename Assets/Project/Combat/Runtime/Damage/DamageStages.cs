@@ -1,5 +1,6 @@
 using UnityEngine;
 using JRPG.Data;
+using System;
 
 namespace JRPG.Combat
 {
@@ -26,6 +27,51 @@ namespace JRPG.Combat
         }
     }
 
+        /// 3. Equipment contribution — activated in 11.4 (equipment passives).
+    public sealed class EquipmentStage : IDamageStage
+    {
+        public string Name => "equip";
+        public void Apply(DamageContext ctx) { }
+    }
+
+    /// 4. Accuracy vs evasion.
+    public sealed class AccuracyEvasionStage : IDamageStage
+    {
+        private readonly StatusProcessor _status;
+        private readonly CombatTuning _tuning;
+
+        public AccuracyEvasionStage(StatusProcessor status, CombatTuning tuning)
+        {
+            _status = status;
+            _tuning = tuning ?? CombatTuning.Default;
+        }
+
+        public string Name => "acc";
+
+        public void Apply(DamageContext ctx)
+        {
+            if (ctx.target == null || ctx.rng == null
+                || ctx.action.targetRule.team != TargetTeam.Enemies
+                || ctx.action.targetRule.team != TargetTeam.All) return;
+
+            float hitChance = ctx.effect.hitChance;
+
+            if (_status != null)
+            {
+                hitChance += _status.GetAccuracyModifier(ctx.actor);
+                hitChance -= _status.GetEvasionModifier(ctx.target);
+            }
+
+            if (_tuning.evasionPerPoint > 0f && ctx.target.stats != null)
+                hitChance -= ctx.target.stats.GetFinal(StatType.Evasion) * _tuning.evasionPerPoint;
+            
+            hitChance = Math.Max((float)0.3, hitChance);
+
+            if (hitChance >= 1f) return;             // can't miss == skip the roll
+            if (ctx.rng.NextDouble() >= hitChance) ctx.missed = true;
+        }
+    }
+
     /// 5. Target's defensive stat.
     public sealed class DefenseStage : IDamageStage
     {
@@ -37,6 +83,112 @@ namespace JRPG.Combat
 
             ctx.runningDamage -= ctx.target.stats.GetFinal(ctx.effect.defenseStat) * DefenseCoefficient;
         }
+    }
+
+    /// 6. Elemental interaction.
+    public sealed class ElementalStage : IDamageStage
+    {
+        private readonly ElementInteractionMatrix _matrix;
+
+        public ElementalStage(ElementInteractionMatrix matrix)
+        {
+            _matrix = matrix;
+        }
+
+        public string Name => "elem";
+
+        public void Apply(DamageContext ctx)
+        {
+            if (ctx.target?.profile == null) return;
+
+            var affinity = ctx.target.profile.GetAffinity(ctx.element);
+
+            if (affinity == ElementAffinity.Immune)
+            {
+                ctx.immune = true;
+                ctx.runningDamage = 0f;
+                return;
+            }
+
+            if (affinity == ElementAffinity.Absorb) ctx.absorbed = true;
+
+            float multiplier = _matrix != null
+                ? _matrix.GetMultiplier(ctx.element, affinity)
+                : 1f;
+
+            ctx.runningDamage *= multiplier;
+        }
+    }
+
+    /// 7. Critical hits. Chance comes from the attacker's Luck stat (off by default via CombatTuning)
+    /// plus any status crit modifiers; a crit scales damage by tuning.critMultiplier.
+    public sealed class CriticalStage : IDamageStage
+    {
+        private readonly StatusProcessor _status;
+        private readonly CombatTuning _tuning;
+
+        public CriticalStage(StatusProcessor status, CombatTuning tuning)
+        {
+            _status = status;
+            _tuning = tuning ?? CombatTuning.Default;
+        }
+
+        public string Name => "crit";
+
+        public void Apply(DamageContext ctx)
+        {
+            if (ctx.rng == null || ctx.actor == null
+                || ctx.effect.type != CombatEffectType.Damage
+                || ctx.effect.element != Element.Physical) return;
+
+            float critChance = 0f;
+
+            if (_tuning.critChancePerLuck > 0f && ctx.actor.stats != null)
+                critChance += ctx.actor.stats.GetFinal(StatType.Luck) * _tuning.critChancePerLuck;
+            if (_status != null) critChance += _status.GetCritChanceModifier(ctx.actor);
+
+            if (critChance <= 0f) return;
+            if (ctx.rng.NextDouble() >= critChance) return;
+
+            ctx.critical = true;
+            ctx.runningDamage *= _tuning.critMultiplier;
+        }
+    }
+
+    /// 8. Status-driven damage modifiers: what the attacker's statuses do to damage dealt, and what the
+    /// target's statuses do to damage taken.
+    public sealed class StatusModifierStage : IDamageStage
+    {
+        private readonly StatusProcessor _status;
+
+        public StatusModifierStage(StatusProcessor status)
+        {
+            _status = status;
+        }
+
+        public string Name => "status";
+
+        public void Apply(DamageContext ctx)
+        {
+            if (_status == null) return;
+
+            ctx.runningDamage *= _status.GetDamageDealtMultiplier(ctx.actor);
+            ctx.runningDamage *= _status.GetDamageTakenMultiplier(ctx.target);
+        }
+    }
+
+    /// 9. Passive modifiers — activated in 11.4.
+    public sealed class PassiveModifierStage : IDamageStage
+    {
+        public string Name => "passive";
+        public void Apply(DamageContext ctx) { }
+    }
+
+    /// 10. Encounter/difficulty scaling — hook, inert until needed.
+    public sealed class DifficultyStage : IDamageStage
+    {
+        public string Name => "diff";
+        public void Apply(DamageContext ctx) { }
     }
 
     /// 11. Guard and defensive reactions. Reads the target's guard multiplier, matching prior behavior
@@ -63,58 +215,5 @@ namespace JRPG.Combat
             int rounded = Mathf.RoundToInt(ctx.runningDamage);
             ctx.finalAmount = ctx.absorbed ? Mathf.Max(0, rounded) : Mathf.Max(1, rounded);
         }
-    }
-
-    // ---- Placeholder stages -------------------------------------------------------------------
-    // These hold their slot in the ordering and are swapped for live implementations by later
-    // sub-phases (DamagePipelineFactory documents which). They must not alter the value.
-
-    /// 3. Equipment contribution — activated in 11.4 (equipment passives).
-    public sealed class EquipmentStage : IDamageStage
-    {
-        public string Name => "equip";
-        public void Apply(DamageContext ctx) { }
-    }
-
-    /// 4. Accuracy vs evasion — activated in 11.3+ (needs the RNG + status accuracy modifiers).
-    public sealed class AccuracyEvasionStage : IDamageStage
-    {
-        public string Name => "acc";
-        public void Apply(DamageContext ctx) { }
-    }
-
-    /// 6. Elemental interaction — activated in 11.2.
-    public sealed class ElementalStage : IDamageStage
-    {
-        public string Name => "elem";
-        public void Apply(DamageContext ctx) { }
-    }
-
-    /// 7. Critical hits — activated in 11.3+.
-    public sealed class CriticalStage : IDamageStage
-    {
-        public string Name => "crit";
-        public void Apply(DamageContext ctx) { }
-    }
-
-    /// 8. Status-driven modifiers — activated in 11.3.
-    public sealed class StatusModifierStage : IDamageStage
-    {
-        public string Name => "status";
-        public void Apply(DamageContext ctx) { }
-    }
-
-    /// 9. Passive modifiers — activated in 11.4.
-    public sealed class PassiveModifierStage : IDamageStage
-    {
-        public string Name => "passive";
-        public void Apply(DamageContext ctx) { }
-    }
-
-    /// 10. Encounter/difficulty scaling — authored hook, inert until content uses it.
-    public sealed class DifficultyStage : IDamageStage
-    {
-        public string Name => "diff";
-        public void Apply(DamageContext ctx) { }
     }
 }

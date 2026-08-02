@@ -18,16 +18,19 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 6f6d0073343c94a468e66b816f53ed3a, type: 2}
   enemies:
   - {fileID: 11400000, guid: 71d665905d374ab47ad84913cd444e99, type: 2}
+  - {fileID: 11400000, guid: 6d543c651ae3d2d4a9f171b191480cd8, type: 2}
   items:
   - {fileID: 11400000, guid: 379111d170c711b4391bda86b35dda63, type: 2}
   - {fileID: 11400000, guid: 73201f873c7594841a1c0b66a9a6c4f9, type: 2}
   - {fileID: 11400000, guid: d4ca1b842f9c86d4780de45a7bea0d6e, type: 2}
+  - {fileID: 11400000, guid: 150c433b65b685a44adbdbdef9c6619f, type: 2}
   combatActions:
   - {fileID: 11400000, guid: 50413de7c7de22b4f9d84af9d30c424b, type: 2}
   - {fileID: 11400000, guid: 936b70c1303ae3740a5e50080d77c5cd, type: 2}
   - {fileID: 11400000, guid: 7038700c2f237994a9ea3efbef830baf, type: 2}
   - {fileID: 11400000, guid: 0bf2cd0a9b305524595796e415342a64, type: 2}
   - {fileID: 11400000, guid: 03712095e64a7804e88e0881988fbbc0, type: 2}
+  - {fileID: 11400000, guid: 618a3f7d05c1ea14caed75d34dbecbd9, type: 2}
   encounters:
   - {fileID: 11400000, guid: 5cbdf5646041bb14c8f56bd7cb7af917, type: 2}
   progressionCurves:
@@ -45,3 +48,8 @@ MonoBehaviour:
   battleTriggers:
   - {fileID: 11400000, guid: ebef5cb5c62b53d408166ede59b13790, type: 2}
   - {fileID: 11400000, guid: 511f5bd4f6ca7ec429901a06f1311653, type: 2}
+  statuses:
+  - {fileID: 11400000, guid: 7c318245b9b154d4e9026cc8c97974c6, type: 2}
+  - {fileID: 11400000, guid: 725b99fbc771d6341b35a7cc5244cb2c, type: 2}
+  - {fileID: 11400000, guid: 91d723a872df6f9479c43c5c3391947d, type: 2}
+  elementMatrix: {fileID: 11400000, guid: eb895200428d3e74bb11e3cb278679a8, type: 2}

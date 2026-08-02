@@ -16,7 +16,6 @@ namespace JRPG.Data
         Damage,
         Heal,
         Guard,
-        // Phase 11 (appended — existing serialized indices above must not shift):
         ApplyStatus,
         RemoveStatus,
         BuffStat,
@@ -36,45 +35,40 @@ namespace JRPG.Data
     {
         public CombatEffectType type;
 
-        // Damage / Heal shared.
+        [Header("Damage / Heal")] 
         public int basePower;
         public float statScale;
 
-        // Damage.
+        [Header("Damage")]
         public StatType attackStat;
         public StatType defenseStat;
-
-        // Heal.
-        public StatType scalingStat;
-
-        // Guard.
-        public float guardMultiplier;
-
-        // ---- Phase 11 (appended; each effect type reads only its own fields) ----
-
-        /// Damage: overrides the action's element when set to anything other than Physical/Neutral
-        /// defaults are desired. Resolved by the elemental pipeline stage.
         public Element element;
 
-        /// Probability this effect lands at all (0..1). <= 0 is treated as 1 (always) so existing
-        /// authored effects keep firing.
-        [Range(0f, 1f)] public float chance;
+        [Header("Heal")]
+        public StatType scalingStat;
 
-        // ApplyStatus / RemoveStatus.
+        [Header("Guard")]
+        public float guardMultiplier;
+
+        [Header("Accuracy")]
+        [Range(0f, 1f)] public float executionChance;
+        [Range(0f, 1f)] public float hitChance;
+
+        [Header("Status")]
         public string statusId;
         public int duration;
         public int stacks;
 
-        // BuffStat / DebuffStat.
+        [Header("Buff / Debuff")]
         public StatType buffStat;
         public ModifierType buffModifierType;
         public float buffValue;
 
-        // ResourceChange.
+        [Header("Resource Change")]
         public CombatResource resourceType;
         public int resourceDelta;
 
-        // TriggerDialogue / SetBattleFlag.
+        [Header("Dialogue / Story Flag")]
         public string stringArg;
         public bool boolArg;
     }
