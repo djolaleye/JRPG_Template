@@ -27,14 +27,7 @@ namespace JRPG.Combat
         }
     }
 
-        /// 3. Equipment contribution — activated in 11.4 (equipment passives).
-    public sealed class EquipmentStage : IDamageStage
-    {
-        public string Name => "equip";
-        public void Apply(DamageContext ctx) { }
-    }
-
-    /// 4. Accuracy vs evasion.
+    /// 3. Accuracy vs evasion.
     public sealed class AccuracyEvasionStage : IDamageStage
     {
         private readonly StatusProcessor _status;
@@ -50,9 +43,9 @@ namespace JRPG.Combat
 
         public void Apply(DamageContext ctx)
         {
+            if (ctx.action == null) return;
             if (ctx.target == null || ctx.rng == null
-                || ctx.action.targetRule.team != TargetTeam.Enemies
-                || ctx.action.targetRule.team != TargetTeam.All) return;
+                || (ctx.action.targetRule.team != TargetTeam.Enemies && ctx.action.targetRule.team != TargetTeam.All)) return;
 
             float hitChance = ctx.effect.hitChance;
 
@@ -65,14 +58,14 @@ namespace JRPG.Combat
             if (_tuning.evasionPerPoint > 0f && ctx.target.stats != null)
                 hitChance -= ctx.target.stats.GetFinal(StatType.Evasion) * _tuning.evasionPerPoint;
             
-            hitChance = Math.Max((float)0.3, hitChance);
+            // hitChance = Math.Max((float)0.3, hitChance);
 
             if (hitChance >= 1f) return;             // can't miss == skip the roll
             if (ctx.rng.NextDouble() >= hitChance) ctx.missed = true;
         }
     }
 
-    /// 5. Target's defensive stat.
+    /// 4. Target's defensive stat.
     public sealed class DefenseStage : IDamageStage
     {
         public const float DefenseCoefficient = 0.5f;
@@ -85,7 +78,7 @@ namespace JRPG.Combat
         }
     }
 
-    /// 6. Elemental interaction.
+    /// 5. Elemental interaction.
     public sealed class ElementalStage : IDamageStage
     {
         private readonly ElementInteractionMatrix _matrix;
@@ -120,7 +113,7 @@ namespace JRPG.Combat
         }
     }
 
-    /// 7. Critical hits. Chance comes from the attacker's Luck stat (off by default via CombatTuning)
+    /// 6. Critical hits. Chance comes from the attacker's Luck stat (off by default via CombatTuning)
     /// plus any status crit modifiers; a crit scales damage by tuning.critMultiplier.
     public sealed class CriticalStage : IDamageStage
     {
@@ -155,7 +148,7 @@ namespace JRPG.Combat
         }
     }
 
-    /// 8. Status-driven damage modifiers: what the attacker's statuses do to damage dealt, and what the
+    /// 7. Status-driven damage modifiers: what the attacker's statuses do to damage dealt, and what the
     /// target's statuses do to damage taken.
     public sealed class StatusModifierStage : IDamageStage
     {
@@ -177,21 +170,36 @@ namespace JRPG.Combat
         }
     }
 
-    /// 9. Passive modifiers — activated in 11.4.
+    /// 8. Passive modifiers. Applies the attacker's offensive passives and the defender's defensive
+    /// ones. Resolved from each combatant's CombatProfile.
     public sealed class PassiveModifierStage : IDamageStage
     {
+        private readonly PassiveRegistry _passives;
+
+        public PassiveModifierStage(PassiveRegistry passives)
+        {
+            _passives = passives;
+        }
+
         public string Name => "passive";
-        public void Apply(DamageContext ctx) { }
+
+        public void Apply(DamageContext ctx)
+        {
+            if (_passives == null) return;
+            
+            _passives.ModifyDamage(ctx.actor, ctx, asAttacker: true);
+            _passives.ModifyDamage(ctx.target, ctx, asAttacker: false);
+        }
     }
 
-    /// 10. Encounter/difficulty scaling — hook, inert until needed.
+    /// 9. Encounter/difficulty scaling — hook, inert until needed.
     public sealed class DifficultyStage : IDamageStage
     {
         public string Name => "diff";
         public void Apply(DamageContext ctx) { }
     }
 
-    /// 11. Guard and defensive reactions. Reads the target's guard multiplier, matching prior behavior
+    /// 10. Guard and defensive reactions. Reads the target's guard multiplier, matching prior behavior
     public sealed class GuardStage : IDamageStage
     {
         public string Name => "guard";
@@ -203,7 +211,7 @@ namespace JRPG.Combat
         }
     }
 
-    /// 12. Final clamp and rounding. Immune, Absorbed hits skip the >= 1 floor.
+    /// 11. Final clamp and rounding. Immune, Absorbed hits skip the >= 1 floor.
     public sealed class ClampRoundStage : IDamageStage
     {
         public string Name => "clamp";

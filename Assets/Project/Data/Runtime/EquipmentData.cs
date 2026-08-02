@@ -6,24 +6,27 @@ namespace JRPG.Data
     [CreateAssetMenu(menuName = "JRPG/Equipment Data", fileName = "EquipmentData")]
     public class EquipmentData : ItemData
     {
+        [Header("Equip rules")]
         public EquipmentSlot slot = EquipmentSlot.MeleeWeapon;
-        public List<StatModifier> statModifiers = new();
         public List<string> allowedCharacterIds = new();
         [Min(1)] public int requiredLevel = 1;
 
-        // [Planned — Phase 11] Combat integration for these is not built yet; no system reads them.
-        // (statusImmunities is typed List<StatType> — TEMP, to be revisited when the
-        // status model lands; a status immunity should key off a status id, not a stat.)
-        public List<string> allowedClassTags = new();
-        public List<string> passiveEffectIds = new();
-        public List<StatType> statusImmunities = new();
-        public List<string> actionUnlockIds = new();
+        [Tooltip("Applied to the wearer's stats")]
+        public List<StatModifier> statModifiers = new();
 
-        [Tooltip("Elemental responses granted by wearing this")]
+        [Header("Combat integration")]
+        [Tooltip("Elemental responses granted by wearing this.")]
         public List<ElementAffinityEntry> elementAffinities = new();
 
-        [Tooltip("Statuses this equipment makes the wearer immune to.")]
+        [Tooltip("Statuses this equipment grants immunity to.")]
         public List<string> statusImmunityIds = new();
+
+        [Tooltip("Passives granted while equipped.")]
+        public List<string> passiveEffectIds = new();
+
+        [Tooltip("Combat actions this equipment unlocks for the wearer, even if the action's own " +
+                 "team flags would exclude them.")]
+        public List<string> actionUnlockIds = new();
 
 #if UNITY_EDITOR
         protected override void OnValidate()

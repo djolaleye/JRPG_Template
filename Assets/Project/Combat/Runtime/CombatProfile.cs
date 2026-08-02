@@ -40,6 +40,27 @@ namespace JRPG.Combat
         public ElementAffinity GetAffinity(Element element)
             => _affinities.TryGetValue(element, out var a) ? a : ElementAffinity.Normal;
 
+        // ---- Read-only queries -------------------------------------------------------------
+        // Callers use these rather than touching the backing collections, so consumers never need to
+        // reference the concrete set types.
+
+        public bool IsImmuneToStatus(string statusId)
+            => !string.IsNullOrEmpty(statusId) && statusImmunities.Contains(statusId);
+
+        public bool HasPassive(string passiveId)
+            => !string.IsNullOrEmpty(passiveId) && passiveEffectIds.Contains(passiveId);
+
+        public bool HasUnlockedAction(string actionId)
+            => !string.IsNullOrEmpty(actionId) && unlockedActionIds.Contains(actionId);
+
+        public int StatusImmunityCount => statusImmunities.Count;
+        public int UnlockedActionCount => unlockedActionIds.Count;
+
+        /// Flattened views for logging/debug tooling.
+        public string DescribeImmunities() => string.Join(",", statusImmunities);
+        public string DescribeUnlockedActions() => string.Join(",", unlockedActionIds);
+        public string DescribePassives() => string.Join(",", passiveEffectIds);
+
         
         private static int Rank(ElementAffinity a) => a switch
         {

@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fdf8cd4f37838d4ba4d5417b1ba5a25, type: 3}
+  m_Name: equip_test_ward_ring
+  m_EditorClassIdentifier: JRPG.Data::JRPG.Data.EquipmentData
+  id: equip_test_ward_ring
+  displayName: Ward Ring
+  description: 
+  icon: {fileID: 0}
+  category: 3
+  stackLimit: 1
+  canSell: 1
+  canDiscard: 1
+  usageRule:
+    usableInCombat: 1
+    usableInExploration: 1
+    targetLivingAlliesOnly: 0
+    consumedOnUse: 1
+    requiredStoryFlag: 
+  linkedEffects: []
+  slot: 3
+  statModifiers: []
+  allowedCharacterIds: []
+  requiredLevel: 1
+  allowedClassTags: []
+  passiveEffectIds:
+  - passive_fire_ward
+  statusImmunities: 
+  actionUnlockIds:
+  - skill_water_01
+  elementAffinities:
+  - element: 2
+    affinity: 2
+  statusImmunityIds:
+  - status_poison

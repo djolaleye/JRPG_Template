@@ -15,6 +15,7 @@ namespace JRPG.Combat
         private readonly DataRegistry _data;
         private readonly EffectExecutorRegistry _executors;
         private readonly StatusProcessor _status;
+        private readonly PassiveRegistry _passives;
         private readonly DamagePipeline _damage;
         private readonly System.Random _rng;
         private readonly EffectContext _ctx = new();
@@ -23,13 +24,15 @@ namespace JRPG.Combat
         /// individual rules can be swapped without touching this class.
         public CombatActionResolver(IInventoryService inventory, DataRegistry data,
             EffectExecutorRegistry executors = null, DamagePipeline damage = null, System.Random rng = null,
-            StatusProcessor status = null)
+            StatusProcessor status = null, PassiveRegistry passives = null)
         {
             _inventory = inventory;
             _data = data;
             _executors = executors ?? EffectExecutorRegistry.CreateStandard();
             _status = status ?? new StatusProcessor(data);
-            _damage = damage ?? DamagePipelineFactory.CreateStandard(data?.ElementMatrix, _status);
+            _passives = passives ?? PassiveRegistry.CreateStandard();
+            _damage = damage ?? DamagePipelineFactory.CreateStandard(
+                data?.ElementMatrix, _status, null, _passives);
             _rng = rng ?? new System.Random(DefaultCombatSeed);
         }
 
@@ -41,6 +44,7 @@ namespace JRPG.Combat
         public EffectExecutorRegistry Executors => _executors;
         public DamagePipeline Damage => _damage;
         public StatusProcessor Status => _status;
+        public PassiveRegistry Passives => _passives;
 
         public bool CanPayCosts(CombatantInstance user, CombatActionData action, out string reason)
         {

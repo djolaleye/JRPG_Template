@@ -33,7 +33,7 @@ namespace JRPG.Combat
                 reason = $"Unknown status '{statusId}'.";
                 return false;
             }
-            if (target.profile != null && target.profile.statusImmunities.Contains(statusId))
+            if (target.profile != null && target.profile.IsImmuneToStatus(statusId))
             {
                 reason = $"{target.displayName} is immune to {statusId}.";
                 return false;

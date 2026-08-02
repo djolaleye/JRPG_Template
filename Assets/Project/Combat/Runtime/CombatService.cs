@@ -125,6 +125,8 @@ namespace JRPG.Combat
             _state.SetState(new LayeredState(GameMode.Combat, OverlayState.None, InputContext.Disabled));
             _bus.Publish(new BattleStarted(ctx.battleId, ctx.encounterId ?? string.Empty));
 
+            _resolver.Passives.DispatchAll(PassiveHook.BattleStart, ctx);
+
             AdvanceToNextActor();
         }
 
@@ -207,8 +209,9 @@ namespace JRPG.Combat
                 actor.isGuarding = false;
                 actor.guardDamageMultiplier = 1f;
 
-                // Status timing: turn start.
+                // Status + passive timing: turn start.
                 _resolver.Status.Process(StatusTiming.TurnStart, actor);
+                _resolver.Passives.Dispatch(PassiveHook.TurnStart, actor, _battle);
 
                 if (actor.IsDefeated) continue;
 
@@ -242,6 +245,12 @@ namespace JRPG.Combat
             {
                 var action = kv.Value;
                 bool usable = actor.team == CombatantTeam.Party ? action.usableByPlayers : action.usableByEnemies;
+
+                // Equipment can unlock an action the combatant's team flags would otherwise exclude
+                // (EquipmentData.actionUnlockIds, snapshotted onto the CombatProfile at battle start).
+                if (!usable && actor.profile != null && actor.profile.HasUnlockedAction(action.Id))
+                    usable = true;
+
                 if (usable) availableActions.Add(action);
             }
             return availableActions;
@@ -312,6 +321,7 @@ namespace JRPG.Combat
                 if (targets[i] != null && targets[i] != actor) _resolver.Status.OnDamaged(targets[i], result);
 
             _resolver.Status.Process(StatusTiming.AfterAction, actor, result);
+            _resolver.Passives.Dispatch(PassiveHook.AfterAction, actor, _battle, result);
 
             _bus.Publish(new BattleActionResolved(_battle.battleId, actor.combatantId, action.Id, result.success));
 
@@ -344,10 +354,17 @@ namespace JRPG.Combat
         private void CompleteTurnTransition(ActionResult result)
         {
             var actedCombatant = _battle.currentActor;
-            if (actedCombatant != null) _resolver.Status.Process(StatusTiming.TurnEnd, actedCombatant, result);
+            if (actedCombatant != null)
+            {
+                _resolver.Status.Process(StatusTiming.TurnEnd, actedCombatant, result);
+                _resolver.Passives.Dispatch(PassiveHook.TurnEnd, actedCombatant, _battle, result);
+            }
 
             if (_battle.turnQueue.Count == 0)
+            {
                 _resolver.Status.ProcessAll(StatusTiming.RoundEnd, _battle, result);
+                _resolver.Passives.DispatchAll(PassiveHook.RoundEnd, _battle, result);
+            }
 
             _battle.phase = CombatPhase.CheckWinLoss;
 
@@ -400,6 +417,9 @@ namespace JRPG.Combat
             if (!_data.TryGet(actionId, out action)) { reason = $"Unknown action '{actionId}'."; return false; }
 
             bool usable = actor.team == CombatantTeam.Party ? action.usableByPlayers : action.usableByEnemies;
+            // Mirror GetAvailableActions: equipment-unlocked actions are submittable too.
+            if (!usable && actor.profile != null && actor.profile.HasUnlockedAction(action.Id))
+                usable = true;
             if (!usable) { reason = "Action not available to this combatant."; return false; }
 
             // Statuses may forbid this action entirely.
@@ -446,6 +466,7 @@ namespace JRPG.Combat
             _battle.outcome = outcome;
 
             // Status timing: last chance for on-battle-end statuses, then every status is cleared.
+            _resolver.Passives.DispatchAll(PassiveHook.BattleEnd, _battle);
             _resolver.Status.ProcessAll(StatusTiming.OnBattleEnd, _battle);
             _resolver.Status.ClearAll(_battle);
 
