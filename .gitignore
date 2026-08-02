@@ -108,9 +108,4 @@ InitTestScene*.unity*
 
 docs/
 DEV/
-CombatSceneSetup.cs
-CombatSceneSetup.cs.meta
-CombatUIBuilder.cs
-CombatUIBuilder.cs.meta
-CombatTestDataBuilder.cs
-CombatTestDataBuilder.cs.meta
+Editor/
