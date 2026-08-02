@@ -4,11 +4,18 @@ using JRPG.Data;
 namespace JRPG.Combat
 {
     /// Inflicts a status on every resolved target.
+    ///
+    /// The effect carries only the status id: duration, stack rules, stat modifiers, ticks, and
+    /// restrictions all come from the referenced StatusEffectData, so a status behaves identically
+    /// however it is inflicted.
     public sealed class ApplyStatusEffectExecutor : IEffectExecutor
     {
         public CombatEffectType Type => CombatEffectType.ApplyStatus;
 
-        public void Execute(EffectContext ctx)
+        public void Execute(EffectContext ctx) => ApplyStatusTo(ctx, nameof(CombatEffectType.ApplyStatus));
+
+        /// Shared by Buff/Debuff executors
+        internal static void ApplyStatusTo(EffectContext ctx, string label)
         {
             if (ctx.targets == null || ctx.status == null || string.IsNullOrEmpty(ctx.effect.statusId)) return;
 
@@ -17,13 +24,12 @@ namespace JRPG.Combat
                 var target = ctx.targets[i];
                 if (target == null || target.IsDefeated) continue;
 
-                bool applied = ctx.status.TryApply(target, ctx.effect.statusId, ctx.actor?.combatantId,
-                    ctx.effect.duration, Mathf.Max(1, ctx.effect.stacks), out _);
+                bool applied = ctx.status.TryApply(target, ctx.effect.statusId, ctx.actor?.combatantId, out _);
 
                 ctx.result.effects.Add(new EffectResult
                 {
                     targetCombatantId = target.combatantId,
-                    effectType = applied ? nameof(CombatEffectType.ApplyStatus) : "StatusBlocked",
+                    effectType = applied ? label : "StatusBlocked",
                     statusId = ctx.effect.statusId,
                     hpBefore = target.currentHP,
                     hpAfter = target.currentHP,
@@ -32,7 +38,8 @@ namespace JRPG.Combat
         }
     }
 
-    /// Removes a specific status, or every status in a dispel category when no id is given.
+    /// Removes a named status, or — when no id is authored — every status in the effect's dispel
+    /// category
     public sealed class RemoveStatusEffectExecutor : IEffectExecutor
     {
         public CombatEffectType Type => CombatEffectType.RemoveStatus;
@@ -50,7 +57,7 @@ namespace JRPG.Combat
                 if (!string.IsNullOrEmpty(ctx.effect.statusId))
                     removed = ctx.status.Remove(target, ctx.effect.statusId) ? 1 : 0;
                 else
-                    removed = ctx.status.RemoveByCategory(target, StatusDispelCategory.Ailment);
+                    removed = ctx.status.RemoveByCategory(target, ctx.effect.dispelCategory);
 
                 ctx.result.effects.Add(new EffectResult
                 {
@@ -65,50 +72,38 @@ namespace JRPG.Combat
         }
     }
 
-    /// Direct stat buff/debuff for the rest of the battle, without an authored status asset. Uses the
-    /// same modifier+sourceId convention so it reverses cleanly and never leaks out of combat.
+    /// Applies a buff (or debuff) status. Identical to ApplyStatus — the separate effect
+    /// types exist so intent is explicit and mis-categorised statuses are caught early.
     public sealed class BuffStatEffectExecutor : IEffectExecutor
     {
         private readonly bool _debuff;
+
         public BuffStatEffectExecutor(bool debuff) { _debuff = debuff; }
 
         public CombatEffectType Type => _debuff ? CombatEffectType.DebuffStat : CombatEffectType.BuffStat;
 
         public void Execute(EffectContext ctx)
         {
-            if (ctx.targets == null) return;
+            WarnOnCategoryMismatch(ctx);
+            ApplyStatusEffectExecutor.ApplyStatusTo(ctx,
+                _debuff ? nameof(CombatEffectType.DebuffStat) : nameof(CombatEffectType.BuffStat));
+        }
 
-            for (int i = 0; i < ctx.targets.Count; i++)
-            {
-                var target = ctx.targets[i];
-                if (target == null) continue;
+        private void WarnOnCategoryMismatch(EffectContext ctx)
+        {
+            if (ctx.data == null || string.IsNullOrEmpty(ctx.effect.statusId)) return;
+            if (!ctx.data.TryGet<StatusEffectData>(ctx.effect.statusId, out var s) || s == null) return;
 
-                float value = _debuff ? -Mathf.Abs(ctx.effect.buffValue) : Mathf.Abs(ctx.effect.buffValue);
-                // Distinct per action so repeated casts stack rather than overwrite each other.
-                string sourceId = $"combatbuff:{target.combatantId}:{ctx.action?.Id}:{ctx.effect.buffStat}";
-
-                target.stats.RemoveModifiersFrom(sourceId);
-                target.stats.AddModifier(new StatModifier(
-                    ctx.effect.buffStat, ctx.effect.buffModifierType, value, sourceId, isPermanent: false));
-                target.stats.Recalculate();
-
-                target.currentHP = Mathf.Clamp(target.currentHP, 0, target.MaxHP);
-                target.currentMP = Mathf.Clamp(target.currentMP, 0, target.MaxMP);
-                target.currentSP = Mathf.Clamp(target.currentSP, 0, target.MaxSP);
-
-                ctx.result.effects.Add(new EffectResult
-                {
-                    targetCombatantId = target.combatantId,
-                    effectType = _debuff ? nameof(CombatEffectType.DebuffStat) : nameof(CombatEffectType.BuffStat),
-                    amount = Mathf.RoundToInt(value),
-                    hpBefore = target.currentHP,
-                    hpAfter = target.currentHP,
-                });
-            }
+            var expected = _debuff ? StatusDispelCategory.Debuff : StatusDispelCategory.Buff;
+            
+            if (s.dispelCategory != expected)
+                Debug.LogWarning($"[JRPG.Combat] Action '{ctx.action?.Id}' applies '{s.Id}' as a " +
+                                 $"{expected} but the status is categorised {s.dispelCategory}; " +
+                                 "dispel effects will not match it.");
         }
     }
 
-    /// Restores or drains MP/SP/HP directly (ethers, drains, self-costs).
+    /// Restores or drains MP/SP/HP immediately.
     public sealed class ResourceChangeEffectExecutor : IEffectExecutor
     {
         public CombatEffectType Type => CombatEffectType.ResourceChange;
@@ -143,5 +138,4 @@ namespace JRPG.Combat
             }
         }
     }
-
 }

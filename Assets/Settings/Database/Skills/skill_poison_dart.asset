@@ -10,42 +10,39 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5de24234bbfc6f24d97ab62cc493692c, type: 3}
-  m_Name: skill_fire_01
+  m_Name: skill_poison_dart
   m_EditorClassIdentifier: JRPG.Data::JRPG.Data.CombatActionData
-  id: skill_fire_01
-  displayName: Fireball
+  id: skill_poison_dart
+  displayName: Poison Dart
   description: 
   category: 3
   targetRule:
     team: 2
     selectionMode: 1
     requireLiving: 1
-    allowSelf: 0
+    allowSelf: 1
   costs:
   - type: 1
-    costAmount: 4
+    costAmount: 3
     itemId: 
     quantity: 0
   effects:
-  - type: 0
-    basePower: 8
-    statScale: 1
-    attackStat: 4
-    defenseStat: 6
-    element: 2
+  - type: 3
+    basePower: 0
+    statScale: 0
+    attackStat: 0
+    defenseStat: 0
+    element: 0
     scalingStat: 0
     guardMultiplier: 0
-    chance: 1
-    statusId: 
-    duration: 0
-    stacks: 0
-    buffStat: 0
-    buffModifierType: 0
-    buffValue: 0
+    executionChance: 0
+    hitChance: 1
+    statusId: status_poison
+    dispelCategory: 0
     resourceType: 0
     resourceDelta: 0
     stringArg: 
     boolArg: 0
   usableByPlayers: 1
-  usableByEnemies: 1
+  usableByEnemies: 0
   cooldownTurns: 0

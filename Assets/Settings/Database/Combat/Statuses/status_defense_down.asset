@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Defense Down
   description: 
   durationType: 1
-  defaultDuration: 2
+  defaultDuration: 3
   stackRule: 1
   maxStacks: 1
   dispelCategory: 2
@@ -39,4 +39,4 @@ MonoBehaviour:
   actionRestriction: 0
   removeOnDamage: 0
   indicatorIconId: 
-  indicatorColorHex: '#FFFFFF'
+  indicatorColorHex: '#FF9F7F'

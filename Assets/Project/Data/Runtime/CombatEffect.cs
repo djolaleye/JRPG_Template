@@ -54,17 +54,16 @@ namespace JRPG.Data
         [Range(0f, 1f)] public float executionChance;
         [Range(0f, 1f)] public float hitChance;
 
-        [Header("Status")]
+        [Header("Status / Buff / Debuff")]
+        [Tooltip("StatusEffectData id. For RemoveStatus, leave empty to dispel by category instead.")]
         public string statusId;
-        public int duration;
-        public int stacks;
 
-        [Header("Buff / Debuff")]
-        public StatType buffStat;
-        public ModifierType buffModifierType;
-        public float buffValue;
+        [Tooltip("RemoveStatus only: when statusId is empty, every status in this category is removed.")]
+        public StatusDispelCategory dispelCategory;
 
         [Header("Resource Change")]
+        [Tooltip("Instantaneous change — a lingering drain/regen should be authored as a status " +
+                 "with a tickResource instead.")]
         public CombatResource resourceType;
         public int resourceDelta;
 

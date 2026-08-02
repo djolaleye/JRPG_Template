@@ -10,14 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5de24234bbfc6f24d97ab62cc493692c, type: 3}
-  m_Name: skill_heal_01
+  m_Name: skill_weaken
   m_EditorClassIdentifier: JRPG.Data::JRPG.Data.CombatActionData
-  id: skill_heal_01
-  displayName: Heal
+  id: skill_weaken
+  displayName: Weaken
   description: 
   category: 3
   targetRule:
-    team: 1
+    team: 2
     selectionMode: 1
     requireLiving: 1
     allowSelf: 1
@@ -27,21 +27,18 @@ MonoBehaviour:
     itemId: 
     quantity: 0
   effects:
-  - type: 1
-    basePower: 20
-    statScale: 0.5
+  - type: 6
+    basePower: 0
+    statScale: 0
     attackStat: 0
     defenseStat: 0
     element: 0
-    scalingStat: 4
+    scalingStat: 0
     guardMultiplier: 0
-    chance: 1
-    statusId: 
-    duration: 0
-    stacks: 0
-    buffStat: 0
-    buffModifierType: 0
-    buffValue: 0
+    executionChance: 0
+    hitChance: 1
+    statusId: status_defense_down
+    dispelCategory: 0
     resourceType: 0
     resourceDelta: 0
     stringArg: 

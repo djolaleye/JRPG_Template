@@ -23,7 +23,7 @@ namespace JRPG.Combat
 
         /// Applies a status, honouring immunity and the authored stack rule.
         public bool TryApply(CombatantInstance target, string statusId, string applierCombatantId,
-            int durationOverride, int stacksToAdd, out string reason)
+            out string reason)
         {
             reason = null;
             
@@ -39,7 +39,8 @@ namespace JRPG.Combat
                 return false;
             }
 
-            int duration = durationOverride > 0 ? durationOverride : status.defaultDuration;
+            int duration = status.defaultDuration;
+            const int stacksToAdd = 1;   // one application = one stack; maxStacks caps it
             var existing = Find(target, statusId);
 
             if (existing != null)

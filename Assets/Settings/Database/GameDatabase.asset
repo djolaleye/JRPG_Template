@@ -32,8 +32,17 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 0bf2cd0a9b305524595796e415342a64, type: 2}
   - {fileID: 11400000, guid: 03712095e64a7804e88e0881988fbbc0, type: 2}
   - {fileID: 11400000, guid: 618a3f7d05c1ea14caed75d34dbecbd9, type: 2}
+  - {fileID: 11400000, guid: 8f0ed9508c7d44f4c9d1806ce6b77b76, type: 2}
+  - {fileID: 11400000, guid: 2b307d3c5dcb45f48b42d8c76b75e08d, type: 2}
+  - {fileID: 11400000, guid: 467952671e855ad46bd0ae98a20c60ef, type: 2}
+  - {fileID: 11400000, guid: 16b6ec722cdba494eafe1c38c6598c9e, type: 2}
+  - {fileID: 11400000, guid: fde17df12420a404897d5eb8f2435e9b, type: 2}
+  - {fileID: 11400000, guid: 82b67dfd24d0a5945a347f700b86d00e, type: 2}
+  - {fileID: 11400000, guid: 26ab7b0ba5b041e489e56f7db1f8ec1c, type: 2}
+  - {fileID: 11400000, guid: 767c0e958118a00488f24b9ae30cfff5, type: 2}
   encounters:
   - {fileID: 11400000, guid: 5cbdf5646041bb14c8f56bd7cb7af917, type: 2}
+  - {fileID: 11400000, guid: 2b7f8ec8a9cc542449e2b372ae4527c5, type: 2}
   progressionCurves:
   - {fileID: 11400000, guid: 714bdac78733152408079b8d0269bc32, type: 2}
   characterGrowth:
@@ -53,4 +62,5 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 7c318245b9b154d4e9026cc8c97974c6, type: 2}
   - {fileID: 11400000, guid: 725b99fbc771d6341b35a7cc5244cb2c, type: 2}
   - {fileID: 11400000, guid: 91d723a872df6f9479c43c5c3391947d, type: 2}
+  - {fileID: 11400000, guid: 04365f8c9d4223746849474654b5702a, type: 2}
   elementMatrix: {fileID: 11400000, guid: eb895200428d3e74bb11e3cb278679a8, type: 2}
