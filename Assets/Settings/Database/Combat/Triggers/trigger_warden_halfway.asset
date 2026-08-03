@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8e572b90ca4bdd41ad7c075b2fdddf9, type: 3}
+  m_Name: trigger_warden_halfway
+  m_EditorClassIdentifier: JRPG.Data::JRPG.Data.BattleTriggerData
+  id: trigger_warden_halfway
+  displayName: Warden Halfway Interruption
+  description: 
+  timing: 4
+  priority: 10
+  oneShot: 1
+  hpThresholdPercent: 0.5
+  roundNumber: 1
+  actionId: 
+  teamFilter: 2
+  sourceDataIdFilter: enemy_flame_warden
+  slotIdFilter: 
+  dialogueGraphId: dialogue_warden_halfway
+  importance: 2
+  blocksCombatInput: 1
+  followUpStoryFlag: 
+  followUpCombatActionId: 
+  followUpEncounterId: 

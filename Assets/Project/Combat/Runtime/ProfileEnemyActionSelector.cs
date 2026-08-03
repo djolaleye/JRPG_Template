@@ -157,6 +157,7 @@ namespace JRPG.Combat
                 }
 
                 case AiConditionType.SelfHasStatus: return HasStatus(self, c.stringValue);
+                case AiConditionType.SelfMissingStatus: return !HasStatus(self, c.stringValue);
 
                 case AiConditionType.TargetHasStatus:
                     for (int i = 0; i < opponents.Count; i++)

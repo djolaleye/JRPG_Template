@@ -47,8 +47,7 @@ namespace JRPG.Combat
             _party = party;
             _inventory = inventory;
             _factory = new CombatantFactory(data);
-            _resolver = new CombatActionResolver(inventory, data,
-                damage: DamagePipelineFactory.CreateStandard(data?.ElementMatrix));
+            _resolver = new CombatActionResolver(inventory, data);
             _profileAI = new ProfileEnemyActionSelector(data, _resolver, _resolver.Rng);
             _enemyAI = _profileAI;
 

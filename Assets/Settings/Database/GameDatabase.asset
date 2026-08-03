@@ -19,6 +19,7 @@ MonoBehaviour:
   enemies:
   - {fileID: 11400000, guid: 71d665905d374ab47ad84913cd444e99, type: 2}
   - {fileID: 11400000, guid: 6d543c651ae3d2d4a9f171b191480cd8, type: 2}
+  - {fileID: 11400000, guid: 9e238d10431946f46bc51d7df68855e0, type: 2}
   items:
   - {fileID: 11400000, guid: 379111d170c711b4391bda86b35dda63, type: 2}
   - {fileID: 11400000, guid: 73201f873c7594841a1c0b66a9a6c4f9, type: 2}
@@ -47,9 +48,13 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 9be15cc3033f3b14ba8b04a36cde2320, type: 2}
   - {fileID: 11400000, guid: fe343730409dc5d42b18d9b34b230b15, type: 2}
   - {fileID: 11400000, guid: b269edf44d8cc7c4a84d8fa94ab6d12c, type: 2}
+  - {fileID: 11400000, guid: 2c39d276a2ffd934dbfd4d6ab353a811, type: 2}
+  - {fileID: 11400000, guid: 39d6a85d800793648ad8daa16caaec66, type: 2}
+  - {fileID: 11400000, guid: cbc3d17adb66ed84faa3f3ffb0d33843, type: 2}
   encounters:
   - {fileID: 11400000, guid: 5cbdf5646041bb14c8f56bd7cb7af917, type: 2}
   - {fileID: 11400000, guid: 2b7f8ec8a9cc542449e2b372ae4527c5, type: 2}
+  - {fileID: 11400000, guid: 3ab82747b9530464d8f8fe4670dff3ae, type: 2}
   progressionCurves:
   - {fileID: 11400000, guid: 714bdac78733152408079b8d0269bc32, type: 2}
   characterGrowth:
@@ -62,15 +67,21 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 97d4a943bf68d974b9d68df652648af8, type: 2}
   - {fileID: 11400000, guid: ba8c47dd5175945459da0e3476853ad8, type: 2}
   - {fileID: 11400000, guid: 4004172b7e319e24ba39257bba5013a2, type: 2}
+  - {fileID: 11400000, guid: e325e325aefc2bc43a9caba0f573319b, type: 2}
+  - {fileID: 11400000, guid: a5c99b1f6b22dc84cb3d5267d175f5dc, type: 2}
   battleTriggers:
   - {fileID: 11400000, guid: ebef5cb5c62b53d408166ede59b13790, type: 2}
   - {fileID: 11400000, guid: 511f5bd4f6ca7ec429901a06f1311653, type: 2}
+  - {fileID: 11400000, guid: f7d14100e81d2cb4dabd08c5ca9a7923, type: 2}
+  - {fileID: 11400000, guid: 48aae4a9de49bfa4c869f551e88e721a, type: 2}
   statuses:
   - {fileID: 11400000, guid: 7c318245b9b154d4e9026cc8c97974c6, type: 2}
   - {fileID: 11400000, guid: 725b99fbc771d6341b35a7cc5244cb2c, type: 2}
   - {fileID: 11400000, guid: 91d723a872df6f9479c43c5c3391947d, type: 2}
   - {fileID: 11400000, guid: 04365f8c9d4223746849474654b5702a, type: 2}
+  - {fileID: 11400000, guid: b49f22a4b685994448c939c956af36f0, type: 2}
   enemyActionProfiles:
   - {fileID: 11400000, guid: 2db538d615d8d944bad9d1142086232a, type: 2}
   - {fileID: 11400000, guid: bb936fa915c4e11429bac3de1d5902f8, type: 2}
+  - {fileID: 11400000, guid: a713be7ad3f5c784f9e2f7b876449ae3, type: 2}
   elementMatrix: {fileID: 11400000, guid: eb895200428d3e74bb11e3cb278679a8, type: 2}

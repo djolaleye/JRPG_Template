@@ -1,0 +1,106 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3b02f82481dcfb44da12b0add53d0252, type: 3}
+  m_Name: ai_flame_warden
+  m_EditorClassIdentifier: JRPG.Data::JRPG.Data.EnemyActionProfileData
+  id: ai_flame_warden
+  displayName: Flame Warden AI
+  description: 
+  scriptedSequence:
+  - skill_buff_01
+  loopScriptedSequence: 0
+  phases:
+  - phaseId: warden_calm
+    hpThresholdPercent: 1
+    onEnterStoryFlag: 
+    actions:
+    - actionId: attack_melee
+      weight: 3
+      priority: 0
+      conditions: []
+      targetRule: 1
+      specificTargetId: 
+      cooldownTurns: 0
+    - actionId: skill_searing_brand
+      weight: 4
+      priority: 0
+      conditions:
+      - type: 8
+        value: 0
+        intValue: 0
+        stringValue: status_burn
+      targetRule: 8
+      specificTargetId: 
+      cooldownTurns: 0
+  - phaseId: warden_pressed
+    hpThresholdPercent: 0.6
+    onEnterStoryFlag: 
+    actions:
+    - actionId: attack_melee
+      weight: 1
+      priority: 0
+      conditions: []
+      targetRule: 4
+      specificTargetId: 
+      cooldownTurns: 0
+    - actionId: skill_searing_brand
+      weight: 2
+      priority: 0
+      conditions: []
+      targetRule: 7
+      specificTargetId: 
+      cooldownTurns: 0
+    - actionId: skill_warden_inferno
+      weight: 3
+      priority: 5
+      conditions: []
+      targetRule: 0
+      specificTargetId: 
+      cooldownTurns: 2
+    - actionId: skill_buff_01
+      weight: 1
+      priority: 6
+      conditions:
+      - type: 9
+        value: 0
+        intValue: 0
+        stringValue: status_attack_up
+      targetRule: 10
+      specificTargetId: 
+      cooldownTurns: 0
+  - phaseId: warden_desperate
+    hpThresholdPercent: 0.3
+    onEnterStoryFlag: 
+    actions:
+    - actionId: skill_warden_shackle
+      weight: 1
+      priority: 10
+      conditions: []
+      targetRule: 9
+      specificTargetId: 
+      cooldownTurns: 3
+    - actionId: skill_warden_inferno
+      weight: 3
+      priority: 8
+      conditions: []
+      targetRule: 0
+      specificTargetId: 
+      cooldownTurns: 1
+    - actionId: attack_melee
+      weight: 1
+      priority: 0
+      conditions: []
+      targetRule: 1
+      specificTargetId: 
+      cooldownTurns: 0
+  fallbackActionId: attack_melee
+  randomSeed: 4242

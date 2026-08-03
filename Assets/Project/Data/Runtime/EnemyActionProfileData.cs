@@ -16,7 +16,8 @@ namespace JRPG.Data
         AllyCountAtLeast,
         SelfHasStatus,
         TargetHasStatus,
-        TargetMissingStatus
+        TargetMissingStatus,
+        SelfMissingStatus
     }
 
 
