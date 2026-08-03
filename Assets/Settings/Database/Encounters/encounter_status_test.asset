@@ -27,4 +27,6 @@ MonoBehaviour:
   - enemy_fire_slime
   battleSceneId: 
   escapable: 1
+  isBoss: 0
+  escapeDifficulty: 1
   battleTriggerIds: []

@@ -31,7 +31,16 @@ namespace JRPG.Data
         public List<string> enemyIds = new();
 
         public string battleSceneId;
+
+        [Header("Escape rules")]
+        [Tooltip("Whether fleeing is permitted at all.")]
         public bool escapable;
+
+        [Tooltip("Boss fights forbid escape outright, regardless of the flag above.")]
+        public bool isBoss;
+
+        [Tooltip("Divides the computed escape chance — higher means harder to flee (1 = normal).")]
+        [Min(0.1f)] public float escapeDifficulty = 1f;
 
         /// Ids of BattleTriggerData assets evaluated during this encounter (mid-battle dialogue interruptions).
         public List<string> battleTriggerIds = new();

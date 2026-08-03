@@ -8,7 +8,8 @@ namespace JRPG.Data
         Melee,
         Guard,
         Item,
-        Skill
+        Skill,
+        Flee
     }
 
     public enum CombatEffectType

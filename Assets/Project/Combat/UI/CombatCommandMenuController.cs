@@ -1,14 +1,18 @@
 using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.InputSystem;
+using JRPG.Core;
+using JRPG.Data;
 using JRPG.Menu;
 
 namespace JRPG.Combat.UI
 {
-    /// Top-level battle command menu for the current party actor: Attack / Skill / Item / Guard.
-    /// Attack and Guard are concrete baseline actions; Skill and Item open filtered submenus.
+    /// Top-level battle command menu for the current party actor: Attack / Skill / Item / Guard / Flee.
+    /// Attack, Guard, and Flee are concrete baseline actions; Skill and Item open filtered submenus.
     /// Cancel is suppressed — you can't back out of your own turn here.
     public sealed class CombatCommandMenuController : MenuController
     {
+        private const string FleeActionId = "action_flee";
         protected override IReadOnlyList<RowModel> BuildRows()
         {
             var rows = new List<RowModel>();
@@ -33,7 +37,31 @@ namespace JRPG.Combat.UI
                 action = new ChooseCombatActionAction("guard"),
                 context = Context
             });
+
+            AddFleeRow(rows, combat, actorId);
             return rows;
+        }
+
+        private void AddFleeRow(List<RowModel> rows, CombatService combat, string actorId)
+        {
+            var battle = combat.CurrentBattle;
+            if (battle == null) return;
+
+            EncounterData encounter = null;
+            if (AppContext.Data is DataRegistry data && !string.IsNullOrEmpty(battle.encounterId))
+                data.TryGet(battle.encounterId, out encounter);
+
+            var escape = EscapeResolver.Evaluate(battle, encounter);
+
+            rows.Add(new RowModel
+            {
+                id = "flee",
+                label = "Flee",
+                costText = escape.allowed ? $"{Mathf.RoundToInt(escape.chance * 100f)}%" : "—",
+                enabled = escape.allowed && combat.CanAfford(actorId, FleeActionId),
+                action = new ChooseCombatActionAction(FleeActionId),
+                context = Context
+            });
         }
 
         protected override void OnCancel(InputAction.CallbackContext ctx)

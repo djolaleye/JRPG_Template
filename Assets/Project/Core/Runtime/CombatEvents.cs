@@ -63,6 +63,23 @@ namespace JRPG.Core
         }
     }
 
+    /// Published when the party loses. Combat hands screen to a defeat flow 
+    /// instead of snapping straight back to exploration, so the controller
+    /// owns the exit (retry / return).
+    public readonly struct DefeatFlowStarted
+    {
+        public readonly string BattleId;
+        public readonly string EncounterId;
+        public readonly bool CanRetry;
+
+        public DefeatFlowStarted(string battleId, string encounterId, bool canRetry)
+        {
+            BattleId = battleId;
+            EncounterId = encounterId;
+            CanRetry = canRetry;
+        }
+    }
+
     /// Published when something (e.g. the exploration Attack input) requests a battle to begin.
     /// Lives in Core so exploration can publish it and the combat UI can subscribe without a direct
     /// assembly reference between those domains.

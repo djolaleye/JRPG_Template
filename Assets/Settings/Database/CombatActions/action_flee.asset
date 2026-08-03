@@ -1,0 +1,48 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5de24234bbfc6f24d97ab62cc493692c, type: 3}
+  m_Name: action_flee
+  m_EditorClassIdentifier: JRPG.Data::JRPG.Data.CombatActionData
+  id: action_flee
+  displayName: Flee
+  description: 
+  category: 4
+  targetRule:
+    team: 0
+    selectionMode: 0
+    maxTargets: 1
+    requireLiving: 1
+    requireDefeated: 0
+    allowSelf: 1
+    requiredStatusId: 
+    maxHpFraction: 0
+  costs: []
+  effects:
+  - type: 9
+    basePower: 0
+    statScale: 0
+    attackStat: 0
+    defenseStat: 0
+    element: 0
+    scalingStat: 0
+    guardMultiplier: 0
+    executionChance: 0
+    hitChance: 1
+    statusId: 
+    dispelCategory: 0
+    resourceType: 0
+    resourceDelta: 0
+    stringArg: 
+    boolArg: 0
+  usableByPlayers: 1
+  usableByEnemies: 0
+  cooldownTurns: 0

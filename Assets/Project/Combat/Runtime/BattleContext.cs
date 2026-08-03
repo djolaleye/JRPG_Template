@@ -23,6 +23,7 @@ namespace JRPG.Combat
         public CombatPhase phase = CombatPhase.None;
 
         public CombatantInstance currentActor;
+        public bool escapeSucceeded;
 
         public bool isBattleOver;
         public BattleOutcome outcome = BattleOutcome.None;

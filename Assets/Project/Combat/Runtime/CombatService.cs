@@ -30,6 +30,13 @@ namespace JRPG.Combat
 
         private BattleContext _battle;
         private float _battleStartTime;
+        
+        /// How the current/last battle was launched, so a defeat can be retried verbatim.
+        private BattleStartRequest? _lastRequest;
+
+        /// Party HP/MP/SP as they were when the battle began, keyed by character id. A retry restores
+        /// these rather than healing to full, so losing does not hand the player free resources.
+        private readonly Dictionary<string, (int hp, int mp, int sp)> _battleStartResources = new();
 
         public CombatService(IEventBus bus, GameStateController state, DataRegistry data,
             IPartyRuntimeQueries party, IInventoryService inventory)
@@ -117,6 +124,8 @@ namespace JRPG.Combat
 
             _battle = ctx;
             LastResult = null;
+            // Remembered so the defeat flow can offer a retry of this exact encounter.
+            _lastRequest = request;
             _battleStartTime = Time.realtimeSinceStartup;
 
             ctx.phase = CombatPhase.CalculateTurnOrder;
@@ -159,11 +168,19 @@ namespace JRPG.Combat
                 }
             }
 
+            // Snapshot the party's resources BEFORE combat mutates them, so a retry after defeat can
+            // restore the state the battle actually started from.
+            _battleStartResources.Clear();
+
             for (int i = 0; i < sources.Count; i++)
             {
-                var combatant = _factory.FromCharacter(sources[i]);
+                var source = sources[i];
+                var combatant = _factory.FromCharacter(source);
                 ctx.partyCombatants.Add(combatant);
-                ctx.partySources[combatant.combatantId] = sources[i];
+                ctx.partySources[combatant.combatantId] = source;
+
+                _battleStartResources[source.SourceDataId] =
+                    (source.currentHP, source.currentMP, source.currentSP);
             }
         }
 
@@ -397,6 +414,20 @@ namespace JRPG.Combat
 
             _battle.phase = CombatPhase.CheckWinLoss;
 
+            // A successful flee ends the battle here
+            if (_battle.escapeSucceeded)
+            {
+                if (result != null)
+                {
+                    result.battleEnded = true;
+                    result.battleOutcome = BattleOutcome.Escaped;
+                }
+
+                EndBattle(BattleOutcome.Escaped);
+
+                return;
+            }
+
             var outcome = _outcome.Evaluate(_battle);
             if (outcome != BattleOutcome.None)
             {
@@ -508,11 +539,52 @@ namespace JRPG.Combat
                 LastResult = PackageResult();
                 _bus.Publish(new BattleResultPackaged(_battle.battleId, outcome, LastResult));
             }
+            else if (outcome == BattleOutcome.Defeat)
+            {
+                // Hand the screen to the defeat flow, mirroring how victory hands off to the
+                // post-battle flow. The controller owns the exit (retry or return to exploration),
+                // so combat does not force a state change here.
+                _bus.Publish(new DefeatFlowStarted(_battle.battleId, _battle.encounterId ?? string.Empty,
+                    _lastRequest.HasValue));
+            }
             else
             {
-                // TODO: Defeat/escape post-battle flow; for now, return to exploration immediately.
+                // Escaped / None: no rewards, no ceremony — straight back to exploration.
                 _state.SetState(new LayeredState(GameMode.Exploration, OverlayState.None, InputContext.Exploration));
             }
+        }
+
+        /// Re-runs the encounter that just ended, from the top. Used by the defeat flow's Retry option.
+        /// Party resources were committed at defeat, so callers should restore them first for a
+        /// a fair rematch
+        public bool RestartLastBattle(bool restoreResources = true)
+        {
+            if (!_lastRequest.HasValue) return false;
+            if (IsInBattle) return false;
+
+            // Rewind the party to how it ENTERED the battle — not to full. Losing must not become a
+            // way to refill resources; the retry replays the same fight from the same footing.
+            if (restoreResources)
+            {
+                var active = _party.GetActiveCombatParty();
+
+                for (int i = 0; i < active.Count; i++)
+                {
+                    var c = active[i];
+                    if (!_battleStartResources.TryGetValue(c.SourceDataId, out var snapshot)) continue;
+
+                    c.currentHP = snapshot.hp;
+                    c.currentMP = snapshot.mp;
+                    c.currentSP = snapshot.sp;
+                    c.Recalculate();
+                }
+            }
+
+            var request = _lastRequest.Value;
+            _battle = null;              // clear the finished battle so StartBattle accepts a new one
+            StartBattle(request);
+            
+            return IsInBattle;
         }
 
         private void CommitPartyResources()

@@ -98,3 +98,8 @@ MonoBehaviour:
     mode: 2
     overlay: 4
     input: 4
+  - menuId: combat_defeat
+    canvasPrefab: {fileID: 5424047092044167842, guid: 028b647d290d2104bbd38b51cf51e9b0, type: 3}
+    mode: 2
+    overlay: 5
+    input: 1
