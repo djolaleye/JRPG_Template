@@ -23,7 +23,8 @@ namespace JRPG.Combat
         private readonly TurnOrderService _turnOrder = new();
         private readonly TargetingSystem _targeting = new();
         private readonly CombatActionResolver _resolver;
-        private readonly IEnemyActionSelector _enemyAI = new SimpleEnemyActionSelector();
+        private readonly IEnemyActionSelector _enemyAI;
+        private readonly ProfileEnemyActionSelector _profileAI;
         private readonly ICombatOutcomeEvaluator _outcome = new CombatOutcomeEvaluator();
         private readonly RuntimeCharacterFactory _characterFactory;
 
@@ -41,14 +42,16 @@ namespace JRPG.Combat
             _factory = new CombatantFactory(data);
             _resolver = new CombatActionResolver(inventory, data,
                 damage: DamagePipelineFactory.CreateStandard(data?.ElementMatrix));
+            _profileAI = new ProfileEnemyActionSelector(data, _resolver, _resolver.Rng);
+            _enemyAI = _profileAI;
+
             _characterFactory = new RuntimeCharacterFactory(data);
         }
 
         public bool IsInBattle => _battle != null && !_battle.isBattleOver;
         public BattleContext CurrentBattle => _battle;
-        /// Exposed so later phases (statuses, elements, passives) can register executors and swap
-        /// damage-pipeline stages without reaching through CombatService for every rule.
         public CombatActionResolver Resolver => _resolver;
+        public ProfileEnemyActionSelector EnemyAI => _profileAI;
         public BattleResultData LastResult { get; private set; }
         public CombatSequenceInterrupter Interrupter { get; set; }
 

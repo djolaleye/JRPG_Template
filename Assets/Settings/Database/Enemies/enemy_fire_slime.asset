@@ -19,9 +19,9 @@ MonoBehaviour:
   - stat: 0
     value: 20
   - stat: 1
-    value: 5
+    value: 40
   - stat: 2
-    value: 3
+    value: 10
   - stat: 3
     value: 3
   - stat: 4
@@ -51,7 +51,7 @@ MonoBehaviour:
     affinity: 1
   statusImmunityIds: []
   passiveEffectIds: []
-  actionProfileId: 
+  actionProfileId: ai_fire_slime_phased
   skillIds:
   - skill_fire_01
   - skill_flame_wave

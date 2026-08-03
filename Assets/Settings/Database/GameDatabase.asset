@@ -69,4 +69,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 725b99fbc771d6341b35a7cc5244cb2c, type: 2}
   - {fileID: 11400000, guid: 91d723a872df6f9479c43c5c3391947d, type: 2}
   - {fileID: 11400000, guid: 04365f8c9d4223746849474654b5702a, type: 2}
+  enemyActionProfiles:
+  - {fileID: 11400000, guid: 2db538d615d8d944bad9d1142086232a, type: 2}
+  - {fileID: 11400000, guid: bb936fa915c4e11429bac3de1d5902f8, type: 2}
   elementMatrix: {fileID: 11400000, guid: eb895200428d3e74bb11e3cb278679a8, type: 2}

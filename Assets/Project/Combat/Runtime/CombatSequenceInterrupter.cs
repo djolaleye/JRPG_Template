@@ -277,8 +277,18 @@ namespace JRPG.Combat
                 _combat.SubmitAction(combatantId, actionId, targetIds);
         }
 
+        /// Swaps the AI profile for every enemy in the current battle — how a scripted interruption
+        /// makes a boss "change tactics" mid-fight.
         public void SetEnemyActionProfile(string profileId)
-            => Debug.LogWarning($"[JRPG.Combat] SetEnemyActionProfile('{profileId}') is a Phase 11 stub (EnemyActionProfiles not built).");
+        {
+            if (string.IsNullOrEmpty(profileId)) return;
+            if (_combat.EnemyAI == null)
+            {
+                Debug.LogWarning($"[JRPG.Combat] SetEnemyActionProfile('{profileId}') — no profile-driven AI available.");
+                return;
+            }
+            _combat.EnemyAI.SetProfileOverride(string.Empty, profileId);
+        }
 
         public void SetBattleTrigger(string triggerId, bool active)
         {

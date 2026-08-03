@@ -46,6 +46,12 @@ namespace JRPG.Combat
         /// of the same EnemyData can be told apart by triggers and AI. Empty for party members.
         public string encounterSlotId;
 
+        /// Character/enemy level, copied at build time. Used by AI target rules that rank by strength.
+        public int level = 1;
+
+        /// The last combatant that dealt damage to this one.
+        public string lastAttackerCombatantId;
+
         /// Remaining cooldown turns per action id.
         public readonly Dictionary<string, int> cooldowns = new();
 

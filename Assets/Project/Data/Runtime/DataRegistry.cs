@@ -20,6 +20,7 @@ namespace JRPG.Data
         private readonly Dictionary<string, DialogueGraphData> _dialogueGraphsById = new();
         private readonly Dictionary<string, BattleTriggerData> _battleTriggersById = new();
         private readonly Dictionary<string, StatusEffectData> _statusesById = new();
+        private readonly Dictionary<string, EnemyActionProfileData> _enemyProfilesById = new();
 
         public IReadOnlyDictionary<string, CharacterData> CharactersById => _charactersById;
         public IReadOnlyDictionary<string, EnemyData> EnemiesById => _enemiesById;
@@ -31,6 +32,7 @@ namespace JRPG.Data
         public IReadOnlyDictionary<string, DialogueGraphData> DialogueGraphsById => _dialogueGraphsById;
         public IReadOnlyDictionary<string, BattleTriggerData> BattleTriggersById => _battleTriggersById;
         public IReadOnlyDictionary<string, StatusEffectData> StatusesById => _statusesById;
+        public IReadOnlyDictionary<string, EnemyActionProfileData> EnemyActionProfilesById => _enemyProfilesById;
 
         /// The authored elemental interaction table (Phase 11); null when the database has none.
         public ElementInteractionMatrix ElementMatrix { get; private set; }
@@ -48,6 +50,7 @@ namespace JRPG.Data
             _dialogueGraphsById.Clear();
             _battleTriggersById.Clear();
             _statusesById.Clear();
+            _enemyProfilesById.Clear();
 
             Index(db.characters, _charactersById, "characters");
             Index(db.enemies, _enemiesById, "enemies");
@@ -59,6 +62,7 @@ namespace JRPG.Data
             Index(db.dialogueGraphs, _dialogueGraphsById, "dialogueGraphs");
             Index(db.battleTriggers, _battleTriggersById, "battleTriggers");
             Index(db.statuses, _statusesById, "statuses");
+            Index(db.enemyActionProfiles, _enemyProfilesById, "enemyActionProfiles");
 
             ElementMatrix = db.elementMatrix;
         }
@@ -135,6 +139,10 @@ namespace JRPG.Data
                 {
                     if (_statusesById.TryGetValue(id, out var st) && st is T tst) { value = tst; return true; }
                 }
+                if (typeof(T) == typeof(EnemyActionProfileData) || typeof(T).IsAssignableFrom(typeof(EnemyActionProfileData)))
+                {
+                    if (_enemyProfilesById.TryGetValue(id, out var ap) && ap is T tap) { value = tap; return true; }
+                }
                 if (typeof(T) == typeof(GameDataBase))
                 {
                     if (_charactersById.TryGetValue(id, out var c) && c is T tc) { value = tc; return true; }
@@ -147,6 +155,7 @@ namespace JRPG.Data
                     if (_dialogueGraphsById.TryGetValue(id, out var dg) && dg is T tdg) { value = tdg; return true; }
                     if (_battleTriggersById.TryGetValue(id, out var bt) && bt is T tbt) { value = tbt; return true; }
                     if (_statusesById.TryGetValue(id, out var st) && st is T tst) { value = tst; return true; }
+                    if (_enemyProfilesById.TryGetValue(id, out var ap) && ap is T tap) { value = tap; return true; }
                 }
             }
             value = null;

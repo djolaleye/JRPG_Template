@@ -1,0 +1,52 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3b02f82481dcfb44da12b0add53d0252, type: 3}
+  m_Name: ai_fire_slime_phased
+  m_EditorClassIdentifier: JRPG.Data::JRPG.Data.EnemyActionProfileData
+  id: ai_fire_slime_phased
+  displayName: Fire Slime AI
+  description: 
+  scriptedSequence:
+  - skill_fire_01
+  loopScriptedSequence: 0
+  phases:
+  - phaseId: calm
+    hpThresholdPercent: 1
+    onEnterStoryFlag: 
+    actions:
+    - actionId: attack_melee
+      weight: 1
+      priority: 0
+      conditions: []
+      targetRule: 3
+      specificTargetId: 
+      cooldownTurns: 0
+  - phaseId: enraged
+    hpThresholdPercent: 0.5
+    onEnterStoryFlag: 
+    actions:
+    - actionId: skill_flame_wave
+      weight: 1
+      priority: 10
+      conditions: []
+      targetRule: 0
+      specificTargetId: 
+      cooldownTurns: 0
+    - actionId: attack_melee
+      weight: 1
+      priority: 0
+      conditions: []
+      targetRule: 1
+      specificTargetId: 
+      cooldownTurns: 0
+  fallbackActionId: attack_melee
+  randomSeed: 999

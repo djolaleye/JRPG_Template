@@ -19,9 +19,9 @@ MonoBehaviour:
   - stat: 0
     value: 18
   - stat: 1
-    value: 0
+    value: 20
   - stat: 2
-    value: 0
+    value: 10
   - stat: 3
     value: 4
   - stat: 4
@@ -47,6 +47,6 @@ MonoBehaviour:
   elementAffinities: []
   statusImmunityIds: []
   passiveEffectIds: []
-  actionProfileId: 
+  actionProfileId: ai_slime_basic
   skillIds:
   - skill_status_01

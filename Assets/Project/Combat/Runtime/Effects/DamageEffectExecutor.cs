@@ -38,6 +38,11 @@ namespace JRPG.Combat
                 int after = target.currentHP;
                 bool defeated = after <= 0;
 
+                // Remember who hurt this combatant, so AI retaliation (LastAttacker) has something to
+                // aim at.
+                if (!d.missed && !d.absorbed && applied > 0 && ctx.actor != null && ctx.actor != target)
+                    target.lastAttackerCombatantId = ctx.actor.combatantId;
+
                 ctx.result.effects.Add(new EffectResult
                 {
                     targetCombatantId = target.combatantId,

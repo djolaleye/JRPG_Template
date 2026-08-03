@@ -48,5 +48,5 @@ MonoBehaviour:
     stringArg: 
     boolArg: 0
   usableByPlayers: 1
-  usableByEnemies: 0
+  usableByEnemies: 1
   cooldownTurns: 0

@@ -34,6 +34,7 @@ namespace JRPG.Combat
                 currentHP = character.currentHP,
                 currentMP = character.currentMP,
                 currentSP = character.currentSP,
+                level = character.level,
             };
 
             BuildCharacterProfile(combatant, character);
@@ -79,6 +80,7 @@ namespace JRPG.Combat
                 currentHP = stats.GetFinal(StatType.MaxHP),
                 currentMP = stats.GetFinal(StatType.MaxMP),
                 currentSP = stats.GetFinal(StatType.MaxSP),
+                level = enemy.level,
             };
 
             combatant.profile.AddAffinities(enemy.elementAffinities);
