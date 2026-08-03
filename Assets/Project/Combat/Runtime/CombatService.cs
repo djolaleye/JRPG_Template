@@ -427,26 +427,15 @@ namespace JRPG.Combat
 
             if (!_resolver.CanPayCosts(actor, action, out reason)) return false;
 
-            // Resolve and validate targets against the action's TargetRule.
-            var valid = _targeting.GetValidTargets(_battle, actor, action);
-            targets = new List<CombatantInstance>();
+            // Resolve targets against the action's TargetRule.
+            targets = _targeting.ResolveTargets(_battle, actor, action, targetIds, _resolver.Rng);
 
-            if (action.targetRule != null && action.targetRule.selectionMode == TargetSelectionMode.Self)
+            if (targets.Count == 0)
             {
-                targets.Add(actor);
-            }
-            else
-            {
-                if (targetIds != null)
-                {
-                    for (int i = 0; i < targetIds.Count; i++)
-                    {
-                        var t = _battle.FindCombatant(targetIds[i]);
-                        if (t != null && valid.Contains(t)) targets.Add(t);
-                    }
-                }
-                if (targets.Count == 0) { reason = "No valid target selected."; return false; }
-                if (targets.Count > 1) targets.RemoveRange(1, targets.Count - 1); // Single-target Phase 6.
+                reason = action.targetRule != null && action.targetRule.IsAutoResolved
+                    ? "No valid targets for this action."
+                    : "No valid target selected.";
+                return false;
             }
 
             return true;

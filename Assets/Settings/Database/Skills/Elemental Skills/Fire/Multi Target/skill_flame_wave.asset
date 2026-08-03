@@ -10,35 +10,39 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5de24234bbfc6f24d97ab62cc493692c, type: 3}
-  m_Name: skill_purify
+  m_Name: skill_flame_wave
   m_EditorClassIdentifier: JRPG.Data::JRPG.Data.CombatActionData
-  id: skill_purify
-  displayName: Purify
+  id: skill_flame_wave
+  displayName: Flame Wave
   description: 
   category: 3
   targetRule:
-    team: 1
-    selectionMode: 1
+    team: 2
+    selectionMode: 2
+    maxTargets: 1
     requireLiving: 1
+    requireDefeated: 0
     allowSelf: 1
+    requiredStatusId: 
+    maxHpFraction: 0
   costs:
   - type: 1
-    costAmount: 4
+    costAmount: 8
     itemId: 
     quantity: 0
   effects:
-  - type: 4
-    basePower: 0
-    statScale: 0
-    attackStat: 0
-    defenseStat: 0
-    element: 0
+  - type: 0
+    basePower: 7
+    statScale: 0.8
+    attackStat: 4
+    defenseStat: 6
+    element: 2
     scalingStat: 0
     guardMultiplier: 0
     executionChance: 0
     hitChance: 1
     statusId: 
-    dispelCategory: 2
+    dispelCategory: 0
     resourceType: 0
     resourceDelta: 0
     stringArg: 

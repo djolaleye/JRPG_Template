@@ -7,7 +7,7 @@ namespace JRPG.Data
         Neutral,
         Fire,
         Ice,
-        Lightning,
+        Electric,
         Earth,
         Wind,
         Water,

@@ -10,23 +10,43 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5de24234bbfc6f24d97ab62cc493692c, type: 3}
-  m_Name: skill_poison_dart
+  m_Name: skill_venom_strike
   m_EditorClassIdentifier: JRPG.Data::JRPG.Data.CombatActionData
-  id: skill_poison_dart
-  displayName: Poison Dart
+  id: skill_venom_strike
+  displayName: Venom Strike
   description: 
   category: 3
   targetRule:
     team: 2
     selectionMode: 1
+    maxTargets: 1
     requireLiving: 1
+    requireDefeated: 0
     allowSelf: 1
+    requiredStatusId: 
+    maxHpFraction: 0
   costs:
   - type: 1
-    costAmount: 3
+    costAmount: 6
     itemId: 
     quantity: 0
   effects:
+  - type: 0
+    basePower: 8
+    statScale: 1
+    attackStat: 3
+    defenseStat: 5
+    element: 9
+    scalingStat: 0
+    guardMultiplier: 0
+    executionChance: 0
+    hitChance: 1
+    statusId: 
+    dispelCategory: 0
+    resourceType: 0
+    resourceDelta: 0
+    stringArg: 
+    boolArg: 0
   - type: 3
     basePower: 0
     statScale: 0
@@ -36,7 +56,7 @@ MonoBehaviour:
     scalingStat: 0
     guardMultiplier: 0
     executionChance: 0
-    hitChance: 1
+    hitChance: 0.7
     statusId: status_poison
     dispelCategory: 0
     resourceType: 0

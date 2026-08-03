@@ -43,7 +43,8 @@ namespace JRPG.Combat
                 .Register(new RemoveStatusEffectExecutor())
                 .Register(new BuffStatEffectExecutor(debuff: false))
                 .Register(new BuffStatEffectExecutor(debuff: true))
-                .Register(new ResourceChangeEffectExecutor());
+                .Register(new ResourceChangeEffectExecutor())
+                .Register(new ForcedTargetEffectExecutor());
         }
     }
 }

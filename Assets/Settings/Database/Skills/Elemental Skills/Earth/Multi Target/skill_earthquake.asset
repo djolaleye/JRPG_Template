@@ -10,38 +10,39 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5de24234bbfc6f24d97ab62cc493692c, type: 3}
-  m_Name: skill_heal
+  m_Name: skill_earthquake
   m_EditorClassIdentifier: JRPG.Data::JRPG.Data.CombatActionData
-  id: skill_heal_01
-  displayName: Heal
+  id: skill_earthquake
+  displayName: Earthquake
   description: 
   category: 3
   targetRule:
-    team: 1
-    selectionMode: 1
+    team: 3
+    selectionMode: 2
+    maxTargets: 1
     requireLiving: 1
+    requireDefeated: 0
     allowSelf: 1
+    requiredStatusId: 
+    maxHpFraction: 0
   costs:
   - type: 1
-    costAmount: 4
+    costAmount: 12
     itemId: 
     quantity: 0
   effects:
-  - type: 1
-    basePower: 20
+  - type: 0
+    basePower: 6
     statScale: 0.5
-    attackStat: 0
-    defenseStat: 0
-    element: 0
-    scalingStat: 4
+    attackStat: 4
+    defenseStat: 6
+    element: 5
+    scalingStat: 0
     guardMultiplier: 0
-    chance: 1
+    executionChance: 0
+    hitChance: 1
     statusId: 
-    duration: 0
-    stacks: 0
-    buffStat: 0
-    buffModifierType: 0
-    buffValue: 0
+    dispelCategory: 0
     resourceType: 0
     resourceDelta: 0
     stringArg: 

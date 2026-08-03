@@ -22,23 +22,21 @@ MonoBehaviour:
   canDiscard: 1
   usageRule:
     usableInCombat: 1
-    usableInExploration: 1
+    usableInExploration: 0
     targetLivingAlliesOnly: 0
-    consumedOnUse: 1
+    consumedOnUse: 0
     requiredStoryFlag: 
   linkedEffects: []
   slot: 3
-  statModifiers: []
   allowedCharacterIds: []
   requiredLevel: 1
-  allowedClassTags: []
-  passiveEffectIds:
-  - passive_fire_ward
-  statusImmunities: 
-  actionUnlockIds:
-  - skill_water_01
+  statModifiers: []
   elementAffinities:
   - element: 2
     affinity: 2
   statusImmunityIds:
   - status_poison
+  passiveEffectIds:
+  - passive_fire_ward
+  actionUnlockIds:
+  - skill_water_01

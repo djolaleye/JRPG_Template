@@ -10,25 +10,29 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5de24234bbfc6f24d97ab62cc493692c, type: 3}
-  m_Name: skill_revive
+  m_Name: skill_battle_cry
   m_EditorClassIdentifier: JRPG.Data::JRPG.Data.CombatActionData
-  id: skill_revive
-  displayName: Revive
+  id: skill_buff_01
+  displayName: Battle Cry
   description: 
   category: 3
   targetRule:
-    team: 1
-    selectionMode: 1
-    requireLiving: 0
+    team: 0
+    selectionMode: 0
+    maxTargets: 1
+    requireLiving: 1
+    requireDefeated: 0
     allowSelf: 1
+    requiredStatusId: 
+    maxHpFraction: 0
   costs:
   - type: 1
-    costAmount: 8
+    costAmount: 3
     itemId: 
     quantity: 0
   effects:
-  - type: 8
-    basePower: 50
+  - type: 5
+    basePower: 0
     statScale: 0
     attackStat: 0
     defenseStat: 0
@@ -36,13 +40,13 @@ MonoBehaviour:
     scalingStat: 0
     guardMultiplier: 0
     executionChance: 0
-    hitChance: 0
-    statusId: 
+    hitChance: 1
+    statusId: status_attack_up
     dispelCategory: 0
     resourceType: 0
     resourceDelta: 0
     stringArg: 
     boolArg: 0
   usableByPlayers: 1
-  usableByEnemies: 0
+  usableByEnemies: 1
   cooldownTurns: 0

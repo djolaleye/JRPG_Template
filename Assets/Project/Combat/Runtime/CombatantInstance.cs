@@ -37,6 +37,10 @@ namespace JRPG.Combat
 
         public readonly List<StatusEffectInstance> activeStatuses = new();
 
+        /// Taunt-style override: while set, this combatant's single-target actions are redirected to
+        /// the named combatant (when it is still a legal target). Battle-local.
+        public string forcedTargetCombatantId;
+
         public bool IsDefeated => currentHP <= 0;
 
         public int MaxHP => stats.GetFinal(StatType.MaxHP);

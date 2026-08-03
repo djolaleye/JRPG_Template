@@ -52,6 +52,41 @@ namespace JRPG.Combat.UI
                && action.targetRule != null
                && action.targetRule.selectionMode == TargetSelectionMode.Self;
 
+        /// True when the engine picks the targets itself (Self / All / Random).
+        public static bool IsAutoTargeted(string actionId)
+            => TryGetAction(actionId, out var action)
+               && action.targetRule != null
+               && action.targetRule.IsAutoResolved;
+
+        /// Human-readable description of what an auto-resolved action will hit, for the confirm screen.
+        public static string DescribeAutoTargets(string actionId)
+        {
+            if (!TryGetAction(actionId, out var action) || action.targetRule == null) return "";
+            var rule = action.targetRule;
+            switch (rule.selectionMode)
+            {
+                case TargetSelectionMode.Self: return "Self";
+                case TargetSelectionMode.All:
+                    return rule.team switch
+                    {
+                        TargetTeam.Allies => "All allies",
+                        TargetTeam.Enemies => "All enemies",
+                        TargetTeam.All => "All combatants",
+                        _ => "Self",
+                    };
+                case TargetSelectionMode.Random:
+                    string who = rule.team switch
+                    {
+                        TargetTeam.Allies => "ally",
+                        TargetTeam.Enemies => "enemy",
+                        TargetTeam.All => "combatant",
+                        _ => "target",
+                    };
+                    return rule.maxTargets > 1 ? $"{rule.maxTargets} random {who}s" : $"Random {who}";
+                default: return "";
+            }
+        }
+
         private static string ItemName(string itemId)
         {
             if (!string.IsNullOrEmpty(itemId)

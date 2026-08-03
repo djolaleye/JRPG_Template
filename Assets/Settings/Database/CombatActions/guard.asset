@@ -19,8 +19,12 @@ MonoBehaviour:
   targetRule:
     team: 0
     selectionMode: 0
+    maxTargets: 1
     requireLiving: 1
+    requireDefeated: 0
     allowSelf: 1
+    requiredStatusId: 
+    maxHpFraction: 0
   costs:
   - type: 0
     costAmount: 0
@@ -32,7 +36,17 @@ MonoBehaviour:
     statScale: 0
     attackStat: 0
     defenseStat: 0
+    element: 0
     scalingStat: 0
     guardMultiplier: 0.5
+    executionChance: 0
+    hitChance: 1
+    statusId: 
+    dispelCategory: 0
+    resourceType: 0
+    resourceDelta: 0
+    stringArg: 
+    boolArg: 0
   usableByPlayers: 1
   usableByEnemies: 1
+  cooldownTurns: 0

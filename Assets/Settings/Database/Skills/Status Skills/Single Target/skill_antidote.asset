@@ -10,40 +10,28 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5de24234bbfc6f24d97ab62cc493692c, type: 3}
-  m_Name: skill_venom_strike
+  m_Name: skill_antidote
   m_EditorClassIdentifier: JRPG.Data::JRPG.Data.CombatActionData
-  id: skill_venom_strike
-  displayName: Venom Strike
+  id: skill_cure_01
+  displayName: Antidote
   description: 
   category: 3
   targetRule:
-    team: 2
+    team: 1
     selectionMode: 1
+    maxTargets: 1
     requireLiving: 1
+    requireDefeated: 0
     allowSelf: 1
+    requiredStatusId: 
+    maxHpFraction: 0
   costs:
   - type: 1
-    costAmount: 6
+    costAmount: 2
     itemId: 
     quantity: 0
   effects:
-  - type: 0
-    basePower: 8
-    statScale: 1
-    attackStat: 4
-    defenseStat: 6
-    element: 1
-    scalingStat: 0
-    guardMultiplier: 0
-    executionChance: 0
-    hitChance: 1
-    statusId: 
-    dispelCategory: 0
-    resourceType: 0
-    resourceDelta: 0
-    stringArg: 
-    boolArg: 0
-  - type: 3
+  - type: 4
     basePower: 0
     statScale: 0
     attackStat: 0
@@ -60,5 +48,5 @@ MonoBehaviour:
     stringArg: 
     boolArg: 0
   usableByPlayers: 1
-  usableByEnemies: 0
+  usableByEnemies: 1
   cooldownTurns: 0

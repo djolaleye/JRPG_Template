@@ -29,11 +29,15 @@ namespace JRPG.Combat.UI
 
             flow.PendingActionId = _actionId;
 
-            if (CombatRowFormat.IsSelfTarget(_actionId))
+            if (CombatRowFormat.IsAutoTargeted(_actionId))
             {
-                // Self mode resolves the target to the actor engine-side; record it so the confirm
-                // screen can name it, then skip straight to confirmation.
-                flow.SetPendingTargets(new[] { actorId });
+                // Self / All / Random are resolved engine-side by the targeting system, so there is
+                // nothing for the player to pick — record the preview set and skip to confirmation.
+                if (CombatRowFormat.IsSelfTarget(_actionId))
+                    flow.SetPendingTargets(new[] { actorId });
+                else
+                    flow.SetPendingTargets(PreviewAutoTargets(combat, actorId, _actionId));
+
                 c.Menus?.Open("combat_confirm", null);
             }
             else
@@ -44,6 +48,16 @@ namespace JRPG.Combat.UI
         }
 
         public string GetDisabledReason(MenuContext c) => "Action unavailable or unaffordable.";
+
+        /// Preview set shown on the confirm screen for auto-resolved actions. The engine re-resolves
+        /// at submission, so this is display only (a Random action may land elsewhere).
+        private static string[] PreviewAutoTargets(CombatService combat, string actorId, string actionId)
+        {
+            var valid = combat.GetValidTargets(actorId, actionId);
+            var ids = new string[valid.Count];
+            for (int i = 0; i < valid.Count; i++) ids[i] = valid[i].combatantId;
+            return ids;
+        }
     }
 
     /// Records the chosen target and advances to confirmation. Submission happens only once the player

@@ -45,6 +45,7 @@ namespace JRPG.Combat
         public DamagePipeline Damage => _damage;
         public StatusProcessor Status => _status;
         public PassiveRegistry Passives => _passives;
+        public System.Random Rng => _rng;
 
         public bool CanPayCosts(CombatantInstance user, CombatActionData action, out string reason)
         {

@@ -1,0 +1,68 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5de24234bbfc6f24d97ab62cc493692c, type: 3}
+  m_Name: skill_purify
+  m_EditorClassIdentifier: JRPG.Data::JRPG.Data.CombatActionData
+  id: skill_heal_02
+  displayName: Purify
+  description: 
+  category: 3
+  targetRule:
+    team: 1
+    selectionMode: 1
+    maxTargets: 1
+    requireLiving: 1
+    requireDefeated: 0
+    allowSelf: 1
+    requiredStatusId: 
+    maxHpFraction: 0
+  costs:
+  - type: 1
+    costAmount: 4
+    itemId: 
+    quantity: 0
+  effects:
+  - type: 4
+    basePower: 0
+    statScale: 0
+    attackStat: 0
+    defenseStat: 0
+    element: 0
+    scalingStat: 0
+    guardMultiplier: 0
+    executionChance: 0
+    hitChance: 1
+    statusId: 
+    dispelCategory: 2
+    resourceType: 0
+    resourceDelta: 0
+    stringArg: 
+    boolArg: 0
+  - type: 1
+    basePower: 10
+    statScale: 0.5
+    attackStat: 0
+    defenseStat: 0
+    element: 0
+    scalingStat: 4
+    guardMultiplier: 0
+    executionChance: 0
+    hitChance: 1
+    statusId: 
+    dispelCategory: 2
+    resourceType: 0
+    resourceDelta: 0
+    stringArg: 
+    boolArg: 0
+  usableByPlayers: 1
+  usableByEnemies: 0
+  cooldownTurns: 0

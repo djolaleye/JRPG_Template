@@ -20,7 +20,11 @@ namespace JRPG.Combat.UI
             if (combat == null || string.IsNullOrEmpty(actorId) || string.IsNullOrEmpty(actionId)) return rows;
             if (!CombatRowFormat.TryGetAction(actionId, out var action)) return rows;
 
-            string targets = TargetNames(combat, flow.PendingTargetIds);
+            // Auto-resolved actions (All / Random / Self) describe their scope rather than listing
+            // every name, which would overflow the row on a full enemy party.
+            string targets = CombatRowFormat.IsAutoTargeted(actionId) && flow.PendingTargetIds.Count > 1
+                ? $"{CombatRowFormat.DescribeAutoTargets(actionId)} ({flow.PendingTargetIds.Count})"
+                : TargetNames(combat, flow.PendingTargetIds);
 
             // Disabled so the framework's disabled-row skipping lands initial focus on Confirm.
             rows.Add(new RowModel

@@ -47,7 +47,7 @@ namespace JRPG.Combat
             if (ctx.target == null || ctx.rng == null
                 || (ctx.action.targetRule.team != TargetTeam.Enemies && ctx.action.targetRule.team != TargetTeam.All)) return;
 
-            float hitChance = ctx.effect.hitChance;
+            float hitChance = ctx.effect.hitChance <= 0f ? 1f : ctx.effect.hitChance;
 
             if (_status != null)
             {
@@ -57,8 +57,6 @@ namespace JRPG.Combat
 
             if (_tuning.evasionPerPoint > 0f && ctx.target.stats != null)
                 hitChance -= ctx.target.stats.GetFinal(StatType.Evasion) * _tuning.evasionPerPoint;
-            
-            // hitChance = Math.Max((float)0.3, hitChance);
 
             if (hitChance >= 1f) return;             // can't miss == skip the roll
             if (ctx.rng.NextDouble() >= hitChance) ctx.missed = true;
