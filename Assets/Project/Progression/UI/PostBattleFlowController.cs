@@ -11,6 +11,7 @@ namespace JRPG.Progression.UI
         RewardReview,
         XpPreview,
         LevelUpReview,
+        SkillChoice,
         AttributeAllocation,
         Complete,
     }
@@ -87,6 +88,21 @@ namespace JRPG.Progression.UI
                     break;
 
                 case PostBattleFlowState.LevelUpReview:
+                    // Skill decisions come first: they are a consequence of the level-ups just shown.
+                    if (progression.HasPendingSkillChoices())
+                        Transition(PostBattleFlowState.SkillChoice, "postbattle_skill");
+                    else if (progression.HasPendingAttributeAllocations())
+                        Transition(PostBattleFlowState.AttributeAllocation, "postbattle_allocate");
+                    else
+                        CompleteFlow();
+                    break;
+
+                case PostBattleFlowState.SkillChoice:
+                    if (progression.HasPendingSkillChoices())
+                    {
+                        Debug.Log("[JRPG.Progression.UI] Cannot continue — a skill decision is pending.");
+                        break;
+                    }
                     if (progression.HasPendingAttributeAllocations())
                         Transition(PostBattleFlowState.AttributeAllocation, "postbattle_allocate");
                     else

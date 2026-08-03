@@ -7,6 +7,20 @@ namespace JRPG.Core
         [SerializeField] private string id;
         public string Id => id;
 
+        /// <summary>
+        /// Assigns the stable id on a runtime created instance.
+        /// </summary>
+        public void SetRuntimeId(string runtimeId)
+        {
+            if (!string.IsNullOrEmpty(id))
+            {
+                Debug.LogWarning($"[JRPG] SetRuntimeId ignored on '{name}': id '{id}' is already assigned.");
+                return;
+            }
+            
+            id = runtimeId;
+        }
+
         public string displayName;
         [TextArea] public string description;
 

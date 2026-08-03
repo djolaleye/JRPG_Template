@@ -103,3 +103,8 @@ MonoBehaviour:
     mode: 2
     overlay: 5
     input: 1
+  - menuId: postbattle_skill
+    canvasPrefab: {fileID: 2126999286899482399, guid: ef6bd56ac60b50f4382ccbbe05b491d6, type: 3}
+    mode: 2
+    overlay: 6
+    input: 1

@@ -26,6 +26,7 @@ namespace JRPG.Progression
         private readonly LevelUpApplier _applier = new();
         private readonly AttributePointDistributor _distributor;
         private readonly BattleRewardResolver _rewardResolver;
+        private readonly SkillLearningService _skills;
 
         private readonly ProgressionRuntimeState _state = new();
 
@@ -44,6 +45,7 @@ namespace JRPG.Progression
             _engine = new ProgressionEngine(data);
             _distributor = new AttributePointDistributor(bus);
             _rewardResolver = new BattleRewardResolver(data);
+            _skills = new SkillLearningService(data);
 
             _bus.Subscribe<BattleResultPackaged>(OnBattleResultPackaged);
         }
@@ -63,9 +65,42 @@ namespace JRPG.Progression
         public bool CanCompletePostBattleFlow()
         {
             if (!_state.postBattleFlowActive) return true;
-            
-            return HasAppliedCurrentResult && !HasPendingAttributeAllocations();
+
+            return HasAppliedCurrentResult
+                   && !HasPendingAttributeAllocations()
+                   && !HasPendingSkillChoices();
         }
+
+        // ---- Skill learning ------------------------------------------------------------------
+
+        public bool HasPendingSkillChoices() => _state.pendingSkillChoices.Count > 0;
+
+        public PendingSkillChoice NextPendingSkillChoice()
+            => _state.pendingSkillChoices.Count > 0 ? _state.pendingSkillChoices[0] : null;
+
+        public IReadOnlyList<PendingSkillChoice> PendingSkillChoices => _state.pendingSkillChoices;
+
+        public bool ResolveSkillChoice(string characterId, string discardSkillId)
+        {
+            PendingSkillChoice choice = null;
+            for (int i = 0; i < _state.pendingSkillChoices.Count; i++)
+                if (_state.pendingSkillChoices[i].characterId == characterId) { choice = _state.pendingSkillChoices[i]; break; }
+
+            if (choice == null) return false;
+
+            var inst = _partyRuntime.ResolveInstanceById(characterId);
+            if (inst == null) return false;
+
+            if (!_skills.ResolveReplacement(inst, choice.newSkillId, discardSkillId)) return false;
+
+            _state.pendingSkillChoices.Remove(choice);
+            _bus.Publish(new SkillLearned(characterId, choice.newSkillId, discardSkillId));
+
+            return true;
+        }
+
+        /// Ensures an instance carries the skills its level entitles it to (after party rebuild/load).
+        public void SeedSkills(CharacterRuntimeInstance character) => _skills.SeedSkills(character);
 
         // ---- Rich API (resolved concretely by the UI layer) ----------------------------------
 
@@ -156,6 +191,18 @@ namespace JRPG.Progression
                     if (lu.pointsGranted > 0) progress.unspentAttributePoints += lu.pointsGranted;
                     _state.pendingLevelUps.Add(lu);
 
+                    // Skills unlocked by this level
+                    var learned = new List<string>();
+                    var overflow = _skills.ApplyLevelUpLearning(inst, lu.oldLevel, lu.newLevel, learned);
+
+                    for (int s = 0; s < overflow.Count; s++)
+                        _state.pendingSkillChoices.Add(new PendingSkillChoice
+                        {
+                            characterId = characterId,
+                            newSkillId = overflow[s],
+                            currentSkillIds = new List<string>(inst.skillIds),
+                        });
+
                     _bus.Publish(new LevelUpOccurred(characterId, lu.oldLevel, lu.newLevel));
                 }
 
@@ -243,7 +290,10 @@ namespace JRPG.Progression
 
                 foreach (var pointKv in progress.manuallyAllocatedPoints)
                     entry.manuallyAllocatedPoints.Add(new StatPointEntry { statId = pointKv.Key.ToString(), points = pointKv.Value });
-                
+
+                // The chosen loadout is a player decision — level alone cannot reproduce it.
+                if (inst != null) entry.skillIds.AddRange(inst.skillIds);
+
                 payload.characters.Add(entry);
             }
 
@@ -259,6 +309,7 @@ namespace JRPG.Progression
             _state.charactersById.Clear();
             _state.pendingLevelUps.Clear();
             _state.pendingAllocations.Clear();
+            _state.pendingSkillChoices.Clear();
             _state.postBattleFlowActive = false;
             _state.lastProcessedBattleResult = null;
             CurrentRewards = null;
@@ -287,6 +338,12 @@ namespace JRPG.Progression
 
                 inst.level = entry.level;
                 inst.currentXp = entry.currentXp;
+
+                inst.skillIds.Clear();
+                for (int s = 0; s < entry.skillIds.Count && !inst.IsSkillListFull; s++)
+                    inst.TryLearnSkill(entry.skillIds[s]);
+                    
+                _skills.SeedSkills(inst);
 
                 // Re-apply per-level growth (universal resources + fixed stats) for every level
                 // reached. Runs for all modes so manual-allocation characters get their resource

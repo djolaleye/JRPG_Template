@@ -31,6 +31,13 @@ namespace JRPG.Progression
         public int pointsRemaining;
     }
 
+    public class PendingSkillChoice
+    {
+        public string characterId;
+        public string newSkillId;
+        public List<string> currentSkillIds = new();
+    }
+
     /// Non-mutating projection of what applying a battle result would do. Shown on the XP preview
     /// screen before the player confirms.
     public class ProgressionPreview

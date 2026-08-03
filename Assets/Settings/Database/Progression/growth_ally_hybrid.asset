@@ -47,4 +47,9 @@ MonoBehaviour:
   - level: 10
     stat: 4
     value: 2
+  learnedSkills:
+  - level: 2
+    skillId: skill_mass_heal
+  - level: 4
+    skillId: skill_restore
   autoAllocationRules: []

@@ -26,7 +26,7 @@ MonoBehaviour:
     requiredStatusId: 
     maxHpFraction: 0
   costs:
-  - type: 1
+  - type: 2
     costAmount: 5
     itemId: 
     quantity: 0
@@ -34,8 +34,8 @@ MonoBehaviour:
   - type: 0
     basePower: 10
     statScale: 1
-    attackStat: 4
-    defenseStat: 6
+    attackStat: 3
+    defenseStat: 5
     element: 2
     scalingStat: 0
     guardMultiplier: 0

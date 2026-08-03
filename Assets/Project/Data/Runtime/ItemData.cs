@@ -15,10 +15,29 @@ namespace JRPG.Data
         public ItemUsageRule usageRule = new();
 
         /// <summary>
-        /// Minimal effect list for the Heal/RestoreMP/RestoreSP prototype path. When the full
-        /// combat effect pipeline lands, this is superseded by a richer `linkedEffectIds` lookup.
+        /// What the item does when used outside of combat.
         /// </summary>
         public List<ItemEffect> linkedEffects = new();
+
+        // ---- Combat use -------------------------------------------------------------------
+
+        [Header("Combat use")]
+        [Tooltip("Full combat effects for this item. Leave EMPTY to auto-derive them from " +
+                 "linkedEffects above.")]
+        public List<CombatEffect> combatEffects = new();
+
+        [Tooltip("Who the item can be used on in battle.")]
+        public TargetRule combatTargetRule = new TargetRule
+        {
+            team = TargetTeam.Allies,
+            selectionMode = TargetSelectionMode.Single,
+        };
+
+        /// True when this item should appear as an action in the battle Item menu.
+        public bool IsCombatAction =>
+            category == ItemCategory.Consumable
+            && ItemCombatRules.IsUsableInCombat(this)
+            && (combatEffects.Count > 0 || linkedEffects.Count > 0);
 
 #if UNITY_EDITOR
         protected override void OnValidate()

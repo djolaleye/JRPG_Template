@@ -31,10 +31,13 @@ namespace JRPG.Combat.UI
 
         public static string FirstItemCostId(CombatActionData a)
         {
-            if (a.costs == null) return null;
-            for (int i = 0; i < a.costs.Count; i++)
-                if (a.costs[i].type == CombatCostType.Item) return a.costs[i].itemId;
-            return null;
+            if (a.costs != null)
+                for (int i = 0; i < a.costs.Count; i++)
+                    if (a.costs[i].type == CombatCostType.Item) return a.costs[i].itemId;
+
+            // Synthesised item actions carry the item id in their own id, which also covers items
+            // authored as not-consumed-on-use (those have no item cost to read).
+            return ItemActionSynthesizer.ItemIdFrom(a.Id);
         }
 
         /// Resolves authored action data for a menu row. The registry reaches the presentation layer

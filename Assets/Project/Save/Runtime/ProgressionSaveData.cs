@@ -22,6 +22,10 @@ namespace JRPG.Save
         public int currentXp;
         public int unspentAttributePoints;
         public List<StatPointEntry> manuallyAllocatedPoints = new();
+
+        /// The character's chosen skill loadout. Persisted because which skills were kept (and which
+        /// were discarded at the cap) is a player decision that cannot be re-derived from level alone.
+        public List<string> skillIds = new();
     }
 
     [Serializable]

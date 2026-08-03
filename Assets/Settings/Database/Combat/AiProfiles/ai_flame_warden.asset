@@ -23,35 +23,35 @@ MonoBehaviour:
     hpThresholdPercent: 1
     onEnterStoryFlag: 
     actions:
-    - actionId: attack_melee
+    - actionId: skill_fire_01
       weight: 3
       priority: 0
       conditions: []
-      targetRule: 1
+      targetRule: 8
       specificTargetId: 
       cooldownTurns: 0
     - actionId: skill_searing_brand
-      weight: 4
+      weight: 3
       priority: 0
       conditions:
       - type: 8
         value: 0
         intValue: 0
         stringValue: status_burn
-      targetRule: 8
+      targetRule: 3
+      specificTargetId: 
+      cooldownTurns: 0
+    - actionId: attack_melee
+      weight: 1
+      priority: 0
+      conditions: []
+      targetRule: 1
       specificTargetId: 
       cooldownTurns: 0
   - phaseId: warden_pressed
     hpThresholdPercent: 0.6
     onEnterStoryFlag: 
     actions:
-    - actionId: attack_melee
-      weight: 1
-      priority: 0
-      conditions: []
-      targetRule: 4
-      specificTargetId: 
-      cooldownTurns: 0
     - actionId: skill_searing_brand
       weight: 2
       priority: 0
@@ -77,6 +77,13 @@ MonoBehaviour:
       targetRule: 10
       specificTargetId: 
       cooldownTurns: 0
+    - actionId: attack_melee
+      weight: 1
+      priority: 0
+      conditions: []
+      targetRule: 4
+      specificTargetId: 
+      cooldownTurns: 0
   - phaseId: warden_desperate
     hpThresholdPercent: 0.3
     onEnterStoryFlag: 
@@ -85,7 +92,7 @@ MonoBehaviour:
       weight: 1
       priority: 10
       conditions: []
-      targetRule: 9
+      targetRule: 4
       specificTargetId: 
       cooldownTurns: 3
     - actionId: skill_warden_inferno

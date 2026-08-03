@@ -25,9 +25,45 @@ namespace JRPG.Data
         /// Flat stat gains granted when reaching the entry's level (FixedGrowth/Hybrid modes).
         public List<StatGrowthEntry> fixedGrowthPerLevel = new();
 
-        /// [Planned — Phase 12] Weights for auto-allocation of attribute points. Authored but not
+        /// Skills granted on reaching a level. Other sources (tutors, quests, equipment) can be added
+        /// later without touching this table — SkillLearningService is the single entry point.
+        [Tooltip("Skills learned at level thresholds. If the character is already at the skill cap, " +
+                 "the player is prompted to choose one to discard.")]
+        public List<SkillLearnEntry> learnedSkills = new();
+
+        /// [TODO] Weights for auto-allocation of attribute points. Authored but not
         /// yet read; allocation is manual today.
         public List<StatAllocationRule> autoAllocationRules = new();
+
+        /// Skills this character should know at the given level, in learn order.
+        public List<string> SkillsUpToLevel(int level)
+        {
+            var ids = new List<string>();
+
+            for (int i = 0; i < learnedSkills.Count; i++)
+            {
+                var e = learnedSkills[i];
+                if (e.level <= level && !string.IsNullOrEmpty(e.skillId) && !ids.Contains(e.skillId))
+                    ids.Add(e.skillId);
+            }
+
+            return ids;
+        }
+
+        /// Skills unlocked by crossing from oldLevel to newLevel (exclusive → inclusive).
+        public List<string> SkillsLearnedBetween(int oldLevel, int newLevel)
+        {
+            var ids = new List<string>();
+
+            for (int i = 0; i < learnedSkills.Count; i++)
+            {
+                var e = learnedSkills[i];
+                if (e.level > oldLevel && e.level <= newLevel && !string.IsNullOrEmpty(e.skillId) && !ids.Contains(e.skillId))
+                    ids.Add(e.skillId);
+            }
+            
+            return ids;
+        }
 
 #if UNITY_EDITOR
         protected override void OnValidate()
@@ -63,5 +99,13 @@ namespace JRPG.Data
     {
         public StatType stat;
         public int weight;
+    }
+
+    /// "At level N, learn skill X."
+    [Serializable]
+    public struct SkillLearnEntry
+    {
+        [Min(1)] public int level;
+        public string skillId;
     }
 }

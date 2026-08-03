@@ -10,6 +10,7 @@ namespace JRPG.Progression
         public Dictionary<string, CharacterProgressRuntime> charactersById = new();
         public List<LevelUpResult> pendingLevelUps = new();
         public List<PendingAttributeAllocation> pendingAllocations = new();
+        public List<PendingSkillChoice> pendingSkillChoices = new();
         public BattleResultData lastProcessedBattleResult;
         public bool postBattleFlowActive;
     }

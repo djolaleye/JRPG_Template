@@ -64,7 +64,42 @@ namespace JRPG.Data
             Index(db.statuses, _statusesById, "statuses");
             Index(db.enemyActionProfiles, _enemyProfilesById, "enemyActionProfiles");
 
+            SynthesiseItemActions();
+
             ElementMatrix = db.elementMatrix;
+        }
+
+        /// Generates the combat action for every combat-usable item
+        ///
+        private void SynthesiseItemActions()
+        {
+            // items covered by a hand-authored action
+            var authored = new HashSet<string>();
+            foreach (var kv in _combatActionsById)
+            {
+                var action = kv.Value;
+                if (action.category != CombatActionCategory.Item || action.costs == null) continue;
+                
+                for (int i = 0; i < action.costs.Count; i++)
+                    if (action.costs[i].type == CombatCostType.Item && !string.IsNullOrEmpty(action.costs[i].itemId))
+                        authored.Add(action.costs[i].itemId);
+            }
+
+            foreach (var kv in _itemsById)
+            {
+                var item = kv.Value;
+                if (!item.IsCombatAction || authored.Contains(item.Id)) continue;
+
+                var generated = ItemActionSynthesizer.Create(item);
+                if (generated == null) continue;
+
+                if (_combatActionsById.ContainsKey(generated.Id))
+                {
+                    UnityEngine.Object.Destroy(generated);
+                    continue;
+                }
+                _combatActionsById[generated.Id] = generated;
+            }
         }
 
         private static void Index<T>(List<T> list, Dictionary<string, T> map, string label) where T : GameDataBase

@@ -103,7 +103,11 @@ namespace JRPG.Combat
 
                 AddRange(combatant.profile.statusImmunities, charData.statusImmunityIds);
                 AddRange(combatant.profile.passiveEffectIds, charData.passiveEffectIds);
-                combatant.profile.AddSkills(charData.defaultSkillIds);
+
+                // The instance's own list is the authority (it carries level-up learning and the
+                // player's discard choices); the authored defaults are only a fallback for an
+                // instance that was never seeded.
+                combatant.profile.AddSkills(character.skillIds.Count > 0 ? character.skillIds : charData.defaultSkillIds);
             }
 
             var equipped = character.equippedItemIds;

@@ -36,6 +36,19 @@ namespace JRPG.Core
         }
     }
 
+    public readonly struct SkillLearned
+    {
+        public readonly string CharacterId;
+        public readonly string LearnedSkillId;
+        public readonly string DiscardedSkillId;
+        public SkillLearned(string characterId, string learnedSkillId, string discardedSkillId)
+        {
+            CharacterId = characterId;
+            LearnedSkillId = learnedSkillId;
+            DiscardedSkillId = discardedSkillId;
+        }
+    }
+
     public readonly struct AttributePointsAssigned
     {
         public readonly string CharacterId;

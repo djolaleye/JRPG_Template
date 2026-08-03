@@ -53,4 +53,28 @@ namespace JRPG.Progression.UI
 
         public string GetDisabledReason(MenuContext c) => "No unspent points for this character.";
     }
+
+    /// Answers a pending skill-learn choice by forgetting one skill. Passing the NEW skill's id
+    /// declines it instead — both are valid answers, so this single action covers the whole screen.
+    public sealed class ResolveSkillChoiceAction : IMenuAction
+    {
+        private readonly string _characterId;
+        private readonly string _discardSkillId;
+
+        public ResolveSkillChoiceAction(string characterId, string discardSkillId)
+        {
+            _characterId = characterId;
+            _discardSkillId = discardSkillId;
+        }
+
+        private static ProgressionService Progression
+            => AppContext.Services != null && AppContext.Services.TryResolve<IProgressionService>(out var svc)
+                ? svc as ProgressionService : null;
+
+        public bool CanExecute(MenuContext c) => Progression?.NextPendingSkillChoice() != null;
+
+        public void Execute(MenuContext c) => Progression?.ResolveSkillChoice(_characterId, _discardSkillId);
+
+        public string GetDisabledReason(MenuContext c) => "No skill decision is pending.";
+    }
 }
