@@ -52,3 +52,6 @@ MonoBehaviour:
   statusImmunityIds: []
   passiveEffectIds: []
   actionProfileId: 
+  skillIds:
+  - skill_fire_01
+  - skill_flame_wave

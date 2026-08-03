@@ -24,6 +24,9 @@ namespace JRPG.Data
 
         [Tooltip("EnemyActionProfileData id driving enemy AI.")]
         public string actionProfileId;
+
+        [Tooltip("Skill-category actions this enemy can use (max 8).")]
+        public List<string> skillIds = new();
     }
 
     [Serializable]

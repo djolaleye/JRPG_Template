@@ -48,3 +48,5 @@ MonoBehaviour:
   statusImmunityIds: []
   passiveEffectIds: []
   actionProfileId: 
+  skillIds:
+  - skill_status_01

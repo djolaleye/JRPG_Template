@@ -193,6 +193,21 @@ namespace JRPG.Combat.UI
         }
 
         private static string Line(CombatantInstance c)
-            => $"{c.displayName}  HP {c.currentHP}/{c.MaxHP}  MP {c.currentMP}/{c.MaxMP}{(c.isGuarding ? "  [Guard]" : "")}{(c.IsDefeated ? "  [Down]" : "")}";
+        {
+            var sb = new StringBuilder();
+            sb.Append($"{c.displayName}  HP {c.currentHP}/{c.MaxHP}  MP {c.currentMP}/{c.MaxMP}  SP {c.currentSP}/{c.MaxSP}");
+            if (c.isGuarding) sb.Append("  [GUARDING]");
+
+            for (int i = 0; i < c.activeStatuses.Count; i++)
+            {
+                var s = c.activeStatuses[i];
+                sb.Append($"  [{s.statusId.Replace("status_", "")}");
+                if (s.stacks > 1) sb.Append($" x{s.stacks}");
+                sb.Append(']');
+            }
+
+            if (c.IsDefeated) sb.Append("  [DOWN]");
+            return sb.ToString();
+        }
     }
 }

@@ -21,7 +21,8 @@ namespace JRPG.Data
         // Phase 10 non-terminal combat-integration commands (routed through ICombatInterruptionService):
         QueueCombatAction,       // stringA = combatantId (empty = current actor), stringB = actionId
         SetEnemyActionProfile,   // stringA = profileId (Phase 11 stub)
-        SetBattleTrigger         // stringA = triggerId, boolA = active (true = re-enable, false = suppress)
+        SetBattleTrigger,        // stringA = triggerId, boolA = active (true = re-enable, false = suppress)
+        SetCharacterActive       // stringA = characterId — promotes a recruited member into the active party
     }
 
     /// Plain enum-tagged command data run on node enter/exit or choice selection, interpreted by

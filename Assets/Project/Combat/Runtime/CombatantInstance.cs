@@ -41,6 +41,10 @@ namespace JRPG.Combat
         /// the named combatant (when it is still a legal target). Battle-local.
         public string forcedTargetCombatantId;
 
+        /// Authored per-instance identity from the encounter roster (e.g. "slime_left"), so two copies
+        /// of the same EnemyData can be told apart by triggers and AI. Empty for party members.
+        public string encounterSlotId;
+
         public bool IsDefeated => currentHP <= 0;
 
         public int MaxHP => stats.GetFinal(StatType.MaxHP);

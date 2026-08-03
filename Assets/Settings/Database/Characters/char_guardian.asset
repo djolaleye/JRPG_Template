@@ -37,6 +37,12 @@ MonoBehaviour:
   - stat: 9
     value: 5
   growthDataId: growth_guardian_manual
-  defaultSkillIds: []
+  defaultSkillIds:
+  - skill_taunt
+  - skill_buff_01
+  - skill_earthquake
   allowedSlots: 
   recruitmentFlagIds: []
+  elementAffinities: []
+  statusImmunityIds: []
+  passiveEffectIds: []

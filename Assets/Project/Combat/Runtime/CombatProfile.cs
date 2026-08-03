@@ -11,9 +11,26 @@ namespace JRPG.Combat
     {
         private readonly Dictionary<Element, ElementAffinity> _affinities = new();
 
-        public readonly HashSet<string> statusImmunities = new(); /// Status ids this combatant cannot be afflicted with (11.3/11.4).
-        public readonly List<string> passiveEffectIds = new(); /// Passive effect ids granted by traits/equipment (11.4).
-        public readonly HashSet<string> unlockedActionIds = new(); /// Extra action ids unlocked by equipment (11.4).
+        public readonly HashSet<string> statusImmunities = new(); /// Status ids this combatant cannot be afflicted with
+        public readonly List<string> passiveEffectIds = new(); /// Passive effect ids granted by traits/equipment
+        public readonly HashSet<string> unlockedActionIds = new(); /// Extra action ids unlocked by equipment
+
+        public readonly List<string> skillIds = new(); /// This combatant's own Skill-category actions, in authored order.
+
+        public const int MaxSkills = 8;
+
+        public void AddSkills(List<string> ids)
+        {
+            if (ids == null) return;
+            
+            for (int i = 0; i < ids.Count && skillIds.Count < MaxSkills; i++)
+                if (!string.IsNullOrEmpty(ids[i]) && !skillIds.Contains(ids[i])) skillIds.Add(ids[i]);
+        }
+
+        public bool HasSkill(string actionId)
+            => !string.IsNullOrEmpty(actionId) && skillIds.Contains(actionId);
+
+        public string DescribeSkills() => string.Join(",", skillIds);
 
         public IReadOnlyDictionary<Element, ElementAffinity> Affinities => _affinities;
 

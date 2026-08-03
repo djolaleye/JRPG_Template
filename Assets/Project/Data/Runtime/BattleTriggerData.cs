@@ -35,6 +35,10 @@ namespace JRPG.Data
         [Tooltip("Optional: restrict to a combatant whose source data id (CharacterData/EnemyData id) matches. Empty = any.")]
         public string sourceDataIdFilter;
 
+        [Tooltip("Optional: restrict to ONE encounter slot (EncounterEnemyEntry.slotId), so a trigger " +
+                 "can single out one of several copies of the same enemy. Empty = any.")]
+        public string slotIdFilter;
+
         [Header("Dialogue")]
         public string dialogueGraphId;
         public DialogueImportance importance = DialogueImportance.Interactive;

@@ -40,6 +40,23 @@ namespace JRPG.Combat
             return combatant;
         }
 
+        /// Enemy combatant built from an authored encounter slot, so duplicates of the same EnemyData
+        /// get distinct, authored identities (slotId / display name).
+        public CombatantInstance FromEnemySlot(EnemyData enemy, EncounterEnemyEntry slot, int enemyIndex)
+        {
+            var combatant = FromEnemy(enemy, enemyIndex);
+
+            if (!string.IsNullOrEmpty(slot.slotId))
+            {
+                combatant.encounterSlotId = slot.slotId;
+                combatant.combatantId = $"enemy_{slot.slotId}";
+            }
+            if (!string.IsNullOrEmpty(slot.displayNameOverride))
+                combatant.displayName = slot.displayNameOverride;
+
+            return combatant;
+        }
+
         /// Enemy combatant. Battle-local and discarded when combat ends; resources start full.
         public CombatantInstance FromEnemy(EnemyData enemy, int enemyIndex)
         {
@@ -68,6 +85,7 @@ namespace JRPG.Combat
 
             AddRange(combatant.profile.statusImmunities, enemy.statusImmunityIds);
             AddRange(combatant.profile.passiveEffectIds, enemy.passiveEffectIds);
+            combatant.profile.AddSkills(enemy.skillIds);
 
             return combatant;
         }
@@ -83,6 +101,7 @@ namespace JRPG.Combat
 
                 AddRange(combatant.profile.statusImmunities, charData.statusImmunityIds);
                 AddRange(combatant.profile.passiveEffectIds, charData.passiveEffectIds);
+                combatant.profile.AddSkills(charData.defaultSkillIds);
             }
 
             var equipped = character.equippedItemIds;

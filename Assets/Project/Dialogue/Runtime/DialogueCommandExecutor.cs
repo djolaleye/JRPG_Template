@@ -71,6 +71,10 @@ namespace JRPG.Dialogue
                     Recruit(cmd.stringA);
                     break;
 
+                case DialogueCommandType.SetCharacterActive:
+                    SetActive(cmd.stringA);
+                    break;
+
                 case DialogueCommandType.StartBattle:
                     // Deferred: dialogue ends cleanly first, then DialogueService starts the battle.
                     if (session != null && !string.IsNullOrEmpty(cmd.stringA))
@@ -102,6 +106,24 @@ namespace JRPG.Dialogue
             }
 
             _bus?.Publish(new DialogueCommandExecuted(graphId, cmd.type.ToString()));
+        }
+
+        /// Promotes an already-recruited character into the active battle party.
+        private void SetActive(string id)
+        {
+            if (!Guard(id, out var state)) return;
+
+            if (state == CharacterRosterState.Active) return;
+            if (state == CharacterRosterState.Unmet || state == CharacterRosterState.Met
+                || state == CharacterRosterState.Recruitable)
+            {
+                Debug.LogWarning($"[JRPG.Dialogue] SetCharacterActive '{id}' ignored — recruit them first (is {state}).");
+                return;
+            }
+
+            // new recruits join at the BACK of the order
+            if (!_party.TrySetActive(id, int.MaxValue))
+                Debug.LogWarning($"[JRPG.Dialogue] SetCharacterActive '{id}' failed — active party may be full or the character locked.");
         }
 
         private bool TryResolveInterruption(out ICombatInterruptionService interruption)

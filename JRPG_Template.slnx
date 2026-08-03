@@ -63,6 +63,7 @@
   <Project Path="Unity.AI.Toolkit.GenerationObjectPicker.csproj" />
   <Project Path="Unity.AI.Assistant.API.Editor.csproj" />
   <Project Path="glTFast.Documentation.Examples.csproj" />
+  <Project Path="JRPG.Combat.Editor.csproj" />
   <Project Path="JRPG.Progression.UI.csproj" />
   <Project Path="Unity.AI.Generators.UI.AIDropdownIntegrations.csproj" />
   <Project Path="Unity.InputSystem.ForUI.csproj" />
@@ -76,7 +77,6 @@
   <Project Path="Unity.VisualScripting.SettingsProvider.Editor.csproj" />
   <Project Path="JRPG.Exploration.csproj" />
   <Project Path="JRPG.Characters.csproj" />
-  <Project Path="JRPG.Combat.Editor.csproj" />
   <Project Path="JRPG.Inventory.csproj" />
   <Project Path="Unity.AI.Assistant.Annotations.Editor.csproj" />
   <Project Path="JRPG.Dialogue.csproj" />

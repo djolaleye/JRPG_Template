@@ -15,6 +15,13 @@ MonoBehaviour:
   id: encounter_status_test
   displayName: Status Test Encounter
   description: 
+  enemies:
+  - enemyId: enemy_slime
+    slotId: target_dummy
+    displayNameOverride: Test Slime
+  - enemyId: enemy_fire_slime
+    slotId: fire_dummy
+    displayNameOverride: Test Fire Slime
   enemyIds:
   - enemy_slime
   - enemy_fire_slime

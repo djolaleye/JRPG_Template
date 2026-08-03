@@ -37,6 +37,18 @@ MonoBehaviour:
   - stat: 9
     value: 5
   growthDataId: growth_ally_hybrid
-  defaultSkillIds: []
+  defaultSkillIds:
+  - skill_heal_01
+  - skill_mass_heal
+  - skill_restore
+  - skill_cure_01
+  - skill_heal_02
+  - skill_revive
+  - skill_weaken
+  - skill_taunt
   allowedSlots: 
-  recruitmentFlagIds: []
+  recruitmentFlagIds:
+  - rival_respected
+  elementAffinities: []
+  statusImmunityIds: []
+  passiveEffectIds: []

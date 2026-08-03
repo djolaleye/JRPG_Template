@@ -344,6 +344,8 @@ namespace JRPG.Combat
             if (trig.teamFilter == CombatantTeamFilter.Party && combatInstance.team != CombatantTeam.Party) return false;
             if (trig.teamFilter == CombatantTeamFilter.Enemy && combatInstance.team != CombatantTeam.Enemy) return false;
             if (!string.IsNullOrEmpty(trig.sourceDataIdFilter) && combatInstance.sourceDataId != trig.sourceDataIdFilter) return false;
+            // Slot filter singles out one instance when several copies of the same enemy are present.
+            if (!string.IsNullOrEmpty(trig.slotIdFilter) && combatInstance.encounterSlotId != trig.slotIdFilter) return false;
             
             return true;
         }

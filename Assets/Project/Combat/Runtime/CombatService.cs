@@ -166,20 +166,32 @@ namespace JRPG.Combat
 
         private void BuildEnemyCombatants(BattleContext ctx, BattleStartRequest request, EncounterData encounter)
         {
-            IReadOnlyList<string> enemyIds = request.enemyIds != null && request.enemyIds.Count > 0
-                ? request.enemyIds
-                : encounter?.enemyIds;
+            // An explicit request roster wins; otherwise use the encounter's authored roster, which
+            // carries a per-instance slot id so duplicates of one EnemyData stay distinguishable.
+            List<EncounterEnemyEntry> roster;
 
-            if (enemyIds == null) return;
-
-            for (int i = 0; i < enemyIds.Count; i++)
+            if (request.enemyIds != null && request.enemyIds.Count > 0)
             {
-                if (!_data.TryGet<EnemyData>(enemyIds[i], out var enemy))
+                roster = new List<EncounterEnemyEntry>();
+                for (int i = 0; i < request.enemyIds.Count; i++)
+                    roster.Add(new EncounterEnemyEntry { enemyId = request.enemyIds[i], slotId = $"{request.enemyIds[i]}_{i}" });
+            }
+            else
+            {
+                roster = encounter?.ResolveRoster();
+            }
+
+            if (roster == null) return;
+
+            for (int i = 0; i < roster.Count; i++)
+            {
+                var slot = roster[i];
+                if (!_data.TryGet<EnemyData>(slot.enemyId, out var enemy))
                 {
-                    Debug.LogError($"[JRPG.Combat] Unknown enemy id '{enemyIds[i]}' — skipped.");
+                    Debug.LogError($"[JRPG.Combat] Unknown enemy id '{slot.enemyId}' — skipped.");
                     continue;
                 }
-                ctx.enemyCombatants.Add(_factory.FromEnemy(enemy, i));
+                ctx.enemyCombatants.Add(_factory.FromEnemySlot(enemy, slot, i));
             }
         }
 
@@ -248,10 +260,21 @@ namespace JRPG.Combat
 
                 // Equipment can unlock an action the combatant's team flags would otherwise exclude
                 // (EquipmentData.actionUnlockIds, snapshotted onto the CombatProfile at battle start).
-                if (!usable && actor.profile != null && actor.profile.HasUnlockedAction(action.Id))
-                    usable = true;
+                bool unlocked = actor.profile != null && actor.profile.HasUnlockedAction(action.Id);
+                if (!usable && unlocked) usable = true;
+                if (!usable) continue;
 
-                if (usable) availableActions.Add(action);
+                // Skills are per-combatant: only the ones this character/enemy actually knows (from
+                // CharacterData.defaultSkillIds / EnemyData.skillIds) or that equipment unlocked.
+                // Non-skill categories (attack, guard, item) stay universally available.
+                if (action.category == CombatActionCategory.Skill
+                    && actor.profile != null
+                    && actor.profile.skillIds.Count > 0
+                    && !actor.profile.HasSkill(action.Id)
+                    && !unlocked)
+                    continue;
+
+                availableActions.Add(action);
             }
             return availableActions;
         }
@@ -418,9 +441,20 @@ namespace JRPG.Combat
 
             bool usable = actor.team == CombatantTeam.Party ? action.usableByPlayers : action.usableByEnemies;
             // Mirror GetAvailableActions: equipment-unlocked actions are submittable too.
-            if (!usable && actor.profile != null && actor.profile.HasUnlockedAction(action.Id))
-                usable = true;
+            bool unlockedByGear = actor.profile != null && actor.profile.HasUnlockedAction(action.Id);
+            if (!usable && unlockedByGear) usable = true;
             if (!usable) { reason = "Action not available to this combatant."; return false; }
+
+            // A combatant may only use skills it actually knows (see GetAvailableActions).
+            if (action.category == CombatActionCategory.Skill
+                && actor.profile != null
+                && actor.profile.skillIds.Count > 0
+                && !actor.profile.HasSkill(action.Id)
+                && !unlockedByGear)
+            {
+                reason = $"{actor.displayName} does not know '{action.Id}'.";
+                return false;
+            }
 
             // Statuses may forbid this action entirely.
             if (_resolver.Status.IsActionBlocked(actor, action, out reason)) return false;

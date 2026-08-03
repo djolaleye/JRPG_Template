@@ -15,6 +15,16 @@ MonoBehaviour:
   id: encounter_test_slimes
   displayName: 
   description: 
+  enemies:
+  - enemyId: enemy_slime
+    slotId: slime_left
+    displayNameOverride: Slime A
+  - enemyId: enemy_slime
+    slotId: slime_right
+    displayNameOverride: Slime B
+  - enemyId: enemy_fire_slime
+    slotId: fire_slime
+    displayNameOverride: Fire Slime
   enemyIds:
   - enemy_slime
   - enemy_slime
