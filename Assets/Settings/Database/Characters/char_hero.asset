@@ -43,9 +43,8 @@ MonoBehaviour:
   - skill_buff_01
   - skill_venom_strike
   - skill_flame_wave
-  - skill_chain_bolt
-  - skill_earthquake
   - skill_status_01
+  - skill_overdrive
   allowedSlots: 
   recruitmentFlagIds: []
   elementAffinities: []

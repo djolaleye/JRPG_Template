@@ -15,14 +15,23 @@ namespace JRPG.Combat.UI
             var actorId = flow?.CurrentActorId;
             if (combat == null || string.IsNullOrEmpty(actorId)) return rows;
 
+            var actor = combat.CurrentBattle?.FindCombatant(actorId);
+
             foreach (var action in combat.GetAvailableActions(actorId))
             {
                 if (action.category != CombatActionCategory.Skill) continue;
+
+                // A cooling-down skill stays visible but disabled, showing the turns remaining, so the
+                // player can see what is coming back rather than watching rows vanish.
+                int cooldown = actor?.GetCooldown(action.Id) ?? 0;
+                string cost = CombatRowFormat.CostText(action);
+                if (cooldown > 0) cost = string.IsNullOrEmpty(cost) ? $"CD {cooldown}" : $"{cost}   CD {cooldown}";
+
                 rows.Add(new RowModel
                 {
                     id = action.Id,
                     label = CombatRowFormat.Label(action),
-                    costText = CombatRowFormat.CostText(action),
+                    costText = cost,
                     enabled = combat.CanAfford(actorId, action.Id),
                     action = new ChooseCombatActionAction(action.Id),
                     context = Context

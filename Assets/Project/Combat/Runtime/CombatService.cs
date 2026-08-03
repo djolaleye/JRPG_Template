@@ -221,6 +221,9 @@ namespace JRPG.Combat
                 actor.isGuarding = false;
                 actor.guardDamageMultiplier = 1f;
 
+                // Cooldowns tick down on the owner's own turn, so "2 turns" means two of THEIR turns.
+                actor.TickCooldowns();
+
                 // Status + passive timing: turn start.
                 _resolver.Status.Process(StatusTiming.TurnStart, actor);
                 _resolver.Passives.Dispatch(PassiveHook.TurnStart, actor, _battle);

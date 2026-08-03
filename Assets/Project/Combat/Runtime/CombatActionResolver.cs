@@ -18,16 +18,19 @@ namespace JRPG.Combat
         private readonly PassiveRegistry _passives;
         private readonly DamagePipeline _damage;
         private readonly System.Random _rng;
+        private readonly CostRegistry _costs;
         private readonly EffectContext _ctx = new();
+        private readonly CostContext _costCtx = new();
 
         /// Effect execution and damage calculation are injectable so battles stay deterministic and
         /// individual rules can be swapped without touching this class.
         public CombatActionResolver(IInventoryService inventory, DataRegistry data,
             EffectExecutorRegistry executors = null, DamagePipeline damage = null, System.Random rng = null,
-            StatusProcessor status = null, PassiveRegistry passives = null)
+            StatusProcessor status = null, PassiveRegistry passives = null, CostRegistry costs = null)
         {
             _inventory = inventory;
             _data = data;
+            _costs = costs ?? CostRegistry.CreateStandard();
             _executors = executors ?? EffectExecutorRegistry.CreateStandard();
             _status = status ?? new StatusProcessor(data);
             _passives = passives ?? PassiveRegistry.CreateStandard();
@@ -46,58 +49,29 @@ namespace JRPG.Combat
         public StatusProcessor Status => _status;
         public PassiveRegistry Passives => _passives;
         public System.Random Rng => _rng;
+        public CostRegistry Costs => _costs;
 
+        /// True when every cost is payable AND the action is off cooldown.
         public bool CanPayCosts(CombatantInstance user, CombatActionData action, out string reason)
         {
             reason = null;
-            if (action.costs == null) return true;
 
-            for (int i = 0; i < action.costs.Count; i++)
+            if (user.IsOnCooldown(action.Id))
             {
-                var cost = action.costs[i];
-                switch (cost.type)
-                {
-                    case CombatCostType.MP:
-                        if (user.currentMP < cost.costAmount)
-                        {
-                            reason = $"Not enough MP ({user.currentMP}/{cost.costAmount}).";
-                            return false;
-                        }
-                        break;
-                    case CombatCostType.SP:
-                        if (user.currentSP < cost.costAmount)
-                        {
-                            reason = $"Not enough SP ({user.currentSP}/{cost.costAmount}).";
-                            return false;
-                        }
-                        break;
-                    case CombatCostType.HP:
-                        if (user.currentHP < cost.costAmount)
-                        {
-                            reason = $"Not enough HP ({user.currentHP}/{cost.costAmount}).";
-                            return false;
-                        }
-                        break;
-                    case CombatCostType.Item:
-                        int need = Mathf.Max(1, cost.quantity);
-
-                        // Item menu already filters on usableInCombat. Extra defense -
-                        // refuse an ineligible item however the submission arrived
-                        if (!ItemCombatRules.IsUsableInCombat(_data, cost.itemId))
-                        {
-                            reason = $"Item '{cost.itemId}' is not usable in combat.";
-                            return false;
-                        }
-
-                        if (_inventory == null || !_inventory.Has(cost.itemId, need))
-                        {
-                            reason = $"Missing item '{cost.itemId}' x{need}.";
-                            return false;
-                        }
-                        break;
-                }
+                reason = $"'{action.displayName ?? action.Id}' is on cooldown ({user.GetCooldown(action.Id)} turn(s) left).";
+                return false;
             }
-            return true;
+
+            return _costs.CanPayAll(MakeCostContext(user, action), action, out reason);
+        }
+
+        private CostContext MakeCostContext(CombatantInstance user, CombatActionData action)
+        {
+            _costCtx.user = user;
+            _costCtx.action = action;
+            _costCtx.data = _data;
+            _costCtx.inventory = _inventory;
+            return _costCtx;
         }
 
         /// Validate → pay costs → dispatch effects to their executors. Targets must already be
@@ -115,7 +89,10 @@ namespace JRPG.Combat
             if (!CanPayCosts(actor, action, out var reason))
                 return ActionResult.Fail(actor.combatantId, action.Id, reason);
 
-            PayCosts(actor, action);
+            var costCtx = MakeCostContext(actor, action);
+            var paid = _costs.PayAll(costCtx, action);
+
+            int effectsBefore = result.effects.Count;
 
             if (action.effects != null)
             {
@@ -138,37 +115,35 @@ namespace JRPG.Combat
                     // Chance-gated effects (0 means "always").
                     if (!_ctx.Roll(effect.executionChance)) continue;
 
-                    _executors.Execute(_ctx);
+                    try
+                    {
+                        _executors.Execute(_ctx);
+                    }
+                    catch (System.Exception e)
+                    {
+                        // Failed executor won't silently spend the player's MP/items.
+                        Debug.LogError($"[JRPG.Combat] Effect '{effect.type}' of '{action.Id}' threw — " +
+                                       $"rolling back costs. {e}");
+                        _costs.Rollback(costCtx, paid);
+                        return ActionResult.Fail(actor.combatantId, action.Id, "Action failed during execution.");
+                    }
                 }
             }
+
+            // Nothing landed at all == refund
+            bool authoredEffects = action.effects != null && action.effects.Count > 0;
+            if (authoredEffects && result.effects.Count == effectsBefore)
+            {
+                _costs.Rollback(costCtx, paid);
+                return ActionResult.Fail(actor.combatantId, action.Id, "Action had no effect.");
+            }
+
+            // Action landed, so start its cooldown.
+            actor.StartCooldown(action.Id, action.cooldownTurns);
 
             return result;
         }
 
-        private void PayCosts(CombatantInstance user, CombatActionData action)
-        {
-            if (action.costs == null) return;
-
-            for (int i = 0; i < action.costs.Count; i++)
-            {
-                var cost = action.costs[i];
-                switch (cost.type)
-                {
-                    case CombatCostType.MP:
-                        user.currentMP = Mathf.Max(0, user.currentMP - cost.costAmount);
-                        break;
-                    case CombatCostType.SP:
-                        user.currentSP = Mathf.Max(0, user.currentSP - cost.costAmount);
-                        break;
-                    case CombatCostType.HP:
-                        user.currentHP = Mathf.Max(0, user.currentHP - cost.costAmount);
-                        break;
-                    case CombatCostType.Item:
-                        _inventory?.Remove(cost.itemId, Mathf.Max(1, cost.quantity));
-                        break;
-                }
-            }
-        }
 
     }
 }

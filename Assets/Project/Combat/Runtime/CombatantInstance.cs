@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine;
 using JRPG.Characters;
 using JRPG.Data;
 
@@ -44,6 +45,37 @@ namespace JRPG.Combat
         /// Authored per-instance identity from the encounter roster (e.g. "slime_left"), so two copies
         /// of the same EnemyData can be told apart by triggers and AI. Empty for party members.
         public string encounterSlotId;
+
+        /// Remaining cooldown turns per action id.
+        public readonly Dictionary<string, int> cooldowns = new();
+
+        public bool IsOnCooldown(string actionId)
+            => !string.IsNullOrEmpty(actionId) && cooldowns.TryGetValue(actionId, out var turns) && turns > 0;
+
+        public int GetCooldown(string actionId)
+            => !string.IsNullOrEmpty(actionId) && cooldowns.TryGetValue(actionId, out var turns) ? Mathf.Max(0, turns) : 0;
+
+        public void StartCooldown(string actionId, int turns)
+        {
+            if (string.IsNullOrEmpty(actionId) || turns <= 0) return;
+
+            cooldowns[actionId] = turns;
+        }
+
+        public void TickCooldowns()
+        {
+            if (cooldowns.Count == 0) return;
+
+            var keys = new List<string>(cooldowns.Keys);
+
+            for (int i = 0; i < keys.Count; i++)
+            {
+                int remaining = cooldowns[keys[i]] - 1;
+                
+                if (remaining <= 0) cooldowns.Remove(keys[i]);
+                else cooldowns[keys[i]] = remaining;
+            }
+        }
 
         public bool IsDefeated => currentHP <= 0;
 

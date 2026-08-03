@@ -39,13 +39,8 @@ MonoBehaviour:
   growthDataId: growth_ally_hybrid
   defaultSkillIds:
   - skill_heal_01
-  - skill_mass_heal
-  - skill_restore
+  - skill_chain_bolt
   - skill_cure_01
-  - skill_heal_02
-  - skill_revive
-  - skill_weaken
-  - skill_taunt
   allowedSlots: 
   recruitmentFlagIds:
   - rival_respected
