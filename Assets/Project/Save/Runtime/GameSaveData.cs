@@ -6,12 +6,30 @@ namespace JRPG.Save
     [Serializable]
     public class GameSaveData : SaveDataBase
     {
+        // ---- Slot metadata (v3) -------------------------------------------------------------
+        // Written directly by SaveSystemCore.Save() rather than by a contributor, and readable
+        // without running any restore — this is what SaveSystemCore.GetSlotInfo() parses so a
+        // slot-select screen can show a summary (and learn which scene to load) up front.
+
         // [Planned — Phase 14] Scene/checkpoint restoration.
-        // No Scene/Checkpoint Manager yer. PlayerSaveData carries the active scene
-        // name in the meantime.
+        // No Scene/Checkpoint Manager yet. PlayerSaveData carries the active scene name, which
+        // Save() mirrors into sceneId (falling back to the active scene when the player
+        // contributor is absent). checkpointId stays unassigned until Phase 14.
         public string sceneId;
         public string checkpointId;
+
+        /// Total accumulated play seconds. See SaveSystemCore's play-time accounting comment.
         public float playTime;
+
+        /// DateTime.UtcNow.Ticks at save time. 0 means "unknown" (pre-v3 saves) — UI renders "—".
+        public long savedAtUtcTicks;
+
+        /// Stable id of the lead/protagonist character, not a localized display name: the save
+        /// format carries no names. Empty when the party payload has no active member.
+        public string protagonistName;
+
+        /// Protagonist's level (or the roster's highest, as a fallback). 0 means "unknown".
+        public int partyLevel;
 
         // Player transform contributor.
         public PlayerSaveData player = new();

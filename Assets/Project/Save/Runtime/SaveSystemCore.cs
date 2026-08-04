@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using JRPG.Core;
 using JRPG.Services;
 
@@ -12,12 +14,26 @@ namespace JRPG.Save
     public sealed class SaveSystemCore : ISaveService
     {
         // v2: removed the always-empty "characters" contributor (superseded by "party"/"progression").
-        public const int CurrentSaveVersion = 2;
+        // v3: added slot metadata (savedAtUtcTicks / protagonistName / partyLevel) and started
+        //     actually populating sceneId + playTime, so slots can be summarized without a restore.
+        public const int CurrentSaveVersion = 3;
 
         private readonly SaveRegistry _registry;
         private readonly SaveFileConfig _config;
         private readonly IEventBus _bus;
         private readonly GameStateController _state;
+
+        // ---- Play-time accounting -----------------------------------------------------------
+        // Total playTime = whatever the last loaded save
+        // reported (_accumulatedPlayTime) + wall-clock seconds since that point
+        // (_sessionStartRealtime). A fresh service starts both at "now / zero", so a brand-new game
+        // counts from construction. Load() adopts the loaded file's playTime and restarts the
+        // session clock, which carries the total across load. Save()
+        // reads the running total — so repeated saves keep counting monotonically.
+        // Limitation: realtimeSinceStartup keeps running while the game is paused or the
+        // app is backgrounded. Swap in a per-frame accumulator later for "active play time"
+        private float _sessionStartRealtime;
+        private float _accumulatedPlayTime;
 
         public SaveSystemCore(SaveRegistry registry, SaveFileConfig config, IEventBus bus, GameStateController state)
         {
@@ -25,14 +41,33 @@ namespace JRPG.Save
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _bus = bus ?? throw new ArgumentNullException(nameof(bus));
             _state = state ?? throw new ArgumentNullException(nameof(state));
+
+            _sessionStartRealtime = Time.realtimeSinceStartup;
+            _accumulatedPlayTime = 0f;
+        }
+
+        /// Seconds of play time this service would write right now
+        private float CurrentPlayTime()
+            => _accumulatedPlayTime + Mathf.Max(0f, Time.realtimeSinceStartup - _sessionStartRealtime);
+
+        /// <summary>
+        /// Zeroes the play-time clock for a New Game.
+        /// Called by SessionService.NewGame(); not part of ISaveService because it is session
+        /// lifecycle, not save I/O.
+        /// </summary>
+        public void ResetPlayTime()
+        {
+            _accumulatedPlayTime = 0f;
+            _sessionStartRealtime = Time.realtimeSinceStartup;
         }
 
 
         /// <summary>
-        /// The single authority on save eligibility. Allowed only from exploration, in one of two
+        /// The single authority on save eligibility. Allowed only from exploration, in one of three
         /// shapes:
         ///   Exploration + None      + (Exploration | Menu)   — overworld / quicksave / a plain menu
         ///   Exploration + PauseMenu + Menu                   — the pause menu's Save route
+        ///   Exploration + SaveMenu  + Menu                   — a dedicated save/slot-select screen
         /// </summary>
         public bool CanSave()
         {
@@ -42,7 +77,7 @@ namespace JRPG.Save
             if (s.Overlay == OverlayState.None)
                 return s.Input == InputContext.Exploration || s.Input == InputContext.Menu;
 
-            if (s.Overlay == OverlayState.PauseMenu)
+            if (s.Overlay == OverlayState.PauseMenu || s.Overlay == OverlayState.SaveMenu)
                 return s.Input == InputContext.Menu;
 
             return false;
@@ -50,6 +85,8 @@ namespace JRPG.Save
 
         public bool Save(int slot)
         {
+            if (!IsValidSlot(slot, nameof(Save))) return false;
+
             if (!CanSave())
             {
                 Debug.LogWarning($"[JRPG.Save] Save(slot {slot}) rejected: not in an allowed state (current={_state.Current}).");
@@ -64,6 +101,8 @@ namespace JRPG.Save
                 var payload = kv.Value.CaptureState();
                 ApplyPayloadByKey(dto, kv.Key, payload);
             }
+
+            PopulateMetadata(dto);
 
             var path = SlotPath(slot);
             var tempPath = path + ".tmp";
@@ -93,6 +132,8 @@ namespace JRPG.Save
 
         public bool Load(int slot)
         {
+            if (!IsValidSlot(slot, nameof(Load))) return false;
+
             var path = SlotPath(slot);
             if (!File.Exists(path))
             {
@@ -142,6 +183,11 @@ namespace JRPG.Save
                 return false;
             }
 
+            // Adopt the loaded file's play time and restart the session clock, so the counter
+            // continues from where this save left off rather than from app start.
+            _accumulatedPlayTime = Mathf.Max(0f, dto.playTime);
+            _sessionStartRealtime = Time.realtimeSinceStartup;
+
             foreach (var kv in _registry.Contributors)
             {
                 var payload = ExtractPayloadByKey(dto, kv.Key);
@@ -155,6 +201,178 @@ namespace JRPG.Save
 
             _bus.Publish(new GameLoaded(slot));
             return true;
+        }
+
+        // ---- Slot metadata API ---------------------------------------------------------------
+
+        public bool SlotExists(int slot)
+        {
+            if (slot < 0 || slot >= _config.maxSlots) return false;
+
+            try { return File.Exists(SlotPath(slot)); }
+            catch (Exception e)
+            {
+                Debug.LogWarning($"[JRPG.Save] SlotExists(slot {slot}) IO failure: {e.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Parses only the metadata header of a slot.
+        /// Out-of-range, missing, unreadable and corrupt files all come back
+        /// as <see cref="SaveSlotInfo.Empty"/> rather than throwing.
+        /// </summary>
+        public SaveSlotInfo GetSlotInfo(int slot)
+        {
+            var empty = SaveSlotInfo.Empty(slot);
+            if (slot < 0 || slot >= _config.maxSlots) return empty;
+
+            SaveHeader header;
+            try
+            {
+                var path = SlotPath(slot);
+                if (!File.Exists(path)) return empty;
+                // JsonUtility ignores fields the target type does not declare, so deserializing
+                // into SaveHeader skips every contributor payload except the player's sceneId.
+                header = JsonUtility.FromJson<SaveHeader>(File.ReadAllText(path));
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning($"[JRPG.Save] GetSlotInfo(slot {slot}) unreadable: {e.Message}");
+                return empty;
+            }
+
+            // A file that parses but carries no usable version is treated as corrupt.
+            if (header == null || header.version <= 0)
+            {
+                Debug.LogWarning($"[JRPG.Save] GetSlotInfo(slot {slot}): missing/invalid version field.");
+                return empty;
+            }
+
+            // Legacy (pre-v3) saves never wrote the top-level sceneId; fall back to the player
+            // payload's copy, which has been written since v1.
+            var sceneId = string.IsNullOrEmpty(header.sceneId)
+                ? (header.player != null ? header.player.sceneId : null)
+                : header.sceneId;
+
+            return new SaveSlotInfo
+            {
+                slot = slot,
+                exists = true,
+                sceneId = sceneId ?? string.Empty,
+                playTime = header.playTime,
+                savedAtUtcTicks = header.savedAtUtcTicks,   // 0 for pre-v3 saves == "unknown"
+                protagonistName = header.protagonistName ?? string.Empty,
+                partyLevel = header.partyLevel
+            };
+        }
+
+        public IReadOnlyList<SaveSlotInfo> ListSlots()
+        {
+            int count = Mathf.Max(0, _config.maxSlots);
+            var list = new List<SaveSlotInfo>(count);
+
+            for (int i = 0; i < count; i++) list.Add(GetSlotInfo(i));
+
+            return list;
+        }
+
+        public bool DeleteSlot(int slot)
+        {
+            if (!IsValidSlot(slot, nameof(DeleteSlot))) return false;
+
+            try
+            {
+                var path = SlotPath(slot);
+                if (!File.Exists(path))
+                {
+                    Debug.LogWarning($"[JRPG.Save] DeleteSlot(slot {slot}): no file at '{path}'.");
+                    return false;
+                }
+                File.Delete(path);
+                return true;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[JRPG.Save] DeleteSlot(slot {slot}) IO failure: {e.Message}");
+                return false;
+            }
+        }
+
+        /// Shared slot-range guard. maxSlots is authored on the SaveFileConfig asset (currently 8).
+        private bool IsValidSlot(int slot, string caller)
+        {
+            if (slot >= 0 && slot < _config.maxSlots) return true;
+            Debug.LogWarning(
+                $"[JRPG.Save] {caller}(slot {slot}) rejected: slot out of range (valid 0..{_config.maxSlots - 1}).");
+            
+            return false;
+        }
+
+        /// <summary>
+        /// Fills the non-contributor metadata fields after the contributor loop has run.
+        /// </summary>
+        private void PopulateMetadata(GameSaveData dto)
+        {
+            var playerScene = dto.player != null ? dto.player.sceneId : null;
+            dto.sceneId = !string.IsNullOrEmpty(playerScene)
+                ? playerScene
+                : SceneManager.GetActiveScene().name;
+
+            dto.playTime = CurrentPlayTime();
+            dto.savedAtUtcTicks = DateTime.UtcNow.Ticks;
+
+            string leadId = null;
+            if (dto.party != null && dto.party.activeOrder != null)
+            {
+                for (int i = 0; i < dto.party.activeOrder.Count; i++)
+                {
+                    if (!string.IsNullOrEmpty(dto.party.activeOrder[i])) { leadId = dto.party.activeOrder[i]; break; }
+                }
+            }
+
+            dto.protagonistName = leadId ?? string.Empty;
+
+            int level = 0;
+            if (dto.progression != null && dto.progression.characters != null)
+            {
+                int best = 0;
+                for (int i = 0; i < dto.progression.characters.Count; i++)
+                {
+                    var entry = dto.progression.characters[i];
+                    if (entry == null) continue;
+                    if (!string.IsNullOrEmpty(leadId) && entry.characterId == leadId) { level = entry.level; break; }
+                    if (entry.level > best) best = entry.level;
+                }
+
+                if (level == 0) level = best;
+            }
+
+            dto.partyLevel = level;
+        }
+
+        /// <summary>
+        /// Metadata-only view of the save file used by <see cref="GetSlotInfo"/>. JsonUtility drops
+        /// every field the target type does not declare, so parsing into this skips the inventory /
+        /// party / progression / story payloads entirely. <c>player</c> is declared (sceneId only)
+        /// purely so legacy saves without a top-level sceneId can still report their scene.
+        /// </summary>
+        [Serializable]
+        private sealed class SaveHeader
+        {
+            public int version;
+            public string sceneId;
+            public float playTime;
+            public long savedAtUtcTicks;
+            public string protagonistName;
+            public int partyLevel;
+            public HeaderPlayer player;
+
+            [Serializable]
+            public sealed class HeaderPlayer
+            {
+                public string sceneId;
+            }
         }
 
         /// <summary>
@@ -172,6 +390,9 @@ namespace JRPG.Save
                     case 1:
                         MigrateV1ToV2(dto);
                         break;
+                    case 2:
+                        MigrateV2ToV3(dto);
+                        break;
                     default:
                         Debug.LogError($"[JRPG.Save] No migration step defined from v{v}.");
                         return false;
@@ -188,6 +409,21 @@ namespace JRPG.Save
         /// there is no data to transform. Step remains explicit so version bump is auditable
         /// and sequential pipeline is extended.
         private static void MigrateV1ToV2(GameSaveData dto) { }
+
+        /// v2 → v3:  added slot metadata (savedAtUtcTicks / protagonistName / partyLevel) and began
+        /// populating the previously-declared-but-never-written sceneId and playTime. Every new
+        /// field is additive and JsonUtility already defaults it on read, so there is nothing to
+        /// transform — the step stays explicit so the version bump is auditable.
+        ///
+        /// Semantics of the defaults for a legacy save, which UI must honour:
+        ///   savedAtUtcTicks == 0  — save time is UNKNOWN, not the DateTime epoch. Render "—".
+        ///   playTime        == 0  — unknown; the counter restarts from this load.
+        ///   protagonistName == "" / partyLevel == 0 — unknown; omit them from the slot row.
+        ///   sceneId         == "" — GetSlotInfo falls back to the player payload's sceneId.
+        private static void MigrateV2ToV3(GameSaveData dto)
+        {
+            dto.savedAtUtcTicks = 0L;
+        }
 
         private string SlotPath(int slot)
         {

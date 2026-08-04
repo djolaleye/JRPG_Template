@@ -42,6 +42,18 @@ namespace JRPG.Inventory
         public bool Has(string itemId, int n = 1) => _container.Has(itemId, n);
 
         
+        /// <summary>
+        /// Drops every owned item. The container is the whole of this service's mutable state — the
+        /// registry, bus and use-resolver are constructor-fixed collaborators — so clearing it
+        /// reproduces the constructor's starting condition exactly.
+        ///
+        /// Callers are expected to re-run <see cref="StartingInventoryBaker.Bake"/> afterwards; the
+        /// baker only bakes into an empty container, so this reset is what re-arms it.
+        /// Idempotent and safe to call before anything has happened.
+        /// </summary>
+        public void ResetForNewGame() => _container.Clear();
+
+
         // ----- Richer queries / commands (used from JRPG.Inventory consumers) -----
 
         public IEnumerable<InventoryStack> OfCategory(ItemCategory category)

@@ -32,8 +32,11 @@ namespace JRPG.Inventory
             return result;
         }
 
-        // `state` is the reserved context seam for state-aware filtering (e.g. usableInExploration /
-        // requiredStoryFlag gating) — wired in Phase 12 inventory presentation; unused today.
+        // `state` gates the exploration tab by the mode the game is actually in: the pause/inventory
+        // screen can legitimately be opened mid-battle, and there it must not list items that combat
+        // would refuse. So when state.Mode == Combat, an ExplorationInventoryTab request drops every
+        // item whose usageRule.usableInCombat is false (same predicate as ItemCombatRules, which
+        // CombatActionResolver enforces at submission). 
         private static bool PassesContext(ItemData item, LayeredState state, ContextualFilterRequest request)
         {
             switch (request.context)
@@ -45,7 +48,10 @@ namespace JRPG.Inventory
                         && ItemCombatRules.IsUsableInCombat(item);
 
                 case FilterContext.ExplorationInventoryTab:
-                    // Show everything, key items are visible (their use is just refused).
+                    // Outside combat: show everything, key items included (their use is just refused).
+                    // Inside combat: hide what combat can't use at all.
+                    if (state.Mode == GameMode.Combat && !ItemCombatRules.IsUsableInCombat(item))
+                        return false;
                     return true;
 
                 case FilterContext.EquipScreenForCharacter:

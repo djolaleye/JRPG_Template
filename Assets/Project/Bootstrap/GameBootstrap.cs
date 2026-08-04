@@ -33,6 +33,11 @@ namespace JRPG.Bootstrap
         [Tooltip("Stable id of the protagonist character. Seeded directly to Active and locked to Active/Reserve transitions.")]
         [SerializeField] private string protagonistId = "char_hero";
 
+        [Tooltip("Content scene a fresh game starts in. Requested by ISessionService.NewGame() through " +
+                 "ISceneFlowService; until Phase 12.2 registers that service, New Game just enters Exploration " +
+                 "in whatever scene is already open.")]
+        [SerializeField] private string newGameSceneName = "TestExplore";
+
         [Tooltip("Run bootstrap smoke probe (diagnostic logging of resolved services and state changes).")]
         [SerializeField] private bool logProbeOutput = true;
 
@@ -83,6 +88,10 @@ namespace JRPG.Bootstrap
 
             var party = new PartyService(data, bus, protagonistId, story);
             services.Register<IPartyService>(party);
+            // PartyService implements both roster surfaces. Register the runtime-instance surface
+            // explicitly so consumers resolve IPartyRuntimeQueries directly instead of resolving
+            // IPartyService and downcasting with `as`.
+            services.Register<IPartyRuntimeQueries>(party);
             saveContributors.Register(party);
 
             // Registration order matters — inventory before equipment
@@ -148,6 +157,15 @@ namespace JRPG.Bootstrap
                 var saveService = new SaveSystemCore(saveContributors, saveConfig, bus, state);
                 services.Register<ISaveService>(saveService);
             }
+
+            // Session lifecycle (New Game / Load Game / Return to Title). Constructed last because
+            // it sequences resets across every stateful service above. ISceneFlowService (Phase 12.2),
+            // ISaveService and IMenuService are resolved lazily off the registry inside it, so it is
+            // safe for them to be registered later or not at all.
+            var session = new SessionService(services, state, data,
+                                             story, inventory, equipment, party, progression,
+                                             startingInventory, newGameSceneName);
+            services.Register<ISessionService>(session);
 
             // Diagnostic only.
             if (logProbeOutput)

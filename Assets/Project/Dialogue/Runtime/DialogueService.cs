@@ -43,6 +43,13 @@ namespace JRPG.Dialogue
             _tokens = new DynamicTokenResolver(data, partyRuntime, story);
         }
 
+        /// <summary>
+        /// Drops any in-flight session so a New Game cannot inherit a conversation from the previous
+        /// one. DialogueService is deliberately not a save contributor (only outcomes persist, via
+        /// story flags), so nothing else clears this on a session boundary.
+        /// </summary>
+        public void ResetForNewGame() => _session = null;
+
         // ---- IDialogueService -----------------------------------------------------------------
 
         public bool IsDialogueActive => _session != null && !_session.isComplete;

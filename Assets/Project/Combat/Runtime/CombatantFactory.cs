@@ -29,7 +29,7 @@ namespace JRPG.Combat
                 sourceDataId = character.SourceDataId,
                 sourceRuntimeId = character.InstanceId,
                 team = CombatantTeam.Party,
-                displayName = character.SourceDataId,
+                displayName = ResolveCharacterDisplayName(character),
                 stats = stats,
                 currentHP = character.currentHP,
                 currentMP = character.currentMP,
@@ -90,6 +90,19 @@ namespace JRPG.Combat
             combatant.profile.AddSkills(enemy.skillIds);
 
             return combatant;
+        }
+
+        /// Authored display name for a party member, matching how enemies resolve theirs. Falls back to
+        /// the stable data id when there is no registry or no authored name (so combat never shows blank).
+        private string ResolveCharacterDisplayName(CharacterRuntimeInstance character)
+        {
+            if (_data != null
+                && _data.TryGet<CharacterData>(character.SourceDataId, out var charData)
+                && charData != null
+                && !string.IsNullOrEmpty(charData.displayName))
+                return charData.displayName;
+
+            return character.SourceDataId;
         }
 
         /// Innate character traits + everything currently equipped, merged once.

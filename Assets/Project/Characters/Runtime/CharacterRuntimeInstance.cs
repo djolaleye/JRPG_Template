@@ -19,6 +19,13 @@ namespace JRPG.Characters
         public List<string> skillIds = new();
         public const int MaxSkills = 8;
 
+        /// Derived resource maxima, mirroring <c>CombatantInstance.MaxHP/MaxMP/MaxSP</c> so out-of-combat
+        /// screens can read them without calling <c>stats.GetFinal(...)</c> by hand. GetFinal is cached
+        /// behind a dirty flag, so these are cheap to poll every frame.
+        public int MaxHP => stats.GetFinal(StatType.MaxHP);
+        public int MaxMP => stats.GetFinal(StatType.MaxMP);
+        public int MaxSP => stats.GetFinal(StatType.MaxSP);
+
         public bool KnowsSkill(string skillId)
             => !string.IsNullOrEmpty(skillId) && skillIds.Contains(skillId);
 

@@ -47,20 +47,61 @@ namespace JRPG.Party
             // Characters with empty recruitmentFlagIds are unconditionally eligible regardless.
             _conditions = conditions;
 
-            // Seed roster with every known character at Unmet.
+            SeedInitialRoster();
+        }
+
+        /// <summary>
+        /// Establishes the session-zero roster: every known character at <c>Unmet</c>, then the
+        /// protagonist promoted straight to <c>Active</c> so the party always has ≥1 member.
+        /// Shared by the constructor and <see cref="ResetForNewGame"/> so "initial state" has
+        /// exactly one definition. Assumes the roster collections are already empty.
+        /// </summary>
+        private void SeedInitialRoster()
+        {
             foreach (var kv in _registry.CharactersById)
                 _state.stateByCharacterId[kv.Key] = CharacterRosterState.Unmet;
 
-            // Seed the protagonist directly as Active so the party always has ≥1 member.
-            if (!string.IsNullOrEmpty(protagonistId))
-            {
-                if (!_state.stateByCharacterId.ContainsKey(protagonistId))
-                    throw new InvalidOperationException(
-                        $"PartyService: protagonistId '{protagonistId}' is not a known character in the registry.");
-                
-                _state.stateByCharacterId[protagonistId] = CharacterRosterState.Active;
-                _state.activeOrder.Add(protagonistId);
-            }
+            if (string.IsNullOrEmpty(ProtagonistId)) return;
+
+            if (!_state.stateByCharacterId.ContainsKey(ProtagonistId))
+                throw new InvalidOperationException(
+                    $"PartyService: protagonistId '{ProtagonistId}' is not a known character in the registry.");
+
+            _state.stateByCharacterId[ProtagonistId] = CharacterRosterState.Active;
+            _state.activeOrder.Add(ProtagonistId);
+        }
+
+        /// <summary>
+        /// Returns the roster to the exact shape the constructor produces: roster/active/reserve
+        /// wiped, every lock dropped, the scope stack emptied, the party caps back at their
+        /// authored defaults, and the protagonist re-seeded to Active.
+        ///
+        /// The runtime-instance cache is cleared too (same reasoning as <see cref="RestoreState"/>):
+        /// instances hold HP/MP/level/skills/stat-modifiers, so a surviving instance would carry the
+        /// previous session's character straight into the new one. They are rebuilt lazily at level
+        /// 1 on the next <see cref="ResolveInstanceById"/>.
+        ///
+        /// Idempotent and safe to call before anything has happened.
+        /// </summary>
+        public void ResetForNewGame()
+        {
+            _state.stateByCharacterId.Clear();
+            _state.activeOrder.Clear();
+            _state.reserveOrder.Clear();
+            _state.lockedIds.Clear();
+            _state.scopeStack.Clear();
+
+            // Caps can be mutated by a pushed scope; restore the authored defaults by reading them
+            // off a fresh state object.
+            var defaults = new PartyRuntimeState();
+            _state.maxActiveMembers = defaults.maxActiveMembers;
+            _state.maxTotalParty = defaults.maxTotalParty;
+
+            _instances.Clear();
+
+            SeedInitialRoster();
+
+            _bus.Publish(new PartyChanged());
         }
 
         private bool IsProtagonist(string id)
@@ -549,7 +590,13 @@ namespace JRPG.Party
 
         // ----- Helpers -----
 
-        private int EffectiveMaxActiveMembers()
+        /// <summary>
+        /// The active-party slot cap that is actually in force. When a <see cref="PartyScope"/>
+        /// is pushed, the top scope's <c>maxActiveMembers</c> wins (it is the temporary, story-imposed
+        /// cap); otherwise the roster's own <c>State.maxActiveMembers</c> applies. Public so party
+        /// screens can render "n/cap" without re-deriving the scope rule in the view.
+        /// </summary>
+        public int EffectiveMaxActiveMembers()
         {
             if (_state.scopeStack.Count > 0)
                 return _state.scopeStack.Peek().scope.maxActiveMembers;

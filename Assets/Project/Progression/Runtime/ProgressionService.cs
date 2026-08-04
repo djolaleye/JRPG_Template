@@ -231,6 +231,80 @@ namespace JRPG.Progression
             return true;
         }
 
+        // ---- Read-only queries for progression screens -----------------------------------------
+
+        /// <summary>
+        /// Total XP the character still needs to reach their next level, using the same growth asset
+        /// and <see cref="ProgressionCurveData"/> threshold table the apply path uses. Returns 0 when
+        /// the character is unknown, has no growth/curve data, or is already at the curve's max level.
+        /// </summary>
+        public int GetXpToNextLevel(string characterId)
+        {
+            var inst = _partyRuntime.ResolveInstanceById(characterId);
+            if (inst == null) return 0;
+
+            var growth = _engine.FindGrowth(characterId);
+            if (growth == null) return 0;
+            if (!_data.TryGet<ProgressionCurveData>(growth.progressionCurveId, out var curve) || curve == null)
+                return 0;
+
+            // The curve is the authority on which level this XP total buys; the instance's own level
+            // can be ahead of it (scripted/level-set characters), so take the higher of the two.
+            int level = Mathf.Max(inst.level, curve.GetLevelForTotalXp(inst.currentXp));
+            if (level >= curve.maxLevel) return 0;
+
+            int remaining = curve.GetTotalXpRequiredForLevel(level + 1) - inst.currentXp;
+            return remaining > 0 ? remaining : 0;
+        }
+
+        /// <summary>
+        /// Non-mutating projection of spending one attribute point on <paramref name="stat"/>: what the
+        /// derived final would become. Mirrors <see cref="AttributePointDistributor.ReapplyManualModifier"/>
+        /// on a cloned stat block, so it uses the real modifier math rather than a re-derivation.
+        /// When the allocation is blocked, <c>after</c> equals <c>before</c> and <c>blockedReason</c> says why.
+        /// </summary>
+        public AttributePointPreview PreviewAttributePoint(string characterId, StatType stat)
+        {
+            var preview = new AttributePointPreview { stat = stat };
+
+            var inst = _partyRuntime.ResolveInstanceById(characterId);
+            if (inst == null)
+            {
+                preview.blockedReason = "Unknown character.";
+                return preview;
+            }
+
+            preview.before = inst.stats.GetFinal(stat);
+            preview.after = preview.before;
+
+            if (!AttributePointDistributor.IsAllowed(stat))
+            {
+                preview.blockedReason = $"{stat} can't be raised with attribute points.";
+                return preview;
+            }
+
+            var progress = GetProgressForCharacter(characterId);
+            if (progress.unspentAttributePoints <= 0)
+            {
+                preview.blockedReason = "No unspent attribute points.";
+                return preview;
+            }
+
+            // One point = the accumulated permanent Flat modifier for (character, stat) rebuilt at
+            // points + 1. Applied to a clone so the live instance is untouched.
+            progress.manuallyAllocatedPoints.TryGetValue(stat, out int points);
+            string sourceId = AttributePointDistributor.ManualSourceId(characterId, stat);
+
+            var projection = inst.stats.Clone();
+            projection.RemoveModifiersFrom(sourceId);
+            projection.AddModifier(new StatModifier(stat, ModifierType.Flat, points + 1, sourceId, isPermanent: true));
+            projection.Recalculate();
+
+            preview.after = projection.GetFinal(stat);
+            preview.allowed = true;
+            return preview;
+        }
+
         public void CompletePostBattleFlow()
         {
             if (!_state.postBattleFlowActive) return;
@@ -266,6 +340,33 @@ namespace JRPG.Progression
 
             _state.charactersById[characterId] = progress;
             return progress;
+        }
+
+        /// <summary>
+        /// Clears progression bookkeeping: per-character level/XP/point records, the
+        /// pending level-up, attribute-allocation and skill-choice queues, and the whole post-battle
+        /// flow (active flag, last result, cached rewards/preview, applied latch). That is the entire
+        /// mutable surface of this service — <see cref="ProgressionRuntimeState"/> plus the three
+        /// auto-properties below it — so this reproduces the constructor's condition.
+        ///
+        /// Does not touch the characters' live level/XP/stat modifiers. Those belong to the
+        /// runtime instances, which PartyService discards when it resets. Run this <i>after</i>
+        /// PartyService.ResetForNewGame so <see cref="GetProgressForCharacter"/> can no longer
+        /// re-seed a record off a stale instance.
+        ///
+        /// Idempotent and safe to call before anything has happened.
+        /// </summary>
+        public void ResetForNewGame()
+        {
+            _state.charactersById.Clear();
+            _state.pendingLevelUps.Clear();
+            _state.pendingAllocations.Clear();
+            _state.pendingSkillChoices.Clear();
+            _state.postBattleFlowActive = false;
+            _state.lastProcessedBattleResult = null;
+            CurrentRewards = null;
+            CurrentPreview = null;
+            HasAppliedCurrentResult = false;
         }
 
         // ---- ISaveable ------------------------------------------------------------------------
@@ -306,15 +407,9 @@ namespace JRPG.Progression
         {
             if (state is not ProgressionSaveData payload) return;
 
-            _state.charactersById.Clear();
-            _state.pendingLevelUps.Clear();
-            _state.pendingAllocations.Clear();
-            _state.pendingSkillChoices.Clear();
-            _state.postBattleFlowActive = false;
-            _state.lastProcessedBattleResult = null;
-            CurrentRewards = null;
-            CurrentPreview = null;
-            HasAppliedCurrentResult = false;
+            // A restore starts from a blank slate for exactly the same reasons a new game does,
+            // so the wipe has one definition.
+            ResetForNewGame();
 
             for (int i = 0; i < payload.characters.Count; i++)
             {
@@ -378,5 +473,22 @@ namespace JRPG.Progression
                 _state.charactersById[entry.characterId] = progress;
             }
         }
+    }
+
+    /// <summary>
+    /// Before/after projection for spending one manual attribute point, produced by
+    /// <see cref="ProgressionService.PreviewAttributePoint"/>. Purely a view model — nothing reads it back.
+    /// </summary>
+    public struct AttributePointPreview
+    {
+        public StatType stat;
+        /// Current derived final for <see cref="stat"/>.
+        public int before;
+        /// Projected derived final after one point. Equals <see cref="before"/> when not allowed.
+        public int after;
+        /// True when a point could actually be spent on this stat right now.
+        public bool allowed;
+        /// Player-facing explanation when <see cref="allowed"/> is false; null otherwise.
+        public string blockedReason;
     }
 }

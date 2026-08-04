@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "mcp__unity-mcp__Unity_GetConsoleLogs",
-      "mcp__unity-mcp__Unity_RunCommand"
+      "mcp__unity-mcp__Unity_RunCommand",
+      "Bash(xargs grep -l \"GameDatabase\\\\|StartingInventory\")"
     ]
   }
 }

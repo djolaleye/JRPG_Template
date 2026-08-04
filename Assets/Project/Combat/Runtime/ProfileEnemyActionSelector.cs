@@ -42,6 +42,19 @@ namespace JRPG.Combat
 
         public void ClearOverrides() => _profileOverrides.Clear();
 
+        /// <summary>
+        /// Drops scripted-sequence cursors, per-profile RNG streams and profile overrides. Called on
+        /// a New Game so a fresh session's first scripted boss starts at cursor 0 with a fresh RNG
+        /// stream — otherwise boss scripting silently resumes mid-sequence after a title-screen round
+        /// trip, which reads as non-reproducible AI rather than as leaked state.
+        /// </summary>
+        public void ResetForNewGame()
+        {
+            _scriptCursor.Clear();
+            _profileRngs.Clear();
+            _profileOverrides.Clear();
+        }
+
         public EnemyActionChoice ChooseAction(CombatantInstance enemy, BattleContext context)
         {
             var profile = ResolveProfile(enemy);

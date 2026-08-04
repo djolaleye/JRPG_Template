@@ -48,6 +48,25 @@ namespace JRPG.Dialogue
         public bool WasChoiceSelected(string choiceId) => !string.IsNullOrEmpty(choiceId) && _selectedChoices.Contains(choiceId);
         public void MarkChoiceSelected(string choiceId) { if (!string.IsNullOrEmpty(choiceId)) _selectedChoices.Add(choiceId); }
 
+        /// <summary>
+        /// Wipes the entire story ledger — bool flags, int flags, completed dialogue graphs and
+        /// selected choice ids. Those four collections are the whole of this service's state, so
+        /// this reproduces the constructor's condition.
+        ///
+        /// Run this before PartyService.ResetForNewGame, since this service doubles as the
+        /// <see cref="IRecruitmentConditionEvaluator"/> the party consults for recruitment
+        /// eligibility.
+        ///
+        /// Idempotent and safe to call before anything has happened.
+        /// </summary>
+        public void ResetForNewGame()
+        {
+            _boolFlags.Clear();
+            _intFlags.Clear();
+            _completedGraphs.Clear();
+            _selectedChoices.Clear();
+        }
+
         // ---- IRecruitmentConditionEvaluator ---------------------------------------------------
 
         /// Empty/null id is vacuously true (matches the placeholder store), so characters with no
@@ -72,10 +91,8 @@ namespace JRPG.Dialogue
         {
             if (state is not StorySaveData payload) return;
 
-            _boolFlags.Clear();
-            _intFlags.Clear();
-            _completedGraphs.Clear();
-            _selectedChoices.Clear();
+            // A restore starts from a blank ledger for the same reason a new game does.
+            ResetForNewGame();
 
             for (int i = 0; i < payload.boolFlags.Count; i++) _boolFlags[payload.boolFlags[i].id] = payload.boolFlags[i].value;
             for (int i = 0; i < payload.intFlags.Count; i++) _intFlags[payload.intFlags[i].id] = payload.intFlags[i].value;

@@ -55,9 +55,17 @@ namespace JRPG.Inventory
         public static string MakeSourceId(string charId, EquipmentSlot slot)
             => $"equip:{charId}:{slot}";
 
-        public bool Equip(CharacterRuntimeInstance target, string equipItemId, out string failureReason)
+        /// <summary>
+        /// Non-mutating form of the <see cref="Equip"/> validation ladder: answers "would this equip
+        /// succeed?" without changing any state, so equip screens can grey out rows and show the reason.
+        /// <see cref="Equip"/> calls this so the checks (and their order) have exactly one definition.
+        /// The only step not covered here is freeing an occupied slot, which is inherently a mutation
+        /// and stays in <see cref="Equip"/>.
+        /// </summary>
+        public bool CanEquip(CharacterRuntimeInstance target, string equipItemId, out string failureReason)
         {
             failureReason = null;
+
             if (target == null) { failureReason = "target null"; return false; }
             if (string.IsNullOrEmpty(equipItemId)) { failureReason = "itemId empty"; return false; }
 
@@ -70,13 +78,13 @@ namespace JRPG.Inventory
             if (equip.allowedCharacterIds != null && equip.allowedCharacterIds.Count > 0
                 && !equip.allowedCharacterIds.Contains(target.SourceDataId))
             {
-                failureReason = "character not allowed";
+                failureReason = $"{ResolveCharacterName(target)} can't equip this.";
                 return false;
             }
 
             if (target.level < equip.requiredLevel)
             {
-                failureReason = $"requires level {equip.requiredLevel}";
+                failureReason = $"Requires level {equip.requiredLevel}.";
                 return false;
             }
 
@@ -85,15 +93,25 @@ namespace JRPG.Inventory
                 && charData.allowedSlots != null && charData.allowedSlots.Count > 0
                 && !charData.allowedSlots.Contains(equip.slot))
             {
-                failureReason = $"character cannot equip the {equip.slot} slot";
+                failureReason = $"{ResolveCharacterName(target)} has no {equip.slot} slot.";
                 return false;
             }
-            
+
             if (_container.GetQuantity(equipItemId) <= 0)
             {
-                failureReason = "not in inventory";
+                failureReason = "Not in inventory.";
                 return false;
             }
+
+            return true;
+        }
+
+        public bool Equip(CharacterRuntimeInstance target, string equipItemId, out string failureReason)
+        {
+            if (!CanEquip(target, equipItemId, out failureReason)) return false;
+
+            // CanEquip already proved this resolves.
+            _registry.TryGet<EquipmentData>(equipItemId, out var equip);
 
             // If slot occupied → prompt unequip first (returns the prior unit to inventory).
             var state = GetOrCreate(target.SourceDataId);
@@ -101,7 +119,7 @@ namespace JRPG.Inventory
             {
                 if (!Unequip(target, equip.slot, out var ignore))
                 {
-                    failureReason = "couldn't free slot";
+                    failureReason = $"Couldn't unequip the current {equip.slot}.";
                     return false;
                 }
             }
@@ -126,8 +144,8 @@ namespace JRPG.Inventory
         {
             failureReason = null;
             if (target == null) { failureReason = "target null"; return false; }
-            if (!_byChar.TryGetValue(target.SourceDataId, out var state)) { failureReason = "nothing equipped"; return false; }
-            if (!state.slotToItemId.TryGetValue(slot, out var itemId) || string.IsNullOrEmpty(itemId)) { failureReason = $"slot {slot} is empty"; return false; }
+            if (!_byChar.TryGetValue(target.SourceDataId, out var state)) { failureReason = $"{ResolveCharacterName(target)} has nothing equipped."; return false; }
+            if (!state.slotToItemId.TryGetValue(slot, out var itemId) || string.IsNullOrEmpty(itemId)) { failureReason = $"{ResolveCharacterName(target)}'s {slot} slot is empty."; return false; }
 
             state.slotToItemId.Remove(slot);
 
@@ -146,6 +164,53 @@ namespace JRPG.Inventory
         }
 
 
+        /// <summary>
+        /// Returns to the constructor's condition: nothing equipped by anyone.
+        ///
+        /// Clearing <c>_byChar</c> alone is not enough. Equipping writes <c>equip:&lt;charId&gt;:&lt;slot&gt;</c>
+        /// stat modifiers onto the live <see cref="CharacterRuntimeInstance"/>, and those live on the
+        /// instance, not here — so this mirrors <see cref="Unequip"/>'s
+        /// <c>RemoveModifiersFrom</c> + <c>Recalculate</c> for every recorded character/slot pair
+        /// before dropping the table. Otherwise a stale bonus could ride into the new session on any
+        /// instance still referenced elsewhere.
+        ///
+        ///  Run this before the party service drops its instance cache, so the modifier removal lands on
+        /// the instances that are actually live.
+        ///
+        /// Idempotent and safe to call before anything has happened.
+        /// </summary>
+        public void ResetForNewGame()
+        {
+            foreach (var kv in _byChar)
+            {
+                var state = kv.Value;
+                if (state == null || state.slotToItemId.Count == 0) continue;
+
+                var instance = _resolveInstance(kv.Key);
+                if (instance == null) continue;
+
+                foreach (var slotEnt in state.slotToItemId)
+                    instance.stats.RemoveModifiersFrom(MakeSourceId(kv.Key, slotEnt.Key));
+
+                instance.Recalculate();
+            }
+
+            _byChar.Clear();
+        }
+
+
+
+        /// Player-facing name for failure prose. Falls back to the raw data id when the character
+        /// has no authored displayName (or is not in the registry at all).
+        private string ResolveCharacterName(CharacterRuntimeInstance target)
+        {
+            if (target == null) return string.Empty;
+            if (_registry.TryGet<CharacterData>(target.SourceDataId, out var charData)
+                && charData != null && !string.IsNullOrEmpty(charData.displayName))
+                return charData.displayName;
+
+            return target.SourceDataId;
+        }
 
         public string GetEquippedItemId(string charInstanceId, string slotName)
         {

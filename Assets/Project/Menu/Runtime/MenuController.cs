@@ -22,10 +22,59 @@ namespace JRPG.Menu
         protected InputAction _navigate;
         protected InputAction _submit;
         protected InputAction _cancel;
+        protected InputAction _tab;
+        protected InputAction _pageLeft;
+        protected InputAction _pageRight;
 
         protected int _selectedIndex = -1;
 
         protected MenuContext Context;
+
+        /// True while this instance holds a reference on the shared action map (see the ref-count below).
+        private bool _inputHooked;
+
+        // ---- Shared action-map lifecycle ----------------------------------------------------------
+        private sealed class MapRef
+        {
+            public int Count;
+            public bool OwnsEnable; // false when something outside MenuController had already enabled it
+        }
+
+        private static readonly Dictionary<InputActionMap, MapRef> s_mapRefs = new();
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetStatics() => s_mapRefs.Clear();
+
+        private static void AcquireMap(InputActionMap map)
+        {
+            if (map == null) return;
+            if (!s_mapRefs.TryGetValue(map, out var entry))
+            {
+                // Don't claim ownership of a map someone else (e.g. the dialogue presenter) enabled.
+                entry = new MapRef { Count = 0, OwnsEnable = !map.enabled };
+                s_mapRefs[map] = entry;
+            }
+
+            entry.Count++;
+
+            if (entry.Count == 1 && !map.enabled) map.Enable();
+        }
+
+        private static void ReleaseMap(InputActionMap map)
+        {
+            if (map == null) return;
+            if (!s_mapRefs.TryGetValue(map, out var entry)) return;
+
+            entry.Count--;
+
+            if (entry.Count > 0) return;
+
+            s_mapRefs.Remove(map);
+
+            if (entry.OwnsEnable && map.enabled) map.Disable();
+        }
+
+        // ---- Lifecycle ----------------------------------------------------------------------------
 
         protected virtual void OnEnable()
         {
@@ -46,9 +95,12 @@ namespace JRPG.Menu
         protected void RebuildAndFocus()
         {
             var rows = BuildRows();
-            if (populator != null) populator.Populate(rows);
             // Initial focus: first executable row.
             _selectedIndex = -1;
+
+            if (populator == null) return;
+            
+            populator.Populate(rows);
             for (int i = 0; i < populator.ActiveRows.Count; i++)
             {
                 if (RowEnabled(i)) { Select(i); break; }
@@ -56,6 +108,8 @@ namespace JRPG.Menu
         }
 
         protected abstract IReadOnlyList<RowModel> BuildRows();
+
+        // ---- Input --------------------------------------------------------------------------------
 
         private void HookInput(bool subscribe)
         {
@@ -67,25 +121,49 @@ namespace JRPG.Menu
                 _navigate = _map.FindAction("Navigate", false);
                 _submit = _map.FindAction("Submit", false);
                 _cancel = _map.FindAction("Cancel", false);
+                // Optional — authored but not necessarily bound; screens opt in by overriding the hooks.
+                _tab = _map.FindAction("Tab", false);
+                _pageLeft = _map.FindAction("PageL", false);
+                _pageRight = _map.FindAction("PageR", false);
             }
             if (subscribe)
             {
+                if (_inputHooked) return;
                 if (_navigate != null) _navigate.performed += OnNavigate;
                 if (_submit != null) _submit.performed += OnSubmit;
                 if (_cancel != null) _cancel.performed += OnCancel;
-                _map.Enable();
+                if (_tab != null) _tab.performed += OnTabPerformed;
+                if (_pageLeft != null) _pageLeft.performed += OnPageLeftPerformed;
+                if (_pageRight != null) _pageRight.performed += OnPageRightPerformed;
+                _inputHooked = true;
+                AcquireMap(_map);
             }
             else
             {
+                if (!_inputHooked) return;
                 if (_navigate != null) _navigate.performed -= OnNavigate;
                 if (_submit != null) _submit.performed -= OnSubmit;
                 if (_cancel != null) _cancel.performed -= OnCancel;
+                if (_tab != null) _tab.performed -= OnTabPerformed;
+                if (_pageLeft != null) _pageLeft.performed -= OnPageLeftPerformed;
+                if (_pageRight != null) _pageRight.performed -= OnPageRightPerformed;
+                _inputHooked = false;
+                ReleaseMap(_map);
             }
         }
 
         private void OnNavigate(InputAction.CallbackContext ctx)
         {
+            if (populator == null) return;
             var v = ctx.ReadValue<Vector2>();
+
+            // Horizontal flick (no meaningful vertical component) is a separate channel.
+            if (Mathf.Abs(v.x) > 0.5f && Mathf.Abs(v.y) <= 0.5f)
+            {
+                OnNavigateHorizontal(v.x > 0f ? +1 : -1);
+                return;
+            }
+
             int dir = v.y > 0.5f ? -1 : v.y < -0.5f ? +1 : 0;
             if (dir == 0) return;
             int n = populator.ActiveRows.Count;
@@ -98,8 +176,25 @@ namespace JRPG.Menu
             }
         }
 
+        /// Left/right on the Navigate stick. Default is a no-op; tabbed or paired-panel screens override.
+        protected virtual void OnNavigateHorizontal(int dir) { }
+
+        private void OnTabPerformed(InputAction.CallbackContext ctx) => OnTab();
+        private void OnPageLeftPerformed(InputAction.CallbackContext ctx) => OnPageLeft();
+        private void OnPageRightPerformed(InputAction.CallbackContext ctx) => OnPageRight();
+
+        /// Cycle to the next tab/category. Default no-op.
+        protected virtual void OnTab() { }
+
+        /// Previous page/tab. Default no-op.
+        protected virtual void OnPageLeft() { }
+
+        /// Next page/tab. Default no-op.
+        protected virtual void OnPageRight() { }
+
         private void OnSubmit(InputAction.CallbackContext ctx)
         {
+            if (populator == null) return;
             if (_selectedIndex < 0 || _selectedIndex >= populator.ActiveRows.Count) return;
             var row = populator.ActiveRows[_selectedIndex];
             var model = row.Model;
@@ -122,26 +217,62 @@ namespace JRPG.Menu
             Context.Menus?.Close();
         }
 
-        private void Select(int idx)
+        // ---- Selection ----------------------------------------------------------------------------
+
+        /// Index of the currently highlighted row, or -1 when nothing is focused.
+        protected int HighlightedIndex => _selectedIndex;
+
+        /// Raised whenever focus lands on a row. Paired detail panels subscribe instead of polling.
+        public event System.Action<int, RowModel> HighlightChanged;
+
+        /// Move focus to <paramref name="idx"/>. Protected so tabbed screens can drive focus directly.
+        protected void Select(int idx)
         {
-            for (int i = 0; i < populator.ActiveRows.Count; i++)
+            if (populator == null) return;
+            var rows = populator.ActiveRows;
+
+            if (rows == null || rows.Count == 0) return;
+            if (idx < 0 || idx >= rows.Count) return;
+
+            for (int i = 0; i < rows.Count; i++)
             {
-                var row = populator.ActiveRows[i];
+                var row = rows[i];
                 if (i == idx) row.SetVisualState(RowState.Selected);
                 else row.SetVisualState(row.Model.enabled ? RowState.Normal : RowState.Disabled);
             }
+            
             _selectedIndex = idx;
             if (EventSystem.current != null)
             {
-                var sel = populator.ActiveRows[idx].Selectable;
+                var sel = rows[idx].Selectable;
                 if (sel != null) EventSystem.current.SetSelectedGameObject(sel.gameObject);
             }
+
+            var model = rows[idx].Model;
+            OnHighlightChanged(idx, model);
+            HighlightChanged?.Invoke(idx, model);
         }
+
+        /// Called after focus changes. Default no-op; detail panels override to mirror the highlight.
+        protected virtual void OnHighlightChanged(int index, RowModel model) { }
 
         private bool RowEnabled(int idx)
         {
+            if (populator == null) return false;
             if (idx < 0 || idx >= populator.ActiveRows.Count) return false;
             return populator.ActiveRows[idx].Model.enabled;
         }
+
+        // ---- Prompts ------------------------------------------------------------------------------
+
+        private static readonly InputPrompt[] s_defaultPrompts =
+        {
+            new InputPrompt("Submit", "Confirm"),
+            new InputPrompt("Cancel", "Back"),
+        };
+
+        /// Input affordances this screen wants advertised. Override to add/replace; a later prompt-bar
+        /// widget renders these. Declaration only — nothing consumes it yet.
+        public virtual IReadOnlyList<InputPrompt> Prompts => s_defaultPrompts;
     }
 }

@@ -54,6 +54,23 @@ namespace JRPG.Combat
             _characterFactory = new RuntimeCharacterFactory(data);
         }
 
+        /// <summary>
+        /// Drops all per-session battle state so a New Game cannot inherit the previous session's
+        /// battle. Without this, <see cref="_lastRequest"/> (which exists so a defeat can be retried
+        /// verbatim) still points at the old session's encounter, and the AI selector resumes the
+        /// previous script cursor / RNG stream. Combat is not a save contributor, so this is the only
+        /// place that state gets cleared outside a normal battle end.
+        /// </summary>
+        public void ResetForNewGame()
+        {
+            _battle = null;
+            _battleStartTime = 0f;
+            _lastRequest = null;
+            _battleStartResources.Clear();
+            LastResult = null;
+            _profileAI?.ResetForNewGame();
+        }
+
         public bool IsInBattle => _battle != null && !_battle.isBattleOver;
         public BattleContext CurrentBattle => _battle;
         public CombatActionResolver Resolver => _resolver;
