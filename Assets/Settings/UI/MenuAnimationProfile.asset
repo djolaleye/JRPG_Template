@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2da59f7401d1a47489dc5283d4b3ed25, type: 3}
+  m_Name: MenuAnimationProfile
+  m_EditorClassIdentifier: JRPG.Menu::JRPG.Menu.MenuAnimationProfile
+  reducedMotion: 0
+  selectionMoveDuration: 0.08
+  confirmFlashDuration: 0.12
+  invalidShakeDuration: 0.18
+  invalidShakeAmplitude: 6
+  menuOpenDuration: 0.15
+  menuCloseDuration: 0.12
+  screenFadeDuration: 0.35
+  textCharactersPerSecond: 45
+  autoAdvanceDelay: 2.5

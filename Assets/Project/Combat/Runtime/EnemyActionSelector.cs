@@ -7,6 +7,12 @@ namespace JRPG.Combat
     {
         public string actionId;
         public List<string> targetCombatantIds;
+
+        /// AI-pacing cooldown the chosen profile entry asks for. Carried on the choice rather than
+        /// applied by the selector, because a cooldown started before submission makes the action
+        /// fail its own affordability check (CombatActionResolver.CanPayCosts rejects it) and the
+        /// enemy's turn is never taken. CombatService starts it once the action has actually landed.
+        public int cooldownTurns;
     }
 
     public interface IEnemyActionSelector

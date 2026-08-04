@@ -30,49 +30,12 @@ namespace JRPG.Menu
 
         protected MenuContext Context;
 
-        /// True while this instance holds a reference on the shared action map (see the ref-count below).
+        /// True while this instance holds a reference on the shared action map.
         private bool _inputHooked;
 
-        // ---- Shared action-map lifecycle ----------------------------------------------------------
-        private sealed class MapRef
-        {
-            public int Count;
-            public bool OwnsEnable; // false when something outside MenuController had already enabled it
-        }
-
-        private static readonly Dictionary<InputActionMap, MapRef> s_mapRefs = new();
-
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        private static void ResetStatics() => s_mapRefs.Clear();
-
-        private static void AcquireMap(InputActionMap map)
-        {
-            if (map == null) return;
-            if (!s_mapRefs.TryGetValue(map, out var entry))
-            {
-                // Don't claim ownership of a map someone else (e.g. the dialogue presenter) enabled.
-                entry = new MapRef { Count = 0, OwnsEnable = !map.enabled };
-                s_mapRefs[map] = entry;
-            }
-
-            entry.Count++;
-
-            if (entry.Count == 1 && !map.enabled) map.Enable();
-        }
-
-        private static void ReleaseMap(InputActionMap map)
-        {
-            if (map == null) return;
-            if (!s_mapRefs.TryGetValue(map, out var entry)) return;
-
-            entry.Count--;
-
-            if (entry.Count > 0) return;
-
-            s_mapRefs.Remove(map);
-
-            if (entry.OwnsEnable && map.enabled) map.Disable();
-        }
+        /// Input-system time at which this screen started listening. Presses that BEGAN before this
+        /// were meant for whatever was on screen previously — see <see cref="MenuInputMap.IsStalePress"/>.
+        private double _listeningSince;
 
         // ---- Lifecycle ----------------------------------------------------------------------------
 
@@ -136,7 +99,8 @@ namespace JRPG.Menu
                 if (_pageLeft != null) _pageLeft.performed += OnPageLeftPerformed;
                 if (_pageRight != null) _pageRight.performed += OnPageRightPerformed;
                 _inputHooked = true;
-                AcquireMap(_map);
+                _listeningSince = MenuInputMap.Now;
+                MenuInputMap.Acquire(_map);
             }
             else
             {
@@ -148,7 +112,7 @@ namespace JRPG.Menu
                 if (_pageLeft != null) _pageLeft.performed -= OnPageLeftPerformed;
                 if (_pageRight != null) _pageRight.performed -= OnPageRightPerformed;
                 _inputHooked = false;
-                ReleaseMap(_map);
+                MenuInputMap.Release(_map);
             }
         }
 
@@ -194,6 +158,9 @@ namespace JRPG.Menu
 
         private void OnSubmit(InputAction.CallbackContext ctx)
         {
+            // A press that began before this screen opened belongs to the screen that opened it —
+            // e.g. gamepad buttonSouth is both Exploration/Interact and Menu/Submit.
+            if (MenuInputMap.IsStalePress(ctx, _listeningSince)) return;
             if (populator == null) return;
             if (_selectedIndex < 0 || _selectedIndex >= populator.ActiveRows.Count) return;
             var row = populator.ActiveRows[_selectedIndex];
@@ -214,6 +181,7 @@ namespace JRPG.Menu
 
         protected virtual void OnCancel(InputAction.CallbackContext ctx)
         {
+            if (MenuInputMap.IsStalePress(ctx, _listeningSince)) return;
             Context.Menus?.Close();
         }
 

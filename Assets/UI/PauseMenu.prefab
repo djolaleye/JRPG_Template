@@ -284,7 +284,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: JRPG.Menu::JRPG.Menu.VerticalListPopulator
   contentRoot: {fileID: 6436229994882912842}
-  rowPrefab: {fileID: 8407322974771292050, guid: ed90aac59fff45b418013fb6882028cc, type: 3}
+  rowPrefab: {fileID: 5808101330004061021, guid: 6d8fde89805ea3e4583b61e81955f998, type: 3}
 --- !u!114 &434395571004534750
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -280,7 +280,23 @@ namespace JRPG.Combat
             if (actor == null || actor.team != CombatantTeam.Enemy) return;
 
             var choice = _enemyAI.ChooseAction(actor, _battle);
-            SubmitAction(actor.combatantId, choice.actionId, choice.targetCombatantIds);
+            var result = SubmitAction(actor.combatantId, choice.actionId, choice.targetCombatantIds);
+
+            if (!result.success)
+            {
+                // The turn loop only moves on a successful submission: a rejected enemy choice leaves
+                // this combatant as currentActor with no TurnStarted published, so the UI pump never
+                // re-arms and the battle hangs. Never silence this — an AI that picks an unsubmittable
+                // action is a data/selector defect and must be visible.
+                Debug.LogError($"[JRPG.Combat] Enemy '{actor.combatantId}' could not use '{choice.actionId}': " +
+                               $"{result.failureReason} Turn loop is stalled on this combatant.");
+                return;
+            }
+
+            // AI-pacing cooldown from the chosen profile entry, started only now that the action has
+            // landed.
+            if (choice.cooldownTurns > actor.GetCooldown(choice.actionId))
+                actor.StartCooldown(choice.actionId, choice.cooldownTurns);
         }
 
 

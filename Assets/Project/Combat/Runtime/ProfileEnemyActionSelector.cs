@@ -87,8 +87,9 @@ namespace JRPG.Combat
                 var chosen = PickWeighted(eligible, ProfileRng(profile));
                 if (chosen != null)
                 {
-                    // The entry's own cooldown rides the shared cooldown system.
-                    if (chosen.cooldownTurns > 0) enemy.StartCooldown(chosen.actionId, chosen.cooldownTurns);
+                    // The entry's own cooldown rides the shared cooldown system, but it is only
+                    // reported here — CombatService starts it after the action resolves. Starting it
+                    // now would put the action on cooldown before its own submission is validated.
                     return Build(enemy, context, chosen.actionId, chosen.targetRule, chosen);
                 }
             }
@@ -227,7 +228,12 @@ namespace JRPG.Combat
                 if (pick != null) targets.Add(pick.combatantId);
             }
 
-            return new EnemyActionChoice { actionId = actionId, targetCombatantIds = targets };
+            return new EnemyActionChoice
+            {
+                actionId = actionId,
+                targetCombatantIds = targets,
+                cooldownTurns = entry != null ? entry.cooldownTurns : 0,
+            };
         }
 
         /// Chooses one combatant for a single-target action.

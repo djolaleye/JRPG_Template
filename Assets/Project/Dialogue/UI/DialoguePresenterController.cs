@@ -29,6 +29,14 @@ namespace JRPG.Dialogue.UI
         private IEventBus _bus;
         private int _selectedIndex = -1;
 
+        /// True while this presenter holds a reference on the shared "Menu" map.
+        private bool _inputHooked;
+
+        /// Input-system time at which this presenter started listening. See MenuInputMap.IsStalePress:
+        /// gamepad buttonSouth is BOTH Exploration/Interact and Menu/Submit, so the very press that
+        /// starts a conversation would otherwise immediately submit its choice list.
+        private double _listeningSince;
+
         private Color _defaultSpeakerColor = Color.white;
         private bool _capturedDefaultColor;
         /// True while the current node is emphasized/blocking (Critical): cancel/skip is suppressed.
@@ -131,21 +139,33 @@ namespace JRPG.Dialogue.UI
             }
             if (subscribe)
             {
+                if (_inputHooked) return;
                 if (_navigate != null) _navigate.performed += OnNavigate;
                 if (_submit != null) _submit.performed += OnSubmit;
                 if (_cancel != null) _cancel.performed += OnCancel;
-                _map.Enable();
+                _inputHooked = true;
+                _listeningSince = MenuInputMap.Now;
+                // Share MenuController's ref-count rather than enabling directly: this presenter used
+                // to Enable() and never Disable(), leaving Menu/Navigate|Submit|Cancel live out in
+                // exploration after a conversation ended.
+                MenuInputMap.Acquire(_map);
             }
             else
             {
+                if (!_inputHooked) return;
                 if (_navigate != null) _navigate.performed -= OnNavigate;
                 if (_submit != null) _submit.performed -= OnSubmit;
                 if (_cancel != null) _cancel.performed -= OnCancel;
+                _inputHooked = false;
+                MenuInputMap.Release(_map);
             }
         }
 
         private void OnSubmit(InputAction.CallbackContext ctx)
         {
+            // The press that opened this conversation is not an answer to it.
+            if (MenuInputMap.IsStalePress(ctx, _listeningSince)) return;
+
             var d = Dialogue;
             if (d == null || !d.IsDialogueActive) return;
             var snap = d.GetCurrentRenderSnapshot();

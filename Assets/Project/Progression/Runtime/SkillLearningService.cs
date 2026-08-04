@@ -26,9 +26,15 @@ namespace JRPG.Progression
         }
 
         /// Ensures the instance's skill list is seeded from authored defaults + everything its growth
-        /// table says it should already know at its current level. Called when an instance is built or
-        /// restored, so a loaded character is never missing skills it earned.
-        public void SeedSkills(CharacterRuntimeInstance character)
+        /// table says it should already know at <paramref name="atLevel"/> (defaulting to the
+        /// character's current level). Called when an instance is built or restored, so a loaded
+        /// character is never missing skills it earned.
+        ///
+        /// <para><paramref name="atLevel"/> exists for <see cref="ApplyLevelUpLearning"/>, which must
+        /// seed against the level the character had *before* the level-up — seeding at the new level
+        /// would pre-learn the very skills the level-up is about to grant, and they would then be
+        /// reported as AlreadyKnown instead of appearing in the "learned!" list.</para>
+        public void SeedSkills(CharacterRuntimeInstance character, int? atLevel = null)
         {
             if (character == null) return;
 
@@ -39,7 +45,7 @@ namespace JRPG.Progression
             var growth = FindGrowth(character.SourceDataId);
             if (growth == null) return;
 
-            var earned = growth.SkillsUpToLevel(character.level);
+            var earned = growth.SkillsUpToLevel(atLevel ?? character.level);
             for (int i = 0; i < earned.Count; i++) character.TryLearnSkill(earned[i]);
         }
 
@@ -51,6 +57,8 @@ namespace JRPG.Progression
             var needsChoice = new List<string>();
             var growth = FindGrowth(character?.SourceDataId);
             if (character == null || growth == null) return needsChoice;
+
+            SeedSkills(character, oldLevel);
 
             var unlocked = growth.SkillsLearnedBetween(oldLevel, newLevel);
             for (int i = 0; i < unlocked.Count; i++)
