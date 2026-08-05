@@ -6,13 +6,134 @@ using JRPG.Party;
 
 namespace JRPG.Menu
 {
+    /// <summary>
+    /// Navigates to another registered screen.
+    ///
+    /// <para><see cref="CanExecute"/> asks the menu service whether the destination actually resolves,
+    /// so a row pointing at a screen that has not been built yet greys itself out with a reason rather
+    /// than opening nothing and logging an error — and lights up by itself the moment that screen is
+    /// registered. The registry is the single authority for what exists; no row keeps its own list.</para>
+    /// </summary>
     public sealed class OpenSubmenuAction : IMenuAction
     {
         private readonly string _menuId;
-        public OpenSubmenuAction(string menuId) { _menuId = menuId; }
-        public bool CanExecute(MenuContext c) => !string.IsNullOrEmpty(_menuId);
+        private readonly string _unavailableReason;
+
+        /// <param name="unavailableReason">Shown when the destination is not registered. Null uses a
+        /// generic message.</param>
+        public OpenSubmenuAction(string menuId, string unavailableReason = null)
+        {
+            _menuId = menuId;
+            _unavailableReason = unavailableReason;
+        }
+
+        public bool CanExecute(MenuContext c)
+            => !string.IsNullOrEmpty(_menuId) && c.Menus != null && c.Menus.HasMenu(_menuId);
+
         public void Execute(MenuContext c) => c.Menus.Open(_menuId, c);
-        public string GetDisabledReason(MenuContext c) => "Menu id empty.";
+
+        public string GetDisabledReason(MenuContext c)
+        {
+            if (string.IsNullOrEmpty(_menuId)) return "Menu id empty.";
+            if (c.Menus == null) return "No menu service.";
+
+            return _unavailableReason ?? "Not available yet.";
+        }
+    }
+
+    // ---- Session lifecycle ------------------------------------------------------------------------
+    //
+    // Each of these is a thin call into ISessionService, which owns the ordering of the service resets
+    // and the scene choreography. Nothing here decides what "a new game" means.
+
+    public sealed class NewGameAction : IMenuAction
+    {
+        public bool CanExecute(MenuContext c)
+            => c.Services != null && c.Services.TryResolve<ISessionService>(out _);
+
+        public void Execute(MenuContext c)
+        {
+            if (c.Services == null || !c.Services.TryResolve<ISessionService>(out var session)) return;
+
+            // Close the menu stack first. NewGame sets the exploration state once the content scene is
+            // live, and a menu closing afterwards would restore its captured priorState over the top.
+            c.Menus?.CloseAll();
+            session.NewGame();
+        }
+
+        public string GetDisabledReason(MenuContext c) => "No session service.";
+    }
+
+    /// <summary>
+    /// Loads a specific slot. Used by the load screen's per-slot rows and, with the most recent slot
+    /// pre-resolved, by the main menu's Continue row.
+    /// </summary>
+    public sealed class LoadGameAction : IMenuAction
+    {
+        private readonly int _slot;
+        public LoadGameAction(int slot) { _slot = slot; }
+
+        public bool CanExecute(MenuContext c)
+            => _slot >= 0
+               && c.Services != null
+               && c.Services.TryResolve<ISessionService>(out _)
+               && c.Services.TryResolve<ISaveService>(out var save)
+               && save.SlotExists(_slot);
+
+        public void Execute(MenuContext c)
+        {
+            if (c.Services == null || !c.Services.TryResolve<ISessionService>(out var session)) return;
+
+            // Same reason as NewGameAction: the load sets state from its scene-ready callback.
+            c.Menus?.CloseAll();
+
+            if (!session.LoadGame(_slot))
+                Debug.LogWarning($"[JRPG.Menu] Load of slot {_slot} was rejected.");
+        }
+
+        public string GetDisabledReason(MenuContext c)
+        {
+            if (_slot < 0) return "No save to continue from.";
+            if (c.Services == null || !c.Services.TryResolve<ISaveService>(out _)) return "No save service.";
+
+            return "This slot is empty.";
+        }
+    }
+
+    /// <summary>
+    /// Quits to desktop. In the editor there is no application to quit, so it stops play mode instead —
+    /// otherwise this row does nothing at all during development.
+    /// </summary>
+    public sealed class QuitGameAction : IMenuAction
+    {
+        public bool CanExecute(MenuContext c) => true;
+
+        public void Execute(MenuContext c)
+        {
+#if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+#else
+            Application.Quit();
+#endif
+        }
+
+        public string GetDisabledReason(MenuContext c) => "";
+    }
+
+    public sealed class ReturnToTitleAction : IMenuAction
+    {
+        public bool CanExecute(MenuContext c)
+            => c.Services != null && c.Services.TryResolve<ISessionService>(out _);
+
+        public void Execute(MenuContext c)
+        {
+            if (c.Services == null || !c.Services.TryResolve<ISessionService>(out var session)) return;
+
+            // ReturnToTitle closes the menu stack itself, in the right order relative to the state change.
+            session.ReturnToTitle();
+        }
+
+        public string GetDisabledReason(MenuContext c) => "No session service.";
     }
 
     public sealed class CloseMenuAction : IMenuAction

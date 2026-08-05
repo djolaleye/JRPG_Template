@@ -238,7 +238,10 @@ namespace JRPG.Menu
             while (t < span)
             {
                 t += useUnscaledTime ? Time.unscaledDeltaTime : Time.deltaTime;
-                SetAlpha(Mathf.Lerp(start, target, Mathf.Clamp01(t / span)));
+
+                // Eased
+                float k = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(t / span));
+                SetAlpha(Mathf.Lerp(start, target, k));
                 yield return null;
             }
 

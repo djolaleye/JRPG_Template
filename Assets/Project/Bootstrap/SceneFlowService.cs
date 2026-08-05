@@ -53,7 +53,7 @@ namespace JRPG.Bootstrap
 
         [Tooltip("Floor on how long the covered phase lasts, in seconds. Stops a fast load from " +
                  "producing a single-frame flash of the loading view. 0 disables the floor.")]
-        [Min(0f)] [SerializeField] private float minimumCoveredSeconds = 0.25f;
+        [Min(0f)] [SerializeField] private float minimumCoveredSeconds = 0.45f;
 
         [Tooltip("Release memory held by the scene that was just unloaded. Runs while the screen is " +
                  "still covered, so the hitch is never visible.")]
@@ -121,6 +121,24 @@ namespace JRPG.Bootstrap
 
         // ---- ISceneFlowService ------------------------------------------------------------------
 
+        public bool IsSceneAvailable(string sceneName)
+        {
+            if (string.IsNullOrEmpty(sceneName)) return false;
+
+            for (int i = 0; i < SceneManager.sceneCountInBuildSettings; i++)
+            {
+                var path = SceneUtility.GetScenePathByBuildIndex(i);
+                if (string.IsNullOrEmpty(path)) continue;
+
+                // Compare on the file name: callers work in scene names, Build Settings stores paths.
+                if (string.Equals(System.IO.Path.GetFileNameWithoutExtension(path), sceneName,
+                                  StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+
+            return false;
+        }
+
         public void LoadContent(string sceneName, Action onComplete = null)
             => Enqueue(Kind.Load, sceneName, onComplete);
 
@@ -137,6 +155,17 @@ namespace JRPG.Bootstrap
             if (kind != Kind.Unload && string.IsNullOrEmpty(sceneName))
             {
                 Debug.LogError($"[JRPG.SceneFlow] {kind} called with no scene name; ignored.", this);
+                onComplete?.Invoke();
+                return;
+            }
+
+            // Validate before anything is torn down. A Swap that discovers its destination is missing
+            // halfway through has already unloaded the world the player was standing in; refusing up
+            // front leaves them exactly where they were, with an error naming the bad scene.
+            if (kind != Kind.Unload && !IsSceneAvailable(sceneName))
+            {
+                Debug.LogError($"[JRPG.SceneFlow] {kind} refused — '{sceneName}' is not in Build Settings " +
+                               "(or is disabled there). The current scene was left untouched.", this);
                 onComplete?.Invoke();
                 return;
             }

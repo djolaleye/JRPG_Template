@@ -30,6 +30,17 @@ namespace JRPG.Services
         string CurrentContentScene { get; }
 
         /// <summary>
+        /// True when <paramref name="sceneName"/> is a scene this service could actually load — i.e. it
+        /// is present and enabled in Build Settings.
+        ///
+        /// <para>Exists because a save file records the scene it was written in, and that name can go
+        /// stale: scenes get renamed, removed, or split between the save being written and being read.
+        /// Callers use this to fall back to a known-good destination <i>before</i> committing to a
+        /// transition, rather than discovering the problem with the screen already faded to black.</para>
+        /// </summary>
+        bool IsSceneAvailable(string sceneName);
+
+        /// <summary>
         /// Loads <paramref name="sceneName"/> additively as the content scene and makes it active.
         /// Does not unload an existing content scene — use <see cref="SwapTo"/> for that.
         /// <paramref name="onComplete"/> runs after the scene is fully loaded and its objects have

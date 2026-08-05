@@ -37,6 +37,10 @@ namespace JRPG.Bootstrap
                  "ISceneFlowService, which SceneFlowService registers on the Startup scene.")]
         [SerializeField] private string newGameSceneName = "TestExplore";
 
+        [Tooltip("Content scene ISessionService.ReturnToTitle goes back to. Must match the scene that " +
+                 "hosts TitleScreenController.")]
+        [SerializeField] private string titleSceneName = "Title";
+
         [Tooltip("Run bootstrap smoke probe (diagnostic logging of resolved services and state changes).")]
         [SerializeField] private bool logProbeOutput = true;
 
@@ -159,7 +163,7 @@ namespace JRPG.Bootstrap
             // safe for them to be registered later or not at all.
             var session = new SessionService(services, state, data,
                                              story, inventory, equipment, party, progression,
-                                             startingInventory, newGameSceneName);
+                                             startingInventory, newGameSceneName, titleSceneName);
             services.Register<ISessionService>(session);
 
             // Diagnostic only.

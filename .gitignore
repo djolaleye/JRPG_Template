@@ -109,3 +109,5 @@ InitTestScene*.unity*
 docs/
 DEV/
 Editor/
+.claude/
+.vscode/

@@ -11,5 +11,13 @@ namespace JRPG.Services
         void CloseAll();
         string ActiveMenuId { get; }
         int Depth { get; }
+
+        /// <summary>
+        /// True when <paramref name="menuId"/> resolves to a registered canvas, i.e. <see cref="Open"/>
+        /// would succeed. Lets a row that navigates to another screen disable itself with a reason
+        /// instead of opening nothing and logging an error — and lets it light up on its own as later
+        /// phases register the screens it points at.
+        /// </summary>
+        bool HasMenu(string menuId);
     }
 }

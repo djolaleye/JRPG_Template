@@ -243,7 +243,7 @@ namespace JRPG.Menu
             {
                 string glyph = navigationProfile != null && !string.IsNullOrEmpty(navigationProfile.cursorFallbackGlyph)
                     ? navigationProfile.cursorFallbackGlyph
-                    : "▶";
+                    : ">";
                 option.cursorGlyph.text = glyph;
                 option.cursorGlyph.enabled = focused && !hasCursorSprite;
             }

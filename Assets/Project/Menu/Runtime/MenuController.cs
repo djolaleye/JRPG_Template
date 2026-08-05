@@ -18,6 +18,10 @@ namespace JRPG.Menu
         [SerializeField] protected string actionMapName = "Menu";
         [SerializeField] protected string menuId;
 
+        [Tooltip("Optional. Left unassigned, the first InputPromptBar under this canvas is used. The bar " +
+                 "is fed from Prompts on enable.")]
+        [SerializeField] protected InputPromptBar promptBar;
+
         protected InputActionMap _map;
         protected InputAction _navigate;
         protected InputAction _submit;
@@ -48,6 +52,7 @@ namespace JRPG.Menu
             };
             RebuildAndFocus();
             HookInput(true);
+            RefreshPrompts();
         }
 
         protected virtual void OnDisable()
@@ -239,8 +244,20 @@ namespace JRPG.Menu
             new InputPrompt("Cancel", "Back"),
         };
 
-        /// Input affordances this screen wants advertised. Override to add/replace; a later prompt-bar
-        /// widget renders these. Declaration only — nothing consumes it yet.
+        /// Input affordances this screen wants advertised. Override to add or replace.
         public virtual IReadOnlyList<InputPrompt> Prompts => s_defaultPrompts;
+
+        /// <summary>
+        /// Pushes <see cref="Prompts"/> onto this screen's prompt bar. Called automatically on enable;
+        /// call it again from a screen whose prompt set changes with its own mode (a tabbed screen
+        /// gaining page prompts, a targeting screen swapping Confirm for Select).
+        /// </summary>
+        protected void RefreshPrompts()
+        {
+            if (promptBar == null) promptBar = GetComponentInChildren<InputPromptBar>(true);
+            if (promptBar == null) return;
+
+            promptBar.Show(Prompts);
+        }
     }
 }

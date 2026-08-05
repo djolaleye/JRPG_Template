@@ -19,6 +19,6 @@ MonoBehaviour:
   invalidShakeAmplitude: 6
   menuOpenDuration: 0.15
   menuCloseDuration: 0.12
-  screenFadeDuration: 0.35
+  screenFadeDuration: 0.8
   textCharactersPerSecond: 45
   autoAdvanceDelay: 2.5

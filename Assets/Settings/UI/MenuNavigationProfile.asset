@@ -16,7 +16,7 @@ MonoBehaviour:
   holdRepeatDelay: 0.4
   holdRepeatInterval: 0.08
   cursorSprite: {fileID: 0}
-  cursorFallbackGlyph: "\u25B6"
+  cursorFallbackGlyph: '>'
   cursorOffset: {x: -18, y: 0}
   focusOutlineWidth: 2
   focusOutlineColor: {r: 1, g: 1, b: 1, a: 0.9}

@@ -30,8 +30,8 @@ namespace JRPG.Menu
         [SerializeField] private Button rightButton;
 
         [Header("Glyphs")]
-        [SerializeField] private string leftGlyph = "‹";
-        [SerializeField] private string rightGlyph = "›";
+        [SerializeField] private string leftGlyph = "<";
+        [SerializeField] private string rightGlyph = ">";
 
         [Tooltip("Drawn instead of the arrow when that direction is at its bound. " +
                  "A shape change, not just a colour change.")]

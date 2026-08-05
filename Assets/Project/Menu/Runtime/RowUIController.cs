@@ -77,7 +77,7 @@ namespace JRPG.Menu
         [SerializeField] private Color confirmFlashColor = new(1f, 1f, 1f, 1f);
 
         [Header("Cursor/outline fallbacks (used only while navigationProfile is null)")]
-        [SerializeField] private string fallbackCursorGlyph = "▶";
+        [SerializeField] private string fallbackCursorGlyph = ">";
         [SerializeField] private Vector2 fallbackCursorOffset = new(-18f, 0f);
         [SerializeField] private float fallbackFocusOutlineWidth = 2f;
         [SerializeField] private Color fallbackFocusOutlineColor = new(1f, 1f, 1f, 0.9f);

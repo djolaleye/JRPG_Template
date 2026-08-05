@@ -29,7 +29,7 @@ namespace JRPG.Menu
         public Sprite cursorSprite;
 
         [Tooltip("Text drawn in the cursor slot when cursorSprite is null.")]
-        public string cursorFallbackGlyph = "▶";
+        public string cursorFallbackGlyph = ">";
 
         [Tooltip("Local offset applied to the cursor relative to the focused row.")]
         public Vector2 cursorOffset = new(-18f, 0f);

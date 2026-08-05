@@ -67,7 +67,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\u203A"
+  m_text: '>'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -270,7 +270,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\u2039"
+  m_text: <
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -847,8 +847,8 @@ MonoBehaviour:
   rightArrowText: {fileID: 8569527094383469853}
   leftButton: {fileID: 7657619559056549347}
   rightButton: {fileID: 851146572294392357}
-  leftGlyph: "\u2039"
-  rightGlyph: "\u203A"
+  leftGlyph: <
+  rightGlyph: '>'
   boundGlyph: "\xB7"
   disabledArrowAlpha: 0.25
   valueFormat: '{0}'

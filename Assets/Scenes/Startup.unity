@@ -459,6 +459,7 @@ MonoBehaviour:
   dialoguePresentationProfile: {fileID: 11400000, guid: 408cc8ff91b315b41b5e67bee41d10f5, type: 2}
   protagonistId: char_hero
   newGameSceneName: TestExplore
+  titleSceneName: Title
   logProbeOutput: 1
 --- !u!4 &1139393244
 Transform:
@@ -874,7 +875,7 @@ MonoBehaviour:
   transition: {fileID: 564469433}
   bootContentScene: Splash
   showLoadingView: 1
-  minimumCoveredSeconds: 0.25
+  minimumCoveredSeconds: 0.45
   unloadUnusedAssetsAfterUnload: 1
 --- !u!4 &1753610124
 Transform:

@@ -30,7 +30,8 @@ namespace JRPG.Menu
         [Header("Screens")]
         [Min(0f)] public float menuOpenDuration = 0.15f;
         [Min(0f)] public float menuCloseDuration = 0.12f;
-        [Min(0f)] public float screenFadeDuration = 0.35f;
+        [Tooltip("Length of one half of a screen fade (out, or in).")]
+        [Min(0f)] public float screenFadeDuration = 0.8f;
 
         [Header("Dialogue")]
         [Tooltip("Characters revealed per second by the typewriter. 0 = instant. " +

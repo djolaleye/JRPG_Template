@@ -33,6 +33,7 @@ namespace JRPG.Bootstrap
 
         private readonly StartingInventoryConfig _startingInventory;
         private readonly string _newGameSceneName;
+        private readonly string _titleSceneName;
 
         public bool IsSessionActive { get; private set; }
 
@@ -43,6 +44,7 @@ namespace JRPG.Bootstrap
         /// on bootstrap inspector wiring, so none of them can be a constructor dependency.
         /// </param>
         /// <param name="newGameSceneName">Content scene a fresh game starts in.</param>
+        /// <param name="titleSceneName">Content scene <see cref="ReturnToTitle"/> returns to.</param>
         public SessionService(IServiceRegistry services,
                               GameStateController state,
                               DataRegistry data,
@@ -52,7 +54,8 @@ namespace JRPG.Bootstrap
                               PartyService party,
                               ProgressionService progression,
                               StartingInventoryConfig startingInventory,
-                              string newGameSceneName)
+                              string newGameSceneName,
+                              string titleSceneName)
         {
             _services = services ?? throw new ArgumentNullException(nameof(services));
             _state = state ?? throw new ArgumentNullException(nameof(state));
@@ -66,6 +69,7 @@ namespace JRPG.Bootstrap
             // Optional: a project with no authored starting kit is legal, the baker no-ops on null.
             _startingInventory = startingInventory;
             _newGameSceneName = newGameSceneName;
+            _titleSceneName = titleSceneName;
         }
 
         // ---- New game -------------------------------------------------------------------------
@@ -177,6 +181,17 @@ namespace JRPG.Bootstrap
                 Debug.LogWarning($"[JRPG.Session] LoadGame(slot {slot}): save carries no sceneId — " +
                                  $"falling back to '{sceneName}'.");
             }
+            else if (TryGetSceneFlow(out var flowCheck) && !flowCheck.IsSceneAvailable(sceneName))
+            {
+                // The recorded scene no longer exists — renamed, removed, or dropped from Build
+                // Settings since the save was written. The rest of the payload (party, inventory,
+                // progression, story flags) is still perfectly good, so recover into the default world
+                // rather than refusing the load outright. Only the player's position is lost.
+                Debug.LogWarning($"[JRPG.Session] LoadGame(slot {slot}): recorded scene '{sceneName}' is no " +
+                                 $"longer in Build Settings — loading '{_newGameSceneName}' instead. The " +
+                                 "player's saved position will not be restored.");
+                sceneName = _newGameSceneName;
+            }
 
             // ORDER IS LOAD-BEARING: scene first, restore second.
             //
@@ -230,10 +245,23 @@ namespace JRPG.Bootstrap
             _state.SetState(new LayeredState(GameMode.MainMenu, OverlayState.None, InputContext.Menu));
 
             if (TryGetSceneFlow(out var sceneFlow))
-                sceneFlow.UnloadContent();
+            {
+                // Swap to the title scene rather than merely unloading the world. Unloading alone would
+                // leave no content scene at all — no camera, no title screen, nothing for the player to
+                // do — because the Startup root deliberately holds only services and UI.
+                if (!string.IsNullOrEmpty(_titleSceneName)) sceneFlow.SwapTo(_titleSceneName);
+                else
+                {
+                    Debug.LogWarning("[JRPG.Session] ReturnToTitle: no title scene name configured on " +
+                                     "GameBootstrap; unloading the world without a destination.");
+                    sceneFlow.UnloadContent();
+                }
+            }
             else
+            {
                 Debug.LogWarning("[JRPG.Session] ReturnToTitle: no ISceneFlowService registered — the content " +
-                                 "scene (if any) stays loaded. Registered in Phase 12.2.");
+                                 "scene (if any) stays loaded.");
+            }
 
             IsSessionActive = false;
         }

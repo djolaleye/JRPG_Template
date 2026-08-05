@@ -28,6 +28,12 @@ namespace JRPG.Menu
             _bus = bus ?? throw new ArgumentNullException(nameof(bus));
         }
 
+        public bool HasMenu(string menuId)
+        {
+            var entry = _registry.Find(menuId);
+            return entry != null && entry.canvasPrefab != null;
+        }
+
         public void Open(string menuId, object context)
         {
             var entry = _registry.Find(menuId);
