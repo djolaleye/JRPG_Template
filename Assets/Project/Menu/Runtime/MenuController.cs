@@ -77,10 +77,37 @@ namespace JRPG.Menu
 
         protected abstract IReadOnlyList<RowModel> BuildRows();
 
+        /// <summary>
+        /// A row that navigates to another screen, with its enabled state and its disabled reason both
+        /// taken from the action's own <see cref="IMenuAction.CanExecute"/>/<see cref="IMenuAction.GetDisabledReason"/>.
+        ///
+        /// <para>Destination screens land across several sub-phases, so a menu of destinations is mostly
+        /// rows that may or may not resolve yet. Deriving both flags from the action keeps that in one
+        /// place — a row lights up by itself the moment its screen is registered, and never claims to be
+        /// available when the domain says otherwise.</para>
+        /// </summary>
+        protected RowModel NavigationRow(string id, string label, string menuId,
+                                         string unavailableReason = null,
+                                         System.Func<MenuContext, string> gate = null)
+        {
+            var action = new OpenSubmenuAction(menuId, unavailableReason, gate);
+            bool allowed = action.CanExecute(Context);
+
+            return RowModel.Simple(id, label, action, Context,
+                                   enabled: allowed,
+                                   disabledReason: allowed ? null : action.GetDisabledReason(Context));
+        }
+
         // ---- Input --------------------------------------------------------------------------------
 
         private void HookInput(bool subscribe)
         {
+            // Editor-only activations — PrefabUtility.LoadPrefabContents opening a screen in a preview
+            // scene, prefab-stage editing, a scene being authored — run OnEnable without a live input
+            // state behind the asset, so enabling the map throws "Map must be contained in state". A
+            // menu has nothing to listen to outside play mode anyway.
+            if (!Application.isPlaying) return;
+
             if (playerControls == null) return;
             if (_map == null)
             {

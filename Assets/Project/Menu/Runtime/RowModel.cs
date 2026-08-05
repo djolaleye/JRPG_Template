@@ -12,8 +12,18 @@ namespace JRPG.Menu
         public bool enabled;
         public IMenuAction action;
         public MenuContext context;
+        public string disabledReason;
 
-        public static RowModel Simple(string id, string label, IMenuAction action, MenuContext context, bool enabled = true)
-            => new() { id = id, label = label, enabled = enabled, action = action, context = context };
+        public static RowModel Simple(string id, string label, IMenuAction action, MenuContext context,
+                                      bool enabled = true, string disabledReason = null)
+            => new()
+            {
+                id = id,
+                label = label,
+                enabled = enabled,
+                action = action,
+                context = context,
+                disabledReason = disabledReason,
+            };
     }
 }

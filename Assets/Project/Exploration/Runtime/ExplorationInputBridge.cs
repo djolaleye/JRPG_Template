@@ -147,9 +147,16 @@ namespace JRPG.Exploration
                 return;
             }
             
-            // Toggle pause: if a pause menu is already on top, close it; otherwise open it.
-            if (menus.ActiveMenuId == "pause") menus.Close();
-            else menus.Open("pause", null);
+            // Open only — never toggle.
+            //
+            // Opening "pause" applies Exploration + PauseMenu + Menu, and this bridge disables its own
+            // action map outside InputContext.Exploration. So once the menu is up this handler cannot
+            // fire again.
+            // Closing belongs to the Menu map's Cancel, which PauseMenuController already handles 
+            // — Escape and Start open it, Escape and Gamepad East close it, and the player still experiences a toggle.
+            if (menus.ActiveMenuId == "pause") return;
+
+            menus.Open("pause", null);
         }
 
         private void OnInteract(InputAction.CallbackContext ctx)

@@ -18,17 +18,29 @@ namespace JRPG.Menu
     {
         private readonly string _menuId;
         private readonly string _unavailableReason;
+        private readonly System.Func<MenuContext, string> _gate;
 
         /// <param name="unavailableReason">Shown when the destination is not registered. Null uses a
         /// generic message.</param>
-        public OpenSubmenuAction(string menuId, string unavailableReason = null)
+        /// <param name="gate">
+        /// Optional extra condition owned by the domain, evaluated after the destination is known to
+        /// exist. Returns null when navigation is allowed, or the player-facing reason it is not — e.g.
+        /// the pause menu's Save row asks <c>ISaveService.CanSave()</c>, so the row reflects the save
+        /// system's own rule instead of re-deriving when saving is legal.
+        /// </param>
+        public OpenSubmenuAction(string menuId, string unavailableReason = null,
+                                 System.Func<MenuContext, string> gate = null)
         {
             _menuId = menuId;
             _unavailableReason = unavailableReason;
+            _gate = gate;
         }
 
         public bool CanExecute(MenuContext c)
-            => !string.IsNullOrEmpty(_menuId) && c.Menus != null && c.Menus.HasMenu(_menuId);
+            => !string.IsNullOrEmpty(_menuId)
+               && c.Menus != null
+               && c.Menus.HasMenu(_menuId)
+               && (_gate == null || string.IsNullOrEmpty(_gate(c)));
 
         public void Execute(MenuContext c) => c.Menus.Open(_menuId, c);
 
@@ -36,8 +48,10 @@ namespace JRPG.Menu
         {
             if (string.IsNullOrEmpty(_menuId)) return "Menu id empty.";
             if (c.Menus == null) return "No menu service.";
+            if (!c.Menus.HasMenu(_menuId)) return _unavailableReason ?? "Not available yet.";
 
-            return _unavailableReason ?? "Not available yet.";
+            // Reaching here means the screen exists but the domain refused; that reason is the useful one.
+            return _gate?.Invoke(c) ?? _unavailableReason ?? "Not available yet.";
         }
     }
 

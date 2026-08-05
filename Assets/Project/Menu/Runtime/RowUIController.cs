@@ -92,6 +92,7 @@ namespace JRPG.Menu
         private Color _labelBaseColor = Color.white;
         private Color _auxBaseColor = Color.white;
         private bool _cachedBaseColors;
+        private string _disabledReason;
 
         public RowModel Model { get; private set; }
         public Selectable Selectable => selectable;
@@ -152,6 +153,14 @@ namespace JRPG.Menu
             }
             if (selectable != null) selectable.interactable = model.enabled;
 
+            _disabledReason = null;
+            if (!model.enabled)
+            {
+                _disabledReason = !string.IsNullOrEmpty(model.disabledReason)
+                    ? model.disabledReason
+                    : model.action?.GetDisabledReason(model.context ?? default);
+            }
+
             SetVisualState(model.enabled ? RowState.Normal : RowState.Disabled);
         }
 
@@ -189,8 +198,12 @@ namespace JRPG.Menu
 
             if (stateAffix != null)
             {
-                bool show = disabled && !string.IsNullOrEmpty(disabledAffix);
-                stateAffix.text = show ? disabledAffix : "";
+                string affix = disabled
+                    ? (!string.IsNullOrEmpty(_disabledReason) ? _disabledReason : disabledAffix)
+                    : null;
+
+                bool show = !string.IsNullOrEmpty(affix);
+                stateAffix.text = show ? affix : "";
                 stateAffix.enabled = show;
             }
 
@@ -369,6 +382,7 @@ namespace JRPG.Menu
             if (auxLabel != null) auxLabel.color = _auxBaseColor;
             if (stateAffix != null) { stateAffix.text = ""; stateAffix.enabled = false; }
             if (stateIcon != null) { stateIcon.sprite = null; stateIcon.enabled = false; }
+            _disabledReason = null;
             if (focusOutline != null) focusOutline.enabled = false;
             if (cursorRoot != null && cursorRoot.gameObject.activeSelf) cursorRoot.gameObject.SetActive(false);
 

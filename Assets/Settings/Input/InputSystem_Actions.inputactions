@@ -379,6 +379,17 @@
                 },
                 {
                     "name": "",
+                    "id": "3d1c7a48-6f2b-4a5e-9c07-24b8e1f0aa51",
+                    "path": "<Keyboard>/escape",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Pause",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "879a1e5b-fb0e-43ee-b215-b9ea1a002686",
                     "path": "<Gamepad>/buttonNorth",
                     "interactions": "",
