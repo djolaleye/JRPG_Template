@@ -108,3 +108,18 @@ MonoBehaviour:
     mode: 2
     overlay: 6
     input: 1
+  - menuId: save
+    canvasPrefab: {fileID: 6918195089147207304, guid: 7d8b8d8a05abcfc44851a3b4788f9b85, type: 3}
+    mode: 1
+    overlay: 8
+    input: 1
+  - menuId: load
+    canvasPrefab: {fileID: 3301624257880066800, guid: 5df9c656f6dbbe343992977e3c329c7b, type: 3}
+    mode: 0
+    overlay: 0
+    input: 1
+  - menuId: load_pause
+    canvasPrefab: {fileID: 3301624257880066800, guid: 5df9c656f6dbbe343992977e3c329c7b, type: 3}
+    mode: 1
+    overlay: 1
+    input: 1

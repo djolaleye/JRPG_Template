@@ -121,8 +121,19 @@ namespace JRPG.Menu
             }
         }
 
+        /// <summary>
+        /// True while a modal this screen raised (a <see cref="ConfirmPromptController"/>) owns input.
+        /// Navigate/Submit/Cancel on the row list are suppressed for as long as it is.
+        ///
+        /// <para>Needed because the modal and this screen subscribe to the <i>same</i> Menu action map:
+        /// without the gate, one Submit both answers the prompt and re-fires the row underneath it.
+        /// The modal itself decides nothing here — it just has input priority while open.</para>
+        /// </summary>
+        protected virtual bool ModalActive => false;
+
         private void OnNavigate(InputAction.CallbackContext ctx)
         {
+            if (ModalActive) return;
             if (populator == null) return;
             var v = ctx.ReadValue<Vector2>();
 
@@ -161,16 +172,35 @@ namespace JRPG.Menu
         /// Next page/tab. Default no-op.
         protected virtual void OnPageRight() { }
 
-        private void OnSubmit(InputAction.CallbackContext ctx)
+        /// <summary>
+        /// Virtual so a screen can interpose before a row runs — the save screen asks for overwrite
+        /// confirmation here, then calls <see cref="ExecuteRow"/> once the player says yes.
+        /// </summary>
+        protected virtual void OnSubmit(InputAction.CallbackContext ctx)
         {
+            if (ModalActive) return;
+
             // A press that began before this screen opened belongs to the screen that opened it —
             // e.g. gamepad buttonSouth is both Exploration/Interact and Menu/Submit.
             if (MenuInputMap.IsStalePress(ctx, _listeningSince)) return;
+
+            ExecuteRow(_selectedIndex);
+        }
+
+        /// <summary>
+        /// Runs a row's action, honouring its own <see cref="IMenuAction.CanExecute"/> gate, then
+        /// rebuilds — quantities, slot contents or selection state may have changed. Shared by the
+        /// normal Submit path and by any screen that defers execution behind a confirmation.
+        /// </summary>
+        protected void ExecuteRow(int index)
+        {
             if (populator == null) return;
-            if (_selectedIndex < 0 || _selectedIndex >= populator.ActiveRows.Count) return;
-            var row = populator.ActiveRows[_selectedIndex];
+            if (index < 0 || index >= populator.ActiveRows.Count) return;
+
+            var row = populator.ActiveRows[index];
             var model = row.Model;
             if (model.action == null) return;
+
             var ctxObj = model.context ?? Context;
             if (!model.action.CanExecute(ctxObj))
             {
@@ -178,14 +208,15 @@ namespace JRPG.Menu
                 Debug.Log($"[JRPG.Menu] disabled: {model.action.GetDisabledReason(ctxObj)}");
                 return;
             }
+
             row.SetVisualState(RowState.Confirmed);
             model.action.Execute(ctxObj);
-            // After executing, rebuild — quantities or selection state may have changed.
             RebuildAndFocus();
         }
 
         protected virtual void OnCancel(InputAction.CallbackContext ctx)
         {
+            if (ModalActive) return;
             if (MenuInputMap.IsStalePress(ctx, _listeningSince)) return;
             Context.Menus?.Close();
         }

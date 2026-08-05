@@ -16,7 +16,9 @@ namespace JRPG.Save
         // v2: removed the always-empty "characters" contributor (superseded by "party"/"progression").
         // v3: added slot metadata (savedAtUtcTicks / protagonistName / partyLevel) and started
         //     actually populating sceneId + playTime, so slots can be summarized without a restore.
-        public const int CurrentSaveVersion = 3;
+        // v4: party payload carries each character's current HP/MP/SP. Before this, restore rebuilt
+        //     instances and progression refilled every pool, so loading was a silent full heal.
+        public const int CurrentSaveVersion = 4;
 
         private readonly SaveRegistry _registry;
         private readonly SaveFileConfig _config;
@@ -199,6 +201,12 @@ namespace JRPG.Save
                 kv.Value.RestoreState(payload);
             }
 
+            // Second pass, after every contributor has restored.
+            foreach (var kv in _registry.Contributors)
+            {
+                if (kv.Value is ISaveablePostRestore post) post.PostRestore();
+            }
+
             _bus.Publish(new GameLoaded(slot));
             return true;
         }
@@ -255,6 +263,12 @@ namespace JRPG.Save
                 ? (header.player != null ? header.player.sceneId : null)
                 : header.sceneId;
 
+            // Mirror of the save-time fallback, for slots written before it existed: a header that
+            // names a lead character but records level 0 was written by a party that had simply never
+            // levelled. The header carries no roster, so the lead's name is the signal that one exists.
+            var partyLevel = header.partyLevel;
+            if (partyLevel == 0 && !string.IsNullOrEmpty(header.protagonistName)) partyLevel = 1;
+
             return new SaveSlotInfo
             {
                 slot = slot,
@@ -263,7 +277,7 @@ namespace JRPG.Save
                 playTime = header.playTime,
                 savedAtUtcTicks = header.savedAtUtcTicks,   // 0 for pre-v3 saves == "unknown"
                 protagonistName = header.protagonistName ?? string.Empty,
-                partyLevel = header.partyLevel
+                partyLevel = partyLevel
             };
         }
 
@@ -348,6 +362,12 @@ namespace JRPG.Save
                 if (level == 0) level = best;
             }
 
+            // A character who has never levelled has no progression record at all — ProgressionService
+            // only tracks characters it has awarded something to. Reporting 0 ("unknown") for that case
+            // blanked the Lv column on every early save, when the answer is simply 1: instances are
+            // always built at level 1. 0 is now reserved for a save with no roster to speak of.
+            if (level == 0 && dto.party?.roster != null && dto.party.roster.Count > 0) level = 1;
+
             dto.partyLevel = level;
         }
 
@@ -393,6 +413,9 @@ namespace JRPG.Save
                     case 2:
                         MigrateV2ToV3(dto);
                         break;
+                    case 3:
+                        MigrateV3ToV4(dto);
+                        break;
                     default:
                         Debug.LogError($"[JRPG.Save] No migration step defined from v{v}.");
                         return false;
@@ -423,6 +446,16 @@ namespace JRPG.Save
         private static void MigrateV2ToV3(GameSaveData dto)
         {
             dto.savedAtUtcTicks = 0L;
+        }
+
+        /// v3 → v4:  the party payload gained per-character current HP/MP/SP. A legacy save has no such
+        /// record, and there is nothing to infer it from — the pools are session state, not a function
+        /// of level or gear. Leaving the list empty is the honest outcome: PartyService.PostRestore
+        /// finds no entry and leaves the rebuilt-at-full-health defaults in place, which is exactly the
+        /// behaviour that save was written under. Explicit so the version bump stays auditable.
+        private static void MigrateV3ToV4(GameSaveData dto)
+        {
+            if (dto.party != null) dto.party.resources ??= new List<CharacterResourceEntry>();
         }
 
         private string SlotPath(int slot)

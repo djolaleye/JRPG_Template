@@ -26,6 +26,22 @@ namespace JRPG.Save
         public int savedMaxActive;
     }
 
+    /// <summary>
+    /// A character's live resource pool at save time.
+    ///
+    /// <para>Persisted because it cannot be re-derived: level, growth and equipment reconstruct the
+    /// maximums, but how much of each pool the player had actually spent is session state. Without
+    /// it every load is a free full heal.</para>
+    /// </summary>
+    [Serializable]
+    public struct CharacterResourceEntry
+    {
+        public string id;
+        public int currentHP;
+        public int currentMP;
+        public int currentSP;
+    }
+
     [Serializable]
     public class PartySaveData : SaveDataBase
     {
@@ -36,6 +52,7 @@ namespace JRPG.Save
         public int maxActiveMembers;
         public int maxTotalParty;
         public List<ScopeSnapshotDto> scopeStack = new(); // bottom-first
+        public List<CharacterResourceEntry> resources = new();
     }
 
     /// <summary>

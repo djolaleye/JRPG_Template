@@ -12,7 +12,7 @@ namespace JRPG.Party
     /// <summary>
     /// Persistent roster authority.
     /// </summary>
-    public sealed class PartyService : IPartyService, IPartyRuntimeQueries, ISaveable
+    public sealed class PartyService : IPartyService, IPartyRuntimeQueries, ISaveable, ISaveablePostRestore
     {
         private readonly DataRegistry _registry;
         private readonly RuntimeCharacterFactory _factory;
@@ -23,6 +23,9 @@ namespace JRPG.Party
         // Cache runtime instances keyed by character id. Created once and reused so HP/stat
         // state persists across roster transitions.
         private readonly Dictionary<string, CharacterRuntimeInstance> _instances = new();
+
+        /// Resource pools read from a save, held between RestoreState and PostRestore.
+        private readonly Dictionary<string, CharacterResourceEntry> _pendingResources = new();
 
         /// <summary>
         /// The id of the protagonist (set at construction). The protagonist is always present in the
@@ -98,6 +101,9 @@ namespace JRPG.Party
             _state.maxTotalParty = defaults.maxTotalParty;
 
             _instances.Clear();
+
+            // A restore that was interrupted by New Game must not apply its pools to the fresh roster.
+            _pendingResources.Clear();
 
             SeedInitialRoster();
 
@@ -514,6 +520,21 @@ namespace JRPG.Party
             foreach (var kv in _state.stateByCharacterId)
                 dto.roster.Add(new RosterEntry { id = kv.Key, state = kv.Value });
 
+            // Live resource pools. Only instances that actually exist are written.
+            foreach (var kv in _instances)
+            {
+                var inst = kv.Value;
+                if (inst == null) continue;
+
+                dto.resources.Add(new CharacterResourceEntry
+                {
+                    id = kv.Key,
+                    currentHP = inst.currentHP,
+                    currentMP = inst.currentMP,
+                    currentSP = inst.currentSP,
+                });
+            }
+
             // Stack is bottom-first in the DTO so order is preserved on load.
             var stackArr = _state.scopeStack.ToArray(); // ToArray returns top-first
             for (int i = stackArr.Length - 1; i >= 0; i--)
@@ -585,6 +606,47 @@ namespace JRPG.Party
             // any cached state from before restore is rebuilt.
             _instances.Clear();
 
+            // Resource pools are stashed. Instances do not exist yet, and once they do
+            // ProgressionService re-stamps level/growth and finishes by filling every pool to its new
+            // maximum — so anything written now is guaranteed to be overwritten. PostRestore() applies
+            // these after the whole contributor graph has settled.
+            _pendingResources.Clear();
+            if (dto.resources != null)
+            {
+                for (int i = 0; i < dto.resources.Count; i++)
+                {
+                    var entry = dto.resources[i];
+                    if (string.IsNullOrEmpty(entry.id)) continue;
+                    _pendingResources[entry.id] = entry;
+                }
+            }
+
+            _bus.Publish(new PartyChanged());
+        }
+
+        /// <summary>
+        /// Applies the saved resource pools, clamped to each character's restored maximums.
+        ///
+        /// <para>Clamping matters in both directions: a save made at level 9 restored into a build whose
+        /// growth table has since changed could carry an HP value above the new maximum, and a pool
+        /// recorded before an equipment change could exceed what the character can now hold.</para>
+        /// </summary>
+        public void PostRestore()
+        {
+            if (_pendingResources.Count == 0) return;
+
+            foreach (var kv in _pendingResources)
+            {
+                var inst = ResolveInstanceById(kv.Key);
+                if (inst == null) continue;
+
+                var saved = kv.Value;
+                inst.currentHP = Mathf.Clamp(saved.currentHP, 0, inst.stats.GetFinal(StatType.MaxHP));
+                inst.currentMP = Mathf.Clamp(saved.currentMP, 0, inst.stats.GetFinal(StatType.MaxMP));
+                inst.currentSP = Mathf.Clamp(saved.currentSP, 0, inst.stats.GetFinal(StatType.MaxSP));
+            }
+
+            _pendingResources.Clear();
             _bus.Publish(new PartyChanged());
         }
 

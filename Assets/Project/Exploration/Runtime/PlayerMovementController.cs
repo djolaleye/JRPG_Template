@@ -30,6 +30,10 @@ namespace JRPG.Exploration
 
         private void Update()
         {
+            // PlayerSaveAgent disables the controller for a frame so a restored position sticks.
+            // Skip the whole tick rather than logging on every load.
+            if (_charController == null || !_charController.enabled) return;
+
             if (_cam == null) _cam = Camera.main;
 
             Vector2 input = MoveInput;
