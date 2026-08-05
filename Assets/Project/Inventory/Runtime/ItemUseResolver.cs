@@ -24,23 +24,55 @@ namespace JRPG.Inventory
             _bus = bus ?? throw new ArgumentNullException(nameof(bus));
         }
 
-        public bool TryUse(string itemId, CharacterRuntimeInstance target, LayeredState state, out string failureReason)
+        /// <summary>
+        /// Non-mutating form of the <see cref="TryUse"/> validation ladder: may this item be used on this
+        /// target, right now?
+        ///
+        /// <para>Extracted so UI can grey a row and say why without re-deriving the rules — the reason
+        /// strings here are the ones the player sees. <see cref="TryUse"/> runs the same check, so a row
+        /// that somehow slips through still cannot execute.</para>
+        /// </summary>
+        public bool CanUse(string itemId, CharacterRuntimeInstance target, LayeredState state, out string reason)
         {
-            failureReason = null;
+            reason = null;
 
-            if (string.IsNullOrEmpty(itemId)) { failureReason = "itemId empty"; return false; }
-            if (target == null) { failureReason = "target null"; return false; }
-            if (!_registry.TryGet<ItemData>(itemId, out var item) || item == null) { failureReason = "unknown itemId"; return false; }
+            if (string.IsNullOrEmpty(itemId)) { reason = "No item."; return false; }
+            if (!_registry.TryGet<ItemData>(itemId, out var item) || item == null) { reason = "Unknown item."; return false; }
+            if (_container.GetQuantity(itemId) <= 0) { reason = "None left."; return false; }
 
-            if (_container.GetQuantity(itemId) <= 0) { failureReason = "out of stock"; return false; }
+            if (item.linkedEffects == null || item.linkedEffects.Count == 0)
+            {
+                reason = item.category switch
+                {
+                    ItemCategory.Equipment => "Equip this from the equipment screen.",
+                    ItemCategory.KeyItem => "Key item — used automatically.",
+                    ItemCategory.QuestItem => "Quest item.",
+                    ItemCategory.Material => "Crafting material.",
+                    _ => "Nothing happens.",
+                };
+                return false;
+            }
 
             var rule = item.usageRule;
             if (rule != null)
             {
-                if (state.Mode == GameMode.Combat && !rule.usableInCombat) { failureReason = "not usable in combat"; return false; }
-                if (state.Mode == GameMode.Exploration && !rule.usableInExploration) { failureReason = "not usable in exploration"; return false; }
-                if (rule.targetLivingAlliesOnly && target.currentHP <= 0) { failureReason = "target is downed"; return false; }
+                if (state.Mode == GameMode.Combat && !rule.usableInCombat) { reason = "Can't use in battle."; return false; }
+                if (state.Mode == GameMode.Exploration && !rule.usableInExploration) { reason = "Can't use here."; return false; }
+                if (rule.targetLivingAlliesOnly && target != null && target.currentHP <= 0) { reason = "Target is down."; return false; }
             }
+
+            return true;
+        }
+
+        public bool TryUse(string itemId, CharacterRuntimeInstance target, LayeredState state, out string failureReason)
+        {
+            failureReason = null;
+
+            if (target == null) { failureReason = "target null"; return false; }
+            if (!CanUse(itemId, target, state, out failureReason)) return false;
+
+            _registry.TryGet<ItemData>(itemId, out var item);
+            var rule = item.usageRule;
 
             // Apply effects.
             for (int i = 0; i < item.linkedEffects.Count; i++)

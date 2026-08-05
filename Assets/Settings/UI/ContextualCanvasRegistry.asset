@@ -123,3 +123,18 @@ MonoBehaviour:
     mode: 1
     overlay: 1
     input: 1
+  - menuId: equip
+    canvasPrefab: {fileID: 5614401879970761696, guid: de544e634c1bbb64f962e63c1539218a, type: 3}
+    mode: 1
+    overlay: 1
+    input: 1
+  - menuId: equip_slots
+    canvasPrefab: {fileID: 6087669108581292730, guid: 5b7dc3fb6e2c23b4fb6d77d254afbc20, type: 3}
+    mode: 1
+    overlay: 1
+    input: 1
+  - menuId: equip_items
+    canvasPrefab: {fileID: 6092416674122998049, guid: 4aae4913a2784a241bcf3bead00d9a09, type: 3}
+    mode: 1
+    overlay: 1
+    input: 1

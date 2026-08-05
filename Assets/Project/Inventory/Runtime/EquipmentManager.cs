@@ -8,6 +8,16 @@ using JRPG.Save;
 
 namespace JRPG.Inventory
 {
+    /// <summary>One derived stat's before/after under a hypothetical equip. View model only.</summary>
+    public struct EquipStatDelta
+    {
+        public StatType stat;
+        public int before;
+        public int after;
+
+        public int Change => after - before;
+    }
+
     /// <summary>
     /// Single authority for equipped state. Applies/removes <see cref="StatModifier"/>s on
     /// <see cref="CharacterRuntimeInstance"/>s using a deterministic <c>sourceId</c> so unequip
@@ -54,6 +64,32 @@ namespace JRPG.Inventory
         /// </summary>
         public static string MakeSourceId(string charId, EquipmentSlot slot)
             => $"equip:{charId}:{slot}";
+
+        /// <summary>
+        /// Rewrites <see cref="CharacterRuntimeInstance.equippedItemIds"/> from the slot table, making
+        /// this manager the single writer of both.
+        ///
+        /// <para><b>Reuired: </b><c>CombatantFactory.BuildCharacterProfile</c> reads
+        /// <c>equippedItemIds</c>, so something must nothing wrote it to prevent a weapon's element affinities, status
+        /// immunities, passives and <c>actionUnlockIds</c> from never reaching battle.</para>
+        ///
+        /// <para>Rebuilt wholesale rather than patched per-operation so the list cannot drift out of
+        /// step with the slot table it mirrors.</para>
+        /// </summary>
+        private static void SyncEquippedIds(CharacterRuntimeInstance target, EquipmentRuntimeState state)
+        {
+            if (target == null) return;
+
+            target.equippedItemIds ??= new List<string>();
+            target.equippedItemIds.Clear();
+
+            if (state == null) return;
+
+            foreach (var kv in state.slotToItemId)
+            {
+                if (!string.IsNullOrEmpty(kv.Value)) target.equippedItemIds.Add(kv.Value);
+            }
+        }
 
         /// <summary>
         /// Non-mutating form of the <see cref="Equip"/> validation ladder: answers "would this equip
@@ -135,6 +171,7 @@ namespace JRPG.Inventory
             }
 
             target.Recalculate();
+            SyncEquippedIds(target, state);
 
             _bus.Publish(new EquipmentChanged(target.SourceDataId, equip.slot, equipItemId));
             return true;
@@ -153,6 +190,7 @@ namespace JRPG.Inventory
 
             target.stats.RemoveModifiersFrom(sourceId);
             target.Recalculate();
+            SyncEquippedIds(target, state);
 
             if (_registry.TryGet<EquipmentData>(itemId, out var equip) && equip != null)
                 _container.Add(itemId, 1, equip);
@@ -193,6 +231,8 @@ namespace JRPG.Inventory
                     instance.stats.RemoveModifiersFrom(MakeSourceId(kv.Key, slotEnt.Key));
 
                 instance.Recalculate();
+
+                SyncEquippedIds(instance, null);
             }
 
             _byChar.Clear();
@@ -210,6 +250,53 @@ namespace JRPG.Inventory
                 return charData.displayName;
 
             return target.SourceDataId;
+        }
+
+        /// <summary>Item currently in <paramref name="slot"/> for this character, or null.</summary>
+        public string GetEquipped(string charId, EquipmentSlot slot)
+        {
+            if (string.IsNullOrEmpty(charId) || !_byChar.TryGetValue(charId, out var state)) return null;
+            return state.slotToItemId.TryGetValue(slot, out var id) ? id : null;
+        }
+
+        /// <summary>
+        /// Before/after derived stats for equipping <paramref name="equipItemId"/>, without changing
+        /// anything. Only stats that move are returned.
+        ///
+        /// <para>Computed on a <see cref="StatBlockRuntime.Clone"/>.
+        /// Accounts for the item that would be <i>displaced</i> from
+        /// the slot</para>
+        /// </summary>
+        public IReadOnlyList<EquipStatDelta> PreviewEquip(CharacterRuntimeInstance target, string equipItemId)
+        {
+            var deltas = new List<EquipStatDelta>();
+            if (target == null) return deltas;
+            if (!_registry.TryGet<EquipmentData>(equipItemId, out var equip) || equip == null) return deltas;
+
+            var projected = target.stats.Clone();
+
+            // Drop whatever occupies the slot today.
+            string displaced = GetEquipped(target.SourceDataId, equip.slot);
+            if (!string.IsNullOrEmpty(displaced))
+                projected.RemoveModifiersFrom(MakeSourceId(target.SourceDataId, equip.slot));
+
+            var sourceId = MakeSourceId(target.SourceDataId, equip.slot);
+            for (int i = 0; i < equip.statModifiers.Count; i++)
+            {
+                var m = equip.statModifiers[i];
+                projected.AddModifier(new StatModifier(m.stat, m.modifierType, m.value, sourceId, false));
+            }
+
+            projected.Recalculate();
+
+            foreach (StatType stat in Enum.GetValues(typeof(StatType)))
+            {
+                int before = target.stats.GetFinal(stat);
+                int after = projected.GetFinal(stat);
+                if (before != after) deltas.Add(new EquipStatDelta { stat = stat, before = before, after = after });
+            }
+
+            return deltas;
         }
 
         public string GetEquippedItemId(string charInstanceId, string slotName)
@@ -278,7 +365,9 @@ namespace JRPG.Inventory
                         instance.stats.AddModifier(new StatModifier(mod.stat, mod.modifierType, mod.value, sourceId, false));
                     }
                 }
+
                 instance.Recalculate();
+                SyncEquippedIds(instance, rtState);
             }
         }
     }

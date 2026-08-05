@@ -34,6 +34,16 @@ namespace JRPG.Menu
             return entry != null && entry.canvasPrefab != null;
         }
 
+        /// Set only for the duration of a screen's instantiation.
+        private MenuContext _openingContext;
+
+        /// <summary>
+        /// The context belonging to the screen currently coming up, or the one on top of the stack.
+        /// A <see cref="MenuController"/> adopts this on enable so a selection made on one screen is
+        /// visible to the next, rather than every screen starting from a blank context.
+        /// </summary>
+        public MenuContext ActiveContext => _openingContext ?? _machine.Top?.context;
+
         public void Open(string menuId, object context)
         {
             var entry = _registry.Find(menuId);
@@ -44,6 +54,11 @@ namespace JRPG.Menu
             // Hide currently-top canvas (stack stays alive for back-nav).
             if (_machine.Top != null && _machine.Top.canvasInstance != null)
                 _machine.Top.canvasInstance.SetActive(false);
+
+            // Published before Instantiate: Instantiate runs Awake/OnEnable synchronously, so
+            // the new screen's controller reads its context here, before the frame below exists. This is
+            // how a selection (which character, which slot) reaches the screen it was made for.
+            _openingContext = menuContext;
 
             var go = UnityEngine.Object.Instantiate(entry.canvasPrefab, _parent);
             go.name = "Menu_" + menuId;
@@ -67,6 +82,8 @@ namespace JRPG.Menu
             };
 
             _machine.Push(frame);
+            _openingContext = null;
+
             _state.SetState(new LayeredState(entry.mode, entry.overlay, entry.input));
             _bus.Publish(new MenuOpened(menuId));
         }

@@ -95,7 +95,9 @@ namespace JRPG.Bootstrap
 
             // Registration order matters — inventory before equipment
             // so equipment restore can return prior items to the inventory pool if needed.
-            var inventory = new InventoryService(data, bus);
+            // Story is passed so item visibility can honour ItemUsageRule.requiredStoryFlag; it is
+            // already constructed above, ahead of the roster, for the recruitment evaluator.
+            var inventory = new InventoryService(data, bus, story);
             services.Register<IInventoryService>(inventory);
             saveContributors.Register(inventory);
 

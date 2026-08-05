@@ -399,15 +399,26 @@ namespace JRPG.Combat
         /// UI helper: can this combatant use the action right now ignoring target selection? Checks
         /// team availability + cost affordability only. Used to grey out command/skill/item rows
         /// (PreviewAction additionally requires a chosen target, so it's unsuitable for pre-target rows).
-        public bool CanAfford(string combatantId, string actionId)
+        public bool CanAfford(string combatantId, string actionId) => CanAfford(combatantId, actionId, out _);
+
+        /// <summary>
+        /// As <see cref="CanAfford(string,string)"/>, but also yields the display-ready reason the action
+        /// cannot be paid for. Exposed so command/skill/item rows can grey themselves with the resolver's
+        /// own wording instead of the view inventing a second explanation.
+        /// </summary>
+        public bool CanAfford(string combatantId, string actionId, out string reason)
         {
+            reason = null;
+
             var actor = _battle?.FindCombatant(combatantId);
-            if (actor == null || !_data.TryGet<CombatActionData>(actionId, out var action)) return false;
+            if (actor == null) { reason = "Not in battle."; return false; }
+            if (!_data.TryGet<CombatActionData>(actionId, out var action)) { reason = "Unknown action."; return false; }
 
             bool usable = actor.team == CombatantTeam.Party ? action.usableByPlayers : action.usableByEnemies;
-            if (!usable) return false;
+            bool unlocked = actor.profile != null && actor.profile.HasUnlockedAction(action.Id);
+            if (!usable && !unlocked) { reason = "Not available to this combatant."; return false; }
 
-            return _resolver.CanPayCosts(actor, action, out _);
+            return _resolver.CanPayCosts(actor, action, out reason);
         }
 
         public ActionPreview PreviewAction(string combatantId, string actionId, IReadOnlyList<string> targetIds)

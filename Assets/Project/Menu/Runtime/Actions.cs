@@ -1,5 +1,6 @@
 using UnityEngine;
 using JRPG.Core;
+using JRPG.Data;
 using JRPG.Services;
 using JRPG.Inventory;
 using JRPG.Party;
@@ -238,15 +239,75 @@ namespace JRPG.Menu
         public string GetDisabledReason(MenuContext c) => "No selected id.";
     }
 
+    /// <summary>
+    /// Equips <see cref="MenuContext.SelectedItemId"/> onto <see cref="MenuContext.Subject"/>.
+    ///
+    /// <para>Both the gate and the explanation come from <see cref="EquipmentManager.CanEquip"/> 
+    /// so the row can never offer something the domain refuses,
+    /// and the refusal the player reads is the domain's own wording.</para>
+    /// </summary>
     public sealed class EquipItemAction : IMenuAction
     {
-        public bool CanExecute(MenuContext c) => c.Subject != null && !string.IsNullOrEmpty(c.SelectedItemId);
+        public bool CanExecute(MenuContext c)
+        {
+            if (!TryResolve(c, out var equip)) return false;
+            return equip.CanEquip(c.Subject, c.SelectedItemId, out _);
+        }
+
         public void Execute(MenuContext c)
         {
-            if (!c.Services.TryResolve<IEquipmentService>(out var eqSvc) || eqSvc is not EquipmentManager equip) return;
-            equip.Equip(c.Subject, c.SelectedItemId, out _);
+            if (!TryResolve(c, out var equip)) return;
+
+            if (!equip.Equip(c.Subject, c.SelectedItemId, out var reason))
+                Debug.LogWarning($"[JRPG.Menu] Equip refused: {reason}");
         }
-        public string GetDisabledReason(MenuContext c) =>
-            c.Subject == null ? "Pick a party member first." : "No item selected.";
+
+        public string GetDisabledReason(MenuContext c)
+        {
+            if (c.Subject == null) return "Pick a party member first.";
+            if (string.IsNullOrEmpty(c.SelectedItemId)) return "No item selected.";
+            if (!TryResolve(c, out var equip)) return "No equipment service.";
+
+            equip.CanEquip(c.Subject, c.SelectedItemId, out var reason);
+            return reason;
+        }
+
+        private static bool TryResolve(MenuContext c, out EquipmentManager equipment)
+        {
+            equipment = null;
+            if (c?.Subject == null || string.IsNullOrEmpty(c.SelectedItemId)) return false;
+            if (c.Services == null || !c.Services.TryResolve<IEquipmentService>(out var svc)) return false;
+
+            equipment = svc as EquipmentManager;
+            return equipment != null;
+        }
+    }
+
+    /// <summary>
+    /// Unequips the slot carried in <see cref="MenuContext.Payload"/>. Paired with
+    /// <see cref="EquipItemAction"/> so both directions are menu actions rather than one being a
+    /// controller-side special case.
+    /// </summary>
+    public sealed class UnequipItemAction : IMenuAction
+    {
+        public bool CanExecute(MenuContext c)
+            => c?.Subject != null
+               && c.Payload is EquipmentSlot slot
+               && c.Services != null
+               && c.Services.TryResolve<IEquipmentService>(out var svc)
+               && svc is EquipmentManager equipment
+               && !string.IsNullOrEmpty(equipment.GetEquipped(c.Subject.SourceDataId, slot));
+
+        public void Execute(MenuContext c)
+        {
+            if (c.Payload is not EquipmentSlot slot) return;
+            if (!c.Services.TryResolve<IEquipmentService>(out var svc) || svc is not EquipmentManager equipment) return;
+
+            if (!equipment.Unequip(c.Subject, slot, out var reason))
+                Debug.LogWarning($"[JRPG.Menu] Unequip refused: {reason}");
+        }
+
+        public string GetDisabledReason(MenuContext c)
+            => c?.Subject == null ? "Pick a party member first." : "That slot is already empty.";
     }
 }

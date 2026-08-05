@@ -10,11 +10,20 @@ namespace JRPG.Inventory
     /// </summary>
     public static class ContextualFilterEngine
     {
+        /// <param name="storyFlagIsSet">
+        /// Resolves <see cref="ItemUsageRule.requiredStoryFlag"/>. Null means "no story access", which
+        /// passes every item — the pre-12.6 behaviour, and the right answer for callers such as the
+        /// editor harnesses that have no story service.
+        ///
+        /// A delegate rather than an <c>IStoryStateService</c> parameter so this class stays a pure
+        /// static utility with no service dependency.
+        /// </param>
         public static IReadOnlyList<InventoryStack> Filter(
             InventoryContainer container,
             DataRegistry registry,
             LayeredState state,
-            ContextualFilterRequest request)
+            ContextualFilterRequest request,
+            System.Func<string, bool> storyFlagIsSet = null)
         {
             var result = new List<InventoryStack>();
             if (container == null || registry == null) return result;
@@ -23,6 +32,7 @@ namespace JRPG.Inventory
             {
                 if (stack == null || stack.quantity <= 0) continue;
                 if (!registry.TryGet<ItemData>(stack.itemId, out var item) || item == null) continue;
+                if (!PassesStoryGate(item, storyFlagIsSet)) continue;
                 if (!PassesContext(item, state, request)) continue;
                 if (request.categoryFilter.HasValue && item.category != request.categoryFilter.Value) continue;
 
@@ -30,6 +40,19 @@ namespace JRPG.Inventory
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// An item whose <see cref="ItemUsageRule.requiredStoryFlag"/> is not yet set stays out of every
+        /// list. This is the seam <see cref="ItemUsageRule"/> reserved: the flag is a visibility gate, so
+        /// it is evaluated before the per-context rules rather than alongside them.
+        /// </summary>
+        private static bool PassesStoryGate(ItemData item, System.Func<string, bool> storyFlagIsSet)
+        {
+            var flag = item.usageRule?.requiredStoryFlag;
+            if (string.IsNullOrEmpty(flag)) return true;
+
+            return storyFlagIsSet == null || storyFlagIsSet(flag);
         }
 
         // `state` gates the exploration tab by the mode the game is actually in: the pause/inventory
@@ -42,8 +65,6 @@ namespace JRPG.Inventory
             switch (request.context)
             {
                 case FilterContext.CombatItemMenu:
-                    // Combat usability is the shared rule (see ItemCombatRules — CombatActionResolver
-                    // enforces the same one); the category narrowing is this screen's own concern.
                     return item.category == ItemCategory.Consumable
                         && ItemCombatRules.IsUsableInCombat(item);
 

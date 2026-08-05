@@ -35,7 +35,7 @@ namespace JRPG.Menu
 
             return new CombatantVitals
             {
-                displayName = displayName ?? inst.SourceDataId,
+                displayName = displayName ?? inst.DisplayName,
                 hp = inst.currentHP,
                 maxHP = inst.MaxHP,
                 mp = inst.currentMP,

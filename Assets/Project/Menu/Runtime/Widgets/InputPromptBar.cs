@@ -187,9 +187,37 @@ namespace JRPG.Menu
 
                 var prompt = _current[i];
                 if (entry.Root != null && !entry.Root.activeSelf) entry.Root.SetActive(true);
-                if (entry.Glyph != null) entry.Glyph.text = GlyphFor(prompt.ActionName);
+
+                if (entry.Glyph != null)
+                {
+                    entry.Glyph.text = GlyphFor(prompt.ActionName);
+
+                    // Glyphs are short tokens that must stay on one line. Keyboard placeholders like
+                    // "[Enter]" and "[Esc]" are wider than the gamepad "(A)" the slot was sized for, and
+                    // wrapping split them across two lines ("[Ent" / "er]"). Both the flag and the width
+                    // are re-applied per bind because the entries are pooled.
+                    entry.Glyph.textWrappingMode = TextWrappingModes.NoWrap;
+                    entry.Glyph.overflowMode = TextOverflowModes.Overflow;
+                    FitGlyphWidth(entry);
+                }
+
                 if (entry.Label != null) entry.Label.text = prompt.Label ?? string.Empty;
             }
+        }
+
+        /// <summary>
+        /// Gives the glyph slot a preferred width matching its text, so a wide keyboard token gets the
+        /// room it needs and a narrow gamepad one does not leave a gap. Without this the slot keeps
+        /// whatever fixed width the prefab authored and the glyph either clips or wraps.
+        /// </summary>
+        private static void FitGlyphWidth(Entry entry)
+        {
+            if (entry.Glyph == null) return;
+
+            var layout = entry.Glyph.GetComponent<LayoutElement>();
+            if (layout == null) layout = entry.Glyph.gameObject.AddComponent<LayoutElement>();
+
+            layout.preferredWidth = entry.Glyph.GetPreferredValues(entry.Glyph.text).x;
         }
 
         private void EnsureCapacity(int count)

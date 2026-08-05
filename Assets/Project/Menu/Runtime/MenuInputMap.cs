@@ -26,13 +26,35 @@ namespace JRPG.Menu
 
         private static readonly Dictionary<InputActionMap, MapRef> s_refs = new();
 
+        /// <summary>
+        /// True once the player loop is shutting down (quit, or leaving play mode in the editor).
+        ///
+        /// <para>The Input System disposes its action state during shutdown, but Unity keeps running
+        /// component lifecycle callbacks for a short while afterwards — so a screen that is still open
+        /// when play stops reaches <see cref="Acquire"/> with a map that can no longer be enabled, and
+        /// <c>InputActionMap.Enable</c> throws "Map must be contained in state". Nothing can consume
+        /// input at that point, so the correct response is to stop taking references, not to enable
+        /// anything.</para>
+        /// </summary>
+        private static bool s_shuttingDown;
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        private static void ResetStatics() => s_refs.Clear();
+        private static void ResetStatics()
+        {
+            s_refs.Clear();
+            s_shuttingDown = false;
+
+            // Re-subscribed every play session; the -= first keeps a domain reload from stacking them.
+            Application.quitting -= OnQuitting;
+            Application.quitting += OnQuitting;
+        }
+
+        private static void OnQuitting() => s_shuttingDown = true;
 
         /// Take a reference on <paramref name="map"/>, enabling it on the 0→1 transition.
         public static void Acquire(InputActionMap map)
         {
-            if (map == null) return;
+            if (map == null || s_shuttingDown) return;
             if (!s_refs.TryGetValue(map, out var entry))
             {
                 entry = new MapRef { Count = 0, OwnsEnable = !map.enabled };
@@ -53,6 +75,11 @@ namespace JRPG.Menu
             if (entry.Count > 0) return;
 
             s_refs.Remove(map);
+
+            // Same shutdown reasoning as Acquire: the state backing this map may already be gone, and
+            // disabling it then throws just as enabling does.
+            if (s_shuttingDown) return;
+
             if (entry.OwnsEnable && map.enabled) map.Disable();
         }
 

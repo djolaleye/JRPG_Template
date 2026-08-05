@@ -45,6 +45,11 @@ namespace JRPG.Menu
         [Tooltip("Displays the active tab's name beneath/beside the strip.")]
         [SerializeField] private TMP_Text activeNameLabel;
 
+        [Tooltip("Draw a caption under every tab. Off matches the Pokémon BAG reference: icons only, " +
+                 "with just the active tab named in activeNameLabel. With more than a handful of tabs " +
+                 "the per-tab captions collide, so a strip that is icon-driven should leave this off.")]
+        [SerializeField] private bool showPerTabCaptions = true;
+
         [SerializeField] private GameObject leftArrow;
         [SerializeField] private GameObject rightArrow;
 
@@ -211,7 +216,11 @@ namespace JRPG.Menu
                     e.Glyph.text = InitialOf(def.displayName);
                 }
 
-                if (e.Caption != null) e.Caption.text = def.displayName ?? string.Empty;
+                if (e.Caption != null)
+                {
+                    e.Caption.enabled = showPerTabCaptions;
+                    e.Caption.text = showPerTabCaptions ? def.displayName ?? string.Empty : string.Empty;
+                }
             }
         }
 
@@ -233,11 +242,20 @@ namespace JRPG.Menu
                 if (e.Group != null) e.Group.alpha = active ? 1f : Mathf.Clamp01(inactiveAlpha);
                 if (e.Underline != null) e.Underline.SetActive(showUnderlineOnActive && active);
 
-                if (e.Caption != null && i < _tabs.Count)
+                if (e.Caption != null && showPerTabCaptions && i < _tabs.Count)
                 {
                     string name = _tabs[i].displayName ?? string.Empty;
                     e.Caption.text = active ? $"{activeCaptionPrefix}{name}{activeCaptionSuffix}" : name;
                     e.Caption.fontStyle = active ? FontStyles.Bold : FontStyles.Normal;
+                }
+
+                // With captions off, the active tab still has to be identifiable without colour: the
+                // glyph carries the bracket markers instead.
+                if (e.Glyph != null && !showPerTabCaptions && i < _tabs.Count)
+                {
+                    string initial = InitialOf(_tabs[i].displayName);
+                    e.Glyph.text = active ? $"{activeCaptionPrefix}{initial}{activeCaptionSuffix}" : initial;
+                    e.Glyph.fontStyle = active ? FontStyles.Bold : FontStyles.Normal;
                 }
             }
 

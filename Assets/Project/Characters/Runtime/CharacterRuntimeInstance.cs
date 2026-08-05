@@ -6,6 +6,17 @@ namespace JRPG.Characters
 {
     public class CharacterRuntimeInstance : RuntimeInstanceBase
     {
+        /// <summary>
+        /// Player-facing name, copied from the authored data at construction.
+        ///
+        /// <para>Stamped here because every UI that shows a character otherwise falls back to
+        /// <c>SourceDataId</c> and displays <c>char_hero</c>. Carrying it on the instance fixes that once
+        /// for every consumer instead of each screen doing its own registry lookup.</para>
+        /// </summary>
+        public string displayName;
+
+        public string DisplayName => string.IsNullOrEmpty(displayName) ? SourceDataId : displayName;
+
         public StatBlockRuntime stats = new();
         public int currentHP;
         public int currentMP;

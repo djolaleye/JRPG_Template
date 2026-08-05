@@ -45,11 +45,14 @@ namespace JRPG.Menu
 
         protected virtual void OnEnable()
         {
-            Context = new MenuContext
-            {
-                Services = AppContext.Services,
-                Menus = AppContext.Services?.TryResolve<IMenuService>(out var ms) == true ? ms : null
-            };
+            var menus = AppContext.Services?.TryResolve<IMenuService>(out var ms) == true ? ms : null;
+
+            // Adopt the context this screen was opened with, so a selection made on the previous screen
+            // (which character, which slot) is visible here.
+            Context = (menus as MenuService)?.ActiveContext ?? new MenuContext();
+
+            Context.Services ??= AppContext.Services;
+            Context.Menus ??= menus;
             RebuildAndFocus();
             HookInput(true);
             RefreshPrompts();

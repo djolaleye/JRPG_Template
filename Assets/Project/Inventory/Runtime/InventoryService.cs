@@ -18,14 +18,22 @@ namespace JRPG.Inventory
         private readonly InventoryContainer _container = new();
         private readonly ItemUseResolver _resolver;
         private readonly IEventBus _bus;
+        private readonly IStoryStateService _story;
 
         public InventoryContainer Container => _container;
         public string SaveKey => "inventory";
 
-        public InventoryService(DataRegistry registry, IEventBus bus)
+        /// <param name="story">
+        /// Optional. Supplies the answer for <see cref="ItemUsageRule.requiredStoryFlag"/>, so a
+        /// story-gated item stays out of every filtered list until its flag is set. Null leaves every
+        /// item visible, which is what the editor harnesses (which build no story service) rely on.
+        /// GameBootstrap constructs the story service before this one, so it can be passed directly.
+        /// </param>
+        public InventoryService(DataRegistry registry, IEventBus bus, IStoryStateService story = null)
         {
             _registry = registry ?? throw new ArgumentNullException(nameof(registry));
             _bus = bus ?? throw new ArgumentNullException(nameof(bus));
+            _story = story;
             _resolver = new ItemUseResolver(_registry, _container, _bus);
         }
 
@@ -60,10 +68,18 @@ namespace JRPG.Inventory
             => _container.OfCategory(category, id => _registry.TryGet<ItemData>(id, out var i) ? i : null);
 
         public IReadOnlyList<InventoryStack> Filter(LayeredState state, ContextualFilterRequest request)
-            => ContextualFilterEngine.Filter(_container, _registry, state, request);
+            => ContextualFilterEngine.Filter(_container, _registry, state, request,
+                                             _story != null ? _story.GetBool : null);
 
         public bool TryUse(string itemId, CharacterRuntimeInstance target, LayeredState state, out string failureReason)
             => _resolver.TryUse(itemId, target, state, out failureReason);
+
+        /// <summary>
+        /// Non-mutating "may this be used?", with the player-facing reason when it may not. UI asks this
+        /// instead of re-deriving usability from category/usageRule flags.
+        /// </summary>
+        public bool CanUse(string itemId, CharacterRuntimeInstance target, LayeredState state, out string reason)
+            => _resolver.CanUse(itemId, target, state, out reason);
 
         
         // ----- ISaveable -----

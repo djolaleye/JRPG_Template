@@ -21,6 +21,7 @@ namespace JRPG.Characters
             {
                 InstanceId = Guid.NewGuid().ToString("N"),
                 SourceDataId = data.Id,
+                displayName = data.displayName,
                 level = 1,
                 currentXp = 0
             };
@@ -40,6 +41,7 @@ namespace JRPG.Characters
             {
                 InstanceId = Guid.NewGuid().ToString("N"),
                 SourceDataId = data.Id,
+                displayName = data.displayName,
                 level = data.level,
                 currentXp = 0
             };
