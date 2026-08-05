@@ -94,6 +94,10 @@ namespace JRPG.Data
         public bool removeOnDamage;
 
         [Header("Presentation")]
+        [Tooltip("Passive line shown when this status costs the combatant their entire turn (i.e. " +
+                 "actionRestriction is AllActions). {0} is the combatant's display name, e.g. " +
+                 "\"{0} is stunned!\". Empty falls back to the generic restriction reason.")]
+        public string blockedTurnMessage;
         public string indicatorIconId;
         [Tooltip("Hex colour a HUD can tint the indicator with.")]
         public string indicatorColorHex = "#FFFFFF";

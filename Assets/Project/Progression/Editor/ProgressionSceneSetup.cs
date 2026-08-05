@@ -13,7 +13,7 @@ namespace JRPG.Progression.Editor
         {
             "Assets/Scenes/CombatSandbox.unity",
             "Assets/Scenes/TestExplore.unity",
-            "Assets/Scenes/Bootstrap.unity",
+            "Assets/Scenes/Startup.unity",   // Bootstrap.unity, renamed in Phase 12.2
         };
 
         [MenuItem("JRPG/Setup/Wire Phase 8 Post-Battle Flow")]

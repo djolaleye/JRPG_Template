@@ -3,7 +3,8 @@
     "allow": [
       "mcp__unity-mcp__Unity_GetConsoleLogs",
       "mcp__unity-mcp__Unity_RunCommand",
-      "Bash(xargs grep -l \"GameDatabase\\\\|StartingInventory\")"
+      "Bash(xargs grep -l \"GameDatabase\\\\|StartingInventory\")",
+      "mcp__unity-mcp__Unity_Camera_Capture"
     ]
   }
 }

@@ -58,8 +58,8 @@
   <Project Path="Unity.AI.Assistant.Agent.Dynamic.Extension.Editor.csproj" />
   <Project Path="glTFast.Newtonsoft.csproj" />
   <Project Path="Unity.AI.Tracing.csproj" />
-  <Project Path="JRPG.Bootstrap.csproj" />
   <Project Path="JRPG.Menu.csproj" />
+  <Project Path="JRPG.Bootstrap.csproj" />
   <Project Path="Unity.AI.Navigation.Editor.csproj" />
   <Project Path="Unity.AI.Toolkit.GenerationObjectPicker.csproj" />
   <Project Path="Unity.AI.Assistant.API.Editor.csproj" />
@@ -92,6 +92,7 @@
   <Project Path="JRPG.Menu.Editor.csproj" />
   <Project Path="Assembly-CSharp.csproj" />
   <Project Path="Unity.AI.Toolkit.Async.csproj" />
+  <Project Path="JRPG.Bootstrap.Editor.csproj" />
   <Project Path="Unity.AI.Assistant.Bridge.Editor.csproj" />
   <Project Path="Unity.AI.Toolkit.Compliance.csproj" />
   <Project Path="JRPG.Party.csproj" />

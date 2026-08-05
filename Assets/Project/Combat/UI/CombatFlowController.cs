@@ -18,6 +18,9 @@ namespace JRPG.Combat.UI
 
         [Tooltip("Seconds to wait before an enemy acts, so turns are readable.")]
         [SerializeField] private float enemyTurnDelay = 0.6f;
+        [Tooltip("Seconds the \"X is stunned!\" notice stays up before a blocked turn is skipped. Applies " +
+                 "to party and enemy actors alike.")]
+        [SerializeField] private float blockedTurnNoticeSeconds = 1.2f;
         [Tooltip("Optional: auto-start this encounter on Start (isolated testing). Leave empty to wait for a trigger.")]
         [SerializeField] private string autoStartEncounterId = "";
         [SerializeField] private TMP_Text statusText;
@@ -149,6 +152,14 @@ namespace JRPG.Combat.UI
 
             RefreshStatus();
 
+            // A combatant under a total action restriction (stun/sleep/freeze) never reaches the command
+            // menu or the AI. Checked before the team split so both sides behave identically.
+            if (combat.IsTurnBlocked(actor, out var blockedMessage))
+            {
+                StartCoroutine(BlockedTurnRoutine(actor.combatantId, blockedMessage));
+                return;
+            }
+
             if (actor.team == CombatantTeam.Party)
             {
                 if (_menus != null && _menus.ActiveMenuId != "combat_command")
@@ -158,6 +169,29 @@ namespace JRPG.Combat.UI
             {
                 StartCoroutine(EnemyTurnRoutine(actor.combatantId));
             }
+        }
+
+        /// Shows the blocked-turn notice, then hands the turn back to combat to be consumed. The delay is
+        /// purely so the player can read why nothing happened; all the rules (status ticks, expiry,
+        /// win/loss, advance) live in CombatService.SkipBlockedTurn.
+        private IEnumerator BlockedTurnRoutine(string actorId, string message)
+        {
+            _lastActionSummary = message;
+            RefreshStatus();
+
+            // Read-only overlay: no menu frame, no LayeredState change, no input capture — so the
+            // command hub is never opened for this turn and nothing has to be torn down afterwards.
+            PassiveDialogueSink.Current?.ShowLine(null, message, blockedTurnNoticeSeconds);
+
+            yield return new WaitForSeconds(blockedTurnNoticeSeconds);
+
+            // An interruption that began during the notice owns combat now; re-arm so this turn is
+            // re-evaluated (and skipped again) once the dialogue resolves.
+            if (_interrupter != null && _interrupter.IsInterruptionActive) { _turnPending = true; yield break; }
+
+            var combat = Combat;
+            if (combat != null && combat.IsInBattle && combat.CurrentBattle.currentActor?.combatantId == actorId)
+                combat.SkipBlockedTurn(actorId);
         }
 
         private IEnumerator EnemyTurnRoutine(string enemyId)

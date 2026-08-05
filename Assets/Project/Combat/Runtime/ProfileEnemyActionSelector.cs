@@ -199,7 +199,14 @@ namespace JRPG.Combat
             return false;
         }
 
-        /// Affordable, off cooldown, and known to this combatant.
+        /// Affordable, off cooldown, known to this combatant, and not forbidden by a status.
+        ///
+        /// The status check mirrors CombatService.TryValidateSubmission: anything this method approves is
+        /// submitted unconditionally by AdvanceEnemyTurn, and a rejected submission stalls the turn loop
+        /// on this combatant. Silence/berserk/stun must therefore be filtered here rather than discovered
+        /// at submission time. A fully blocked combatant (stun) has no legal action at all — every
+        /// candidate including the melee fallback fails here, which is why CombatService skips the turn
+        /// outright before the selector is ever consulted (see CombatService.IsTurnBlocked).
         private bool CanUse(CombatantInstance enemy, string actionId)
         {
             if (!_data.TryGet<CombatActionData>(actionId, out var action) || action == null) return false;
@@ -208,6 +215,8 @@ namespace JRPG.Combat
                 && enemy.profile.skillIds.Count > 0
                 && !enemy.profile.HasSkill(actionId))
                 return false;
+
+            if (_resolver.Status.IsActionBlocked(enemy, action, out _)) return false;
 
             return _resolver.CanPayCosts(enemy, action, out _);
         }

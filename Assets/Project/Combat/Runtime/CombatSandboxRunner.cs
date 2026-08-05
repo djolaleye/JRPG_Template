@@ -168,6 +168,16 @@ namespace JRPG.Combat
                 var actor = Combat.CurrentBattle.currentActor;
                 if (actor == null) break;
 
+                // A combatant that cannot act at all (stun) would otherwise fail submission forever and
+                // burn the whole guard budget on one turn. The real UI does this through
+                // CombatFlowController; headless auto-play does it inline, without the notice delay.
+                if (Combat.IsTurnBlocked(actor, out var blockedMessage))
+                {
+                    Debug.Log($"[Sandbox] {blockedMessage} Turn skipped.");
+                    Combat.SkipBlockedTurn(actor.combatantId);
+                    continue;
+                }
+
                 if (actor.team == CombatantTeam.Party)
                 {
                     string targetId = null;

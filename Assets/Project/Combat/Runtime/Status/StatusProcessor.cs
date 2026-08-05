@@ -260,6 +260,39 @@ namespace JRPG.Combat
             return false;
         }
 
+        /// <summary>
+        /// True when a status forbids <i>every</i> action, i.e. the combatant cannot take a turn at all
+        /// (stun / sleep / freeze — <see cref="StatusActionRestriction.AllActions"/>).
+        ///
+        /// <para>Distinct from <see cref="IsActionBlocked"/>, which answers "may this specific action be
+        /// used" and therefore needs an action to ask about. Turn skipping happens before any action is
+        /// chosen, so it needs this action-free form: a combatant whose only restriction is
+        /// <c>MagicOnly</c> still has a legal turn (attack, guard, item) and must keep it.</para>
+        ///
+        /// <para><paramref name="message"/> is display-ready and comes from the domain: the status's
+        /// authored <see cref="StatusEffectData.blockedTurnMessage"/> when present, otherwise the same
+        /// generic reason <see cref="IsActionBlocked"/> produces.</para>
+        /// </summary>
+        public bool IsTurnBlocked(CombatantInstance c, out string message)
+        {
+            message = null;
+            if (c == null) return false;
+
+            for (int i = 0; i < c.activeStatuses.Count; i++)
+            {
+                if (!_data.TryGet<StatusEffectData>(c.activeStatuses[i].statusId, out var s) || s == null) continue;
+                if (s.actionRestriction != StatusActionRestriction.AllActions) continue;
+
+                message = string.IsNullOrEmpty(s.blockedTurnMessage)
+                    ? $"{c.displayName} cannot act ({s.displayName})."
+                    : string.Format(s.blockedTurnMessage, c.displayName);
+
+                return true;
+            }
+
+            return false;
+        }
+
         public float GetDamageDealtMultiplier(CombatantInstance c) => Aggregate(c, s => s.damageDealtMultiplier, multiply: true);
         public float GetDamageTakenMultiplier(CombatantInstance c) => Aggregate(c, s => s.damageTakenMultiplier, multiply: true);
         public float GetAccuracyModifier(CombatantInstance c) => Aggregate(c, s => s.accuracyModifier, multiply: false);

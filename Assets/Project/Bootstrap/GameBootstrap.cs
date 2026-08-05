@@ -34,16 +34,11 @@ namespace JRPG.Bootstrap
         [SerializeField] private string protagonistId = "char_hero";
 
         [Tooltip("Content scene a fresh game starts in. Requested by ISessionService.NewGame() through " +
-                 "ISceneFlowService; until Phase 12.2 registers that service, New Game just enters Exploration " +
-                 "in whatever scene is already open.")]
+                 "ISceneFlowService, which SceneFlowService registers on the Startup scene.")]
         [SerializeField] private string newGameSceneName = "TestExplore";
 
         [Tooltip("Run bootstrap smoke probe (diagnostic logging of resolved services and state changes).")]
         [SerializeField] private bool logProbeOutput = true;
-
-        [Tooltip("Transition straight into Exploration after boot. This is the interim entry point until " +
-                 "the Phase 12 main-menu New Game flow exists.")]
-        [SerializeField] private bool autoStartExploration = true;
 
         private void Awake()
         {
@@ -174,10 +169,6 @@ namespace JRPG.Bootstrap
                 probe.Run();
             }
 
-            // Interim entry point: drop into Exploration so gameplay (and saving) is reachable. The
-            // Phase 12 main-menu New Game flow will replace this with an explicit session-start path.
-            if (autoStartExploration)
-                state.SetState(new LayeredState(GameMode.Exploration, OverlayState.None, InputContext.Exploration));
         }
     }
 }

@@ -272,12 +272,65 @@ namespace JRPG.Combat
             }
         }
 
+        /// <summary>
+        /// True when <paramref name="actor"/> is under a status that forbids every action, so this turn
+        /// cannot produce a submission from either the player or the AI.
+        ///
+        /// <para>Queried by the combat UI pump at turn start, before any menu is opened or any enemy
+        /// choice is made. Without it a stunned party member is handed a command menu with no legal
+        /// row, and a stunned enemy sends the selector hunting for an action it can never find —
+        /// bottoming out in the melee fallback, which submission then rejects, stalling the turn loop
+        /// on that combatant.</para>
+        /// </summary>
+        public bool IsTurnBlocked(CombatantInstance actor, out string message)
+        {
+            message = null;
+            if (!IsInBattle || actor == null || actor.IsDefeated) return false;
+
+            return _resolver.Status.IsTurnBlocked(actor, out message);
+        }
+
+        /// <summary>
+        /// Consumes the current actor's turn without an action, for a combatant that
+        /// <see cref="IsTurnBlocked"/> reports cannot act.
+        ///
+        /// <para>Runs the ordinary turn transition with a null result, so a skipped turn is a real turn:
+        /// TurnEnd status ticks fire (this is what counts the stun down and expires it), TurnEnd passives
+        /// fire, round-end processing runs if the queue emptied, battle triggers get their evaluation
+        /// point, and the win/loss check happens before the next actor is raised. Skipping straight to
+        /// AdvanceToNextActor instead would leave the status's duration untouched and stun the combatant
+        /// forever.</para>
+        ///
+        /// <para>Pacing is the UI's business, not this method's — the caller displays whatever notice it
+        /// wants and calls this when it is done. Returns false if the battle moved on in the meantime.</para>
+        /// </summary>
+        public bool SkipBlockedTurn(string combatantId)
+        {
+            if (!IsInBattle) return false;
+            if (_battle.phase != CombatPhase.AwaitPlayerInput && _battle.phase != CombatPhase.EnemyAI) return false;
+
+            var actor = _battle.FindCombatant(combatantId);
+            if (actor == null || actor != _battle.currentActor) return false;
+
+            EnterTurnTransition(null);
+            return true;
+        }
+
         public void AdvanceEnemyTurn()
         {
             if (!IsInBattle) return;
 
             var actor = _battle.currentActor;
             if (actor == null || actor.team != CombatantTeam.Enemy) return;
+
+            // Defence in depth: the UI pump skips blocked turns before reaching here, but a caller that
+            // does not (the sandbox runner's AutoPlayToEnd, a future headless driver) must not fall into
+            // the selector, which has no action to offer a combatant that cannot act.
+            if (_resolver.Status.IsTurnBlocked(actor, out _))
+            {
+                SkipBlockedTurn(actor.combatantId);
+                return;
+            }
 
             var choice = _enemyAI.ChooseAction(actor, _battle);
             var result = SubmitAction(actor.combatantId, choice.actionId, choice.targetCombatantIds);

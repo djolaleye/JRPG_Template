@@ -77,7 +77,7 @@ namespace JRPG.Dialogue.Editor
 
             // --- Scene wiring (Bootstrap profile field, then the TestExplore passive overlay) ---
             WireBootstrapProfile(profile);
-            WireTestExplorePassiveOverlay();
+            WirePassiveOverlay();
 
             Debug.Log("[JRPG.Phase10] Built sample: 2 graphs, 2 triggers on encounter_test_slimes, " +
                       "dialogue_combat entry, presentation profile, and a PassiveDialoguePresenter in TestExplore.");
@@ -205,7 +205,8 @@ namespace JRPG.Dialogue.Editor
 
         private static void WireBootstrapProfile(DialoguePresentationProfile profile)
         {
-            const string bootstrapScene = "Assets/Scenes/Bootstrap.unity";
+            // Bootstrap.unity became the persistent root Startup.unity in Phase 12.2.
+            const string bootstrapScene = "Assets/Scenes/Startup.unity";
             var scene = EditorSceneManager.OpenScene(bootstrapScene, OpenSceneMode.Single);
             var boot = Object.FindFirstObjectByType<GameBootstrap>();
             if (boot != null)
@@ -216,13 +217,16 @@ namespace JRPG.Dialogue.Editor
                 EditorSceneManager.MarkSceneDirty(scene);
                 EditorSceneManager.SaveScene(scene);
             }
-            else Debug.LogWarning("[JRPG.Phase10] No GameBootstrap in Bootstrap.unity — presentation profile not wired.");
+            else Debug.LogWarning("[JRPG.Phase10] No GameBootstrap in Startup.unity — presentation profile not wired.");
         }
 
-        private static void WireTestExplorePassiveOverlay()
+        /// The passive overlay belongs on the persistent root, not in a content scene. It used to live in
+        /// TestExplore, which meant combat started anywhere else had nowhere to render passive lines. It
+        /// registers itself into the static PassiveDialogueSink, so exactly one instance must exist.
+        private static void WirePassiveOverlay()
         {
-            const string testExplore = "Assets/Scenes/TestExplore.unity";
-            var scene = EditorSceneManager.OpenScene(testExplore, OpenSceneMode.Single);
+            const string startupScene = "Assets/Scenes/Startup.unity";
+            var scene = EditorSceneManager.OpenScene(startupScene, OpenSceneMode.Single);
             if (Object.FindFirstObjectByType<PassiveDialoguePresenter>() == null)
                 new GameObject("PassiveDialoguePresenter").AddComponent<PassiveDialoguePresenter>();
             EditorSceneManager.MarkSceneDirty(scene);

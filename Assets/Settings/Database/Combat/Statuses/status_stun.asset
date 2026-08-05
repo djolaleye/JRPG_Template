@@ -33,5 +33,6 @@ MonoBehaviour:
   critChanceModifier: 0
   actionRestriction: 1
   removeOnDamage: 1
-  indicatorIconId: 
+  blockedTurnMessage: '{0} is stunned!'
+  indicatorIconId:
   indicatorColorHex: '#FFE07F'
