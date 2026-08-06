@@ -24,5 +24,13 @@ namespace JRPG.Data
         public List<ElementAffinityEntry> elementAffinities = new();
         public List<string> statusImmunityIds = new();
         public List<string> passiveEffectIds = new();
+
+        /// <summary>
+        /// Speaker bust for dialogue, and the portrait for party/character screens.
+        ///
+        /// <para>Optional by design: every consumer falls back to the name plate alone.</para>
+        /// </summary>
+        [Tooltip("Optional. Speaker bust / portrait. Consumers fall back to the name plate alone when null.")]
+        public Sprite portraitSprite;
     }
 }

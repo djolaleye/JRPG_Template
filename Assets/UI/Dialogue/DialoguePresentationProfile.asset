@@ -12,4 +12,70 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a645ad7f207571944a6369a5faed4343, type: 3}
   m_Name: DialoguePresentationProfile
   m_EditorClassIdentifier: JRPG.Data::JRPG.Data.DialoguePresentationProfile
-  entries: []
+  entries:
+  - importance: 0
+    usesPassiveOverlay: 1
+    usesNoticeCard: 0
+    blocksInput: 0
+    autoDismissSeconds: 2.5
+    emphasisKey: passive
+    framed: 0
+    showsPortrait: 0
+    typewriterCharsPerSecond: 0
+    autoAdvanceSeconds: 0
+    allowsSkip: 1
+  - importance: 1
+    usesPassiveOverlay: 0
+    usesNoticeCard: 0
+    blocksInput: 0
+    autoDismissSeconds: 0
+    emphasisKey: 
+    framed: 0
+    showsPortrait: 1
+    typewriterCharsPerSecond: 45
+    autoAdvanceSeconds: 0
+    allowsSkip: 1
+  - importance: 2
+    usesPassiveOverlay: 0
+    usesNoticeCard: 0
+    blocksInput: 0
+    autoDismissSeconds: 0
+    emphasisKey: 
+    framed: 0
+    showsPortrait: 1
+    typewriterCharsPerSecond: 45
+    autoAdvanceSeconds: 0
+    allowsSkip: 1
+  - importance: 3
+    usesPassiveOverlay: 0
+    usesNoticeCard: 0
+    blocksInput: 1
+    autoDismissSeconds: 0
+    emphasisKey: critical
+    framed: 1
+    showsPortrait: 1
+    typewriterCharsPerSecond: 28
+    autoAdvanceSeconds: 0
+    allowsSkip: 0
+  - importance: 4
+    usesPassiveOverlay: 0
+    usesNoticeCard: 1
+    blocksInput: 0
+    autoDismissSeconds: 0
+    emphasisKey: tutorial
+    framed: 0
+    showsPortrait: 0
+    typewriterCharsPerSecond: 0
+    autoAdvanceSeconds: 0
+    allowsSkip: 1
+  - importance: 5
+    usesPassiveOverlay: 0
+    usesNoticeCard: 1
+    blocksInput: 0
+    autoDismissSeconds: 0
+    emphasisKey: system
+    framed: 0
+    showsPortrait: 0
+    typewriterCharsPerSecond: 0
+    autoAdvanceSeconds: 0
+    allowsSkip: 1

@@ -13,25 +13,86 @@ namespace JRPG.Dialogue
         private readonly IPartyRuntimeQueries _partyRuntime;
         private readonly IInventoryService _inventory;
         private readonly IStoryStateService _story;
+        private readonly DataRegistry _data;
 
         public DialogueConditionEvaluator(IPartyService party, IPartyRuntimeQueries partyRuntime,
-            IInventoryService inventory, IStoryStateService story)
+            IInventoryService inventory, IStoryStateService story, DataRegistry data = null)
         {
             _party = party;
             _partyRuntime = partyRuntime;
             _inventory = inventory;
             _story = story;
+
+            // Optional: only used to turn ids into authored names for player-facing reasons.
+            _data = data;
         }
 
         /// True only when every condition passes (empty list ⇒ true).
         public bool EvaluateAll(System.Collections.Generic.List<DialogueCondition> conditions, DialogueSessionRuntime session)
+            => EvaluateAll(conditions, session, out _);
+
+        /// <summary>
+        /// As <see cref="EvaluateAll(System.Collections.Generic.List{DialogueCondition}, DialogueSessionRuntime)"/>,
+        /// additionally reporting why it failed.
+        ///
+        /// <para>The reason names the <b>first</b> unmet condition rather than all of them: a choice
+        /// gated on three things should tell the player the one thing to go and do, not hand them a
+        /// checklist. <paramref name="failureReason"/> is null when the result is true.</para>
+        /// </summary>
+        public bool EvaluateAll(System.Collections.Generic.List<DialogueCondition> conditions,
+                                DialogueSessionRuntime session, out string failureReason)
         {
+            failureReason = null;
             if (conditions == null) return true;
 
             for (int i = 0; i < conditions.Count; i++)
-                if (!Evaluate(conditions[i], session)) return false;
+            {
+                if (Evaluate(conditions[i], session)) continue;
+
+                failureReason = DescribeUnmet(conditions[i]);
+                return false;
+            }
 
             return true;
+        }
+
+        /// <summary>
+        /// Player-facing sentence for a condition that did not pass.
+        ///
+        /// <para>Vague about story flags: "you have not done the thing yet".</para>
+        /// </summary>
+        private string DescribeUnmet(DialogueCondition c) => c.type switch
+        {
+            DialogueConditionType.HasCharacter => $"Requires {CharacterName(c.stringA)} in your party.",
+            DialogueConditionType.IsCharacterPresent => $"{CharacterName(c.stringA)} is not here.",
+            DialogueConditionType.HasItem => Mathf.Max(1, c.intA) > 1
+                ? $"Requires {Mathf.Max(1, c.intA)} × {ItemName(c.stringA)}."
+                : $"Requires {ItemName(c.stringA)}.",
+            DialogueConditionType.PartyMemberInSlot => $"Requires {CharacterName(c.stringA)} in slot {c.intA + 1}.",
+            DialogueConditionType.PlayerLevelAtLeast => $"Requires level {c.intA}.",
+            DialogueConditionType.PreviousChoiceSelected => "Something earlier went differently.",
+            DialogueConditionType.StoryFlagEquals => "Not available yet.",
+            _ => "Not available.",
+        };
+
+        private string CharacterName(string id)
+        {
+            if (string.IsNullOrEmpty(id)) return "someone";
+            if (_data != null && _data.TryGet<CharacterData>(id, out var cd) && cd != null
+                && !string.IsNullOrEmpty(cd.displayName))
+                return cd.displayName;
+
+            return id;
+        }
+
+        private string ItemName(string id)
+        {
+            if (string.IsNullOrEmpty(id)) return "an item";
+            if (_data != null && _data.TryGet<ItemData>(id, out var item) && item != null
+                && !string.IsNullOrEmpty(item.displayName))
+                return item.displayName;
+
+            return id;
         }
 
         public bool Evaluate(DialogueCondition c, DialogueSessionRuntime session)

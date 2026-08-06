@@ -37,7 +37,7 @@ namespace JRPG.Dialogue
             _data = data;
 
             var partyRuntime = party as IPartyRuntimeQueries;
-            _conditions = new DialogueConditionEvaluator(party, partyRuntime, inventory, story);
+            _conditions = new DialogueConditionEvaluator(party, partyRuntime, inventory, story, data);
             _commands = new DialogueCommandExecutor(party, inventory, story, bus, services);
             _speakers = new SpeakerResolver(data, partyRuntime);
             _tokens = new DynamicTokenResolver(data, partyRuntime, story);
@@ -200,11 +200,14 @@ namespace JRPG.Dialogue
             for (int i = 0; i < node.choices.Count; i++)
             {
                 var choice = node.choices[i];
+                bool available = _conditions.EvaluateAll(choice.conditions, _session, out var reason);
+
                 list.Add(new DialogueChoiceViewData
                 {
                     choiceId = choice.choiceId,
                     text = _tokens.ResolveTokens(choice.displayText, _session.startContext),
-                    available = _conditions.EvaluateAll(choice.conditions, _session),
+                    available = available,
+                    unavailableReason = available ? null : reason,
                 });
             }
             return list;

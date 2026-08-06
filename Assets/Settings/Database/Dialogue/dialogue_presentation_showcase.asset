@@ -1,0 +1,121 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da92e5e775aea304a8dd2af2f973a915, type: 3}
+  m_Name: dialogue_presentation_showcase
+  m_EditorClassIdentifier: JRPG.Data::JRPG.Data.DialogueGraphData
+  id: dialogue_presentation_showcase
+  displayName: Presentation Showcase
+  description: Walks every dialogue importance level. Sample/regression content.
+  entryNodeId: n_normal
+  defaultImportance: 2
+  nodes:
+  - nodeId: n_normal
+    speakerRef: character:char_hero
+    text: This is a Normal line. It types itself out at the profile's speed, and
+      the name plate above sits across the top edge of this box.
+    importance: 1
+    onEnterCommands: []
+    onExitCommands: []
+    nextNodeId: n_critical
+    choices: []
+    endGraphAfterThisNode: 0
+    exitResolution:
+      exitType: 0
+      targetId: 
+  - nodeId: n_critical
+    speakerRef: character:char_hero
+    text: "This is a Critical line. It is framed, it reveals more slowly, and it
+      cannot be skipped or fast-forwarded \u2014 the frame is the tell."
+    importance: 3
+    onEnterCommands: []
+    onExitCommands: []
+    nextNodeId: n_tutorial
+    choices: []
+    endGraphAfterThisNode: 0
+    exitResolution:
+      exitType: 0
+      targetId: 
+  - nodeId: n_tutorial
+    speakerRef: system
+    text: This is a Tutorial notice. It takes the notice card over a dimmed backdrop
+      rather than the conversation box, because it is instruction, not dialogue.
+    importance: 4
+    onEnterCommands: []
+    onExitCommands: []
+    nextNodeId: n_system
+    choices: []
+    endGraphAfterThisNode: 0
+    exitResolution:
+      exitType: 0
+      targetId: 
+  - nodeId: n_system
+    speakerRef: system
+    text: This is a System notice. Same card treatment as Tutorial, different accent.
+    importance: 5
+    onEnterCommands: []
+    onExitCommands: []
+    nextNodeId: n_choices
+    choices: []
+    endGraphAfterThisNode: 0
+    exitResolution:
+      exitType: 0
+      targetId: 
+  - nodeId: n_choices
+    speakerRef: character:char_hero
+    text: And this is a choice node. The stack is its own surface, not inline in
+      the body. Two of these are gated, and each says why.
+    importance: 2
+    onEnterCommands: []
+    onExitCommands: []
+    nextNodeId: 
+    choices:
+    - choiceId: c_ok
+      displayText: That all rendered correctly.
+      nextNodeId: n_done
+      conditions: []
+      commands: []
+    - choiceId: c_needs_item
+      displayText: Hand over the relic.
+      nextNodeId: n_done
+      conditions:
+      - type: 2
+        stringA: equip_test_ward_ring
+        stringB: 
+        intA: 4
+        boolA: 0
+      commands: []
+    - choiceId: c_needs_level
+      displayText: Overpower them.
+      nextNodeId: n_done
+      conditions:
+      - type: 5
+        stringA: 
+        stringB: 
+        intA: 99
+        boolA: 0
+      commands: []
+    endGraphAfterThisNode: 0
+    exitResolution:
+      exitType: 0
+      targetId: 
+  - nodeId: n_done
+    speakerRef: character:char_hero
+    text: Done.
+    importance: 1
+    onEnterCommands: []
+    onExitCommands: []
+    nextNodeId: 
+    choices: []
+    endGraphAfterThisNode: 1
+    exitResolution:
+      exitType: 0
+      targetId: 

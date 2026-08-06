@@ -43,6 +43,13 @@ namespace JRPG.Menu
         /// were meant for whatever was on screen previously — see <see cref="MenuInputMap.IsStalePress"/>.
         private double _listeningSince;
 
+        /// <summary>
+        /// When this screen started listening, for <see cref="MenuInputMap.IsStalePress"/>. Exposed so a
+        /// subclass that overrides <see cref="OnSubmit"/> outright can still reject the press that
+        /// opened it.
+        /// </summary>
+        protected double ListeningSince => _listeningSince;
+
         // ---- Lifecycle ----------------------------------------------------------------------------
 
         protected virtual void OnEnable()

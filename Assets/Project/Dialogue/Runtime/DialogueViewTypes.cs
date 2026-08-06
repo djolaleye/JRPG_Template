@@ -27,5 +27,6 @@ namespace JRPG.Dialogue
         public string choiceId;
         public string text;
         public bool available;
+        public string unavailableReason;
     }
 }
