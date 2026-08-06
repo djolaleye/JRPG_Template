@@ -88,7 +88,8 @@ namespace JRPG.Progression.UI
                 AddSkillRow(rows, data, subject.skillIds[i], grantedBy: null);
             }
 
-            // Then anything the character's gear unlocks.
+            // Then anything the character's gear unlocks. These sit outside the known-skill cap
+            var grants = new List<UnlockedAction>();
             foreach (var unlocked in EquipmentUnlocks(subject.SourceDataId))
             {
                 // Only Skill-category unlocks belong in a skills list; gear can also unlock other
@@ -100,7 +101,19 @@ namespace JRPG.Progression.UI
                 // Already learned
                 if (known.Contains(unlocked.actionId)) continue;
 
-                AddSkillRow(rows, data, unlocked.actionId, grantedBy: unlocked.sourceItemId);
+                grants.Add(unlocked);
+            }
+
+            if (grants.Count > 0)
+            {
+                // Index-aligned with the row list: the heading is a row too, and must not shift the
+                // detail panel's lookup.
+                _rowSkills.Add(null);
+                _rowSources.Add(null);
+                rows.Add(RowModel.Separator("sep_from_equipment", "FROM EQUIPMENT"));
+
+                for (int i = 0; i < grants.Count; i++)
+                    AddSkillRow(rows, data, grants[i].actionId, grantedBy: grants[i].sourceItemId);
             }
 
             if (rows.Count == 0)
@@ -124,8 +137,8 @@ namespace JRPG.Progression.UI
             {
                 id = skillId,
                 label = action != null && !string.IsNullOrEmpty(action.displayName) ? action.displayName : skillId,
-                auxText = action != null ? CostLine(action) : string.Empty,
-                costText = grantedBy != null ? "EQUIP" : string.Empty,
+                costText = action != null ? CostLine(action) : string.Empty,
+                auxText = string.IsNullOrEmpty(grantedBy) ? string.Empty : ItemName(grantedBy),
                 enabled = true,
                 action = null,
                 context = Context,

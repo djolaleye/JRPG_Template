@@ -177,6 +177,26 @@ namespace JRPG.Inventory
             return true;
         }
 
+        /// <summary>
+        /// <see cref="Equip"/> for a caller that has only a character id — it resolves the instance
+        /// through this manager's own lookup delegate.
+        ///
+        /// <para>Exists for authored/system-driven equips (starting equipment) where there is no screen
+        /// holding a <see cref="CharacterRuntimeInstance"/>. Routes through <see cref="Equip"/> so the
+        /// validation ladder, inventory bookkeeping and stat modifiers are identical to a player equip —
+        /// no second path that could drift.</para>
+        /// </summary>
+        public bool EquipById(string charId, string equipItemId, out string failureReason)
+        {
+            failureReason = null;
+            if (string.IsNullOrEmpty(charId)) { failureReason = "characterId empty"; return false; }
+
+            var target = _resolveInstance(charId);
+            if (target == null) { failureReason = $"No character '{charId}' in the roster."; return false; }
+
+            return Equip(target, equipItemId, out failureReason);
+        }
+
         public bool Unequip(CharacterRuntimeInstance target, EquipmentSlot slot, out string failureReason)
         {
             failureReason = null;

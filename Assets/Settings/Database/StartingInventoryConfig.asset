@@ -19,5 +19,6 @@ MonoBehaviour:
     quantity: 1
   - itemId: equip_test_ward_ring
     quantity: 1
-  - itemId: equip_test_ward_ring
-    quantity: 1
+  startingEquipment:
+  - characterId: char_hero
+    itemId: equip_test_ward_ring

@@ -132,10 +132,13 @@ namespace JRPG.Combat
                 if (!_data.TryGet<EquipmentData>(equipped[i], out var equip) || equip == null) continue;
 
                 combatant.profile.AddAffinities(equip.elementAffinities);
-                
+
                 AddRange(combatant.profile.statusImmunities, equip.statusImmunityIds);
                 AddRange(combatant.profile.passiveEffectIds, equip.passiveEffectIds);
-                AddRange(combatant.profile.unlockedActionIds, equip.actionUnlockIds);
+
+                if (equip.actionUnlockIds != null)
+                    for (int u = 0; u < equip.actionUnlockIds.Count; u++)
+                        combatant.profile.AddUnlockedAction(equip.actionUnlockIds[u], equip.Id);
             }
         }
 

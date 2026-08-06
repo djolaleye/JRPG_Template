@@ -23,6 +23,7 @@ namespace JRPG.Menu
         public IMenuAction action;
         public MenuContext context;
         public string disabledReason;
+        public bool decorative;
 
         public static RowModel Simple(string id, string label, IMenuAction action, MenuContext context,
                                       bool enabled = true, string disabledReason = null)
@@ -34,6 +35,16 @@ namespace JRPG.Menu
                 action = action,
                 context = context,
                 disabledReason = disabledReason,
+            };
+
+        /// <summary>Group heading inside a list. Never focusable, never executable.</summary>
+        public static RowModel Separator(string id, string label)
+            => new()
+            {
+                id = id,
+                label = label,
+                enabled = false,
+                decorative = true,
             };
     }
 }

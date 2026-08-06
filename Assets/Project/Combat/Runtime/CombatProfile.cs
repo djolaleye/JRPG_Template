@@ -14,9 +14,17 @@ namespace JRPG.Combat
         public readonly HashSet<string> statusImmunities = new(); /// Status ids this combatant cannot be afflicted with
         public readonly List<string> passiveEffectIds = new(); /// Passive effect ids granted by traits/equipment
         public readonly HashSet<string> unlockedActionIds = new(); /// Extra action ids unlocked by equipment
+        private readonly Dictionary<string, string> _unlockSources = new();
 
         public readonly List<string> skillIds = new(); /// This combatant's own Skill-category actions, in authored order.
 
+        /// <summary>
+        /// The cap on <see cref="skillIds"/>.
+        ///
+        /// <para>Equipment unlocks are deliberately held in <see cref="unlockedActionIds"/> instead, and
+        /// are <b>not</b> capped. Gear can grant extra skills on top of a full skill list rather than
+        /// competing with it, so a character at 8/8 loses nothing by wearing an unlocking item.</para>
+        /// </summary>
         public const int MaxSkills = 8;
 
         public void AddSkills(List<string> ids)
@@ -29,6 +37,27 @@ namespace JRPG.Combat
 
         public bool HasSkill(string actionId)
             => !string.IsNullOrEmpty(actionId) && skillIds.Contains(actionId);
+
+        /// <summary>
+        /// Records an action granted by a piece of equipment, remembering the item responsible.
+        ///
+        /// <para>First writer wins on the source: two items granting the same action still yield one
+        /// entry, and the player is shown whichever is listed first.</para>
+        /// </summary>
+        public void AddUnlockedAction(string actionId, string sourceItemId)
+        {
+            if (string.IsNullOrEmpty(actionId)) return;
+
+            unlockedActionIds.Add(actionId);
+            if (!string.IsNullOrEmpty(sourceItemId) && !_unlockSources.ContainsKey(actionId))
+                _unlockSources[actionId] = sourceItemId;
+        }
+
+        /// <summary>Item id that unlocked <paramref name="actionId"/>, or null when it was not gear-granted.</summary>
+        public string GetUnlockSource(string actionId)
+            => !string.IsNullOrEmpty(actionId) && _unlockSources.TryGetValue(actionId, out var itemId)
+                ? itemId
+                : null;
 
         public string DescribeSkills() => string.Join(",", skillIds);
 

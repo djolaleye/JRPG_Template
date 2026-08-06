@@ -1,7 +1,9 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 using JRPG.Core;
 using JRPG.Services;
 
@@ -282,6 +284,8 @@ namespace JRPG.Menu
                 if (sel != null) EventSystem.current.SetSelectedGameObject(sel.gameObject);
             }
 
+            ScrollIntoView(idx);
+
             var model = rows[idx].Model;
             OnHighlightChanged(idx, model);
             HighlightChanged?.Invoke(idx, model);
@@ -289,6 +293,96 @@ namespace JRPG.Menu
 
         /// Called after focus changes. Default no-op; detail panels override to mirror the highlight.
         protected virtual void OnHighlightChanged(int index, RowModel model) { }
+
+        private ScrollRect _scroll;
+        private bool _scrollResolved;
+        private Coroutine _deferredScroll;
+
+        /// <summary>
+        /// Keeps the focused row inside its scroll viewport.
+        ///
+        /// <para><b>uGUI does not do this for us.</b> EventSystem selection and <see cref="ScrollRect"/>
+        /// position are unrelated systems, so any list taller than its viewport can focus a row the
+        /// player cannot see: the cursor disappears off the bottom edge and the screen reads as frozen.
+        /// A skill list at the 8-known cap plus an equipment grant is exactly that case — the granted
+        /// row lands past the fold — but so is any long inventory or save-slot list, which is why this
+        /// lives on the base controller instead of in one screen.</para>
+        ///
+        /// <para><b>Applied twice, deliberately.</b> The first focus of a screen happens inside
+        /// <c>OnEnable</c> → <see cref="RebuildAndFocus"/>, before the <c>ContentSizeFitter</c> and
+        /// layout group have run — so the content is still its authored size, the row's measured
+        /// position is meaningless, and the ScrollRect clamps the correction straight back to zero. The
+        /// immediate pass keeps steady-state navigation instant; the one-frame-deferred pass is what
+        /// makes the very first frame land correctly.</para>
+        ///
+        /// <para>Scrolls by the minimum needed, so moving down a list nudges rather than re-centres.
+        /// Instant rather than animated, so reduced motion does not affect it.</para>
+        /// </summary>
+        private void ScrollIntoView(int index)
+        {
+            ApplyScroll(index);
+
+            // Pooled rows are re-bound on rebuild, so the retry re-resolves by index rather than
+            // holding a RectTransform that may have been recycled underneath it.
+            if (!isActiveAndEnabled) return;
+            if (_deferredScroll != null) StopCoroutine(_deferredScroll);
+            _deferredScroll = StartCoroutine(ScrollAfterLayout(index));
+        }
+
+        private IEnumerator ScrollAfterLayout(int index)
+        {
+            yield return null;
+            ApplyScroll(index);
+            _deferredScroll = null;
+        }
+
+        private void ApplyScroll(int index)
+        {
+            if (populator == null) return;
+            var rows = populator.ActiveRows;
+            if (rows == null || index < 0 || index >= rows.Count) return;
+
+            var row = rows[index].transform as RectTransform;
+            if (row == null) return;
+
+            // Rows are pooled under the scroll content, so the ScrollRect is found from a row, not from
+            // the populator — which may sit on the canvas root, outside the scroll hierarchy entirely.
+            if (!_scrollResolved)
+            {
+                _scroll = row.GetComponentInParent<ScrollRect>();
+                _scrollResolved = true;
+            }
+
+            if (_scroll == null || _scroll.content == null || _scroll.viewport == null) return;
+
+            Canvas.ForceUpdateCanvases();
+
+            var rowCorners = new Vector3[4];
+            var viewCorners = new Vector3[4];
+            row.GetWorldCorners(rowCorners);
+            _scroll.viewport.GetWorldCorners(viewCorners);
+
+            float rowBottom = rowCorners[0].y, rowTop = rowCorners[1].y;
+            float viewBottom = viewCorners[0].y, viewTop = viewCorners[1].y;
+
+            // A row taller than the viewport can never fit; align its top and leave it there rather
+            // than oscillating between two unsatisfiable corrections.
+            float delta;
+            if (rowTop - rowBottom > viewTop - viewBottom) delta = rowTop - viewTop;
+            else if (rowTop > viewTop) delta = rowTop - viewTop;
+            else if (rowBottom < viewBottom) delta = rowBottom - viewBottom;
+            else return;                                   // already fully visible
+
+            float scale = _scroll.content.lossyScale.y;
+            if (Mathf.Approximately(scale, 0f)) return;
+
+            // Any in-flight inertia would otherwise fight the correction on the next LateUpdate.
+            _scroll.StopMovement();
+
+            var pos = _scroll.content.anchoredPosition;
+            pos.y -= delta / scale;
+            _scroll.content.anchoredPosition = pos;
+        }
 
         private bool RowEnabled(int idx)
         {

@@ -66,6 +66,12 @@ namespace JRPG.Menu
         [SerializeField] private Color invalidColor = new(0.60f, 0.20f, 0.20f, 0.9f);
         [SerializeField] private Color confirmedColor = new(0.30f, 0.85f, 0.30f, 1.0f);
 
+        [Header("Decorative (group heading) treatment")]
+        [Tooltip("Background for a RowModel.decorative heading. Transparent by default so a heading reads " +
+                 "as a caption between rows rather than as another row.")]
+        [SerializeField] private Color separatorColor = new(0f, 0f, 0f, 0f);
+        [SerializeField] private Color separatorLabelColor = new(0.72f, 0.72f, 0.78f, 0.9f);
+
         [Header("Disabled treatment")]
         [Tooltip("Appended in the stateAffix element (never into the model label) while disabled.")]
         [SerializeField] private string disabledAffix = "  —";
@@ -196,16 +202,21 @@ namespace JRPG.Menu
         /// <summary>Everything a state changes that does not animate. Safe to re-run at any time.</summary>
         private void ApplyStaticState(RowState state)
         {
-            if (background != null) background.color = ColorFor(state);
+            // A heading is not an unavailable choice, so it takes none of the disabled treatment
+            bool decorative = Model.decorative;
+
+            if (background != null) background.color = decorative ? separatorColor : ColorFor(state);
 
             bool selected = state == RowState.Selected;
-            bool disabled = state == RowState.Disabled;
+            bool disabled = state == RowState.Disabled && !decorative;
 
             ApplyCursor(selected);
             ApplyOutline(selected);
 
-            if (label != null) label.color = disabled ? disabledLabelColor : _labelBaseColor;
-            if (auxLabel != null) auxLabel.color = disabled ? disabledLabelColor : _auxBaseColor;
+            if (label != null)
+                label.color = decorative ? separatorLabelColor : disabled ? disabledLabelColor : _labelBaseColor;
+            if (auxLabel != null)
+                auxLabel.color = decorative ? separatorLabelColor : disabled ? disabledLabelColor : _auxBaseColor;
 
             if (stateAffix != null)
             {

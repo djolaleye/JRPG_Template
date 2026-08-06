@@ -81,8 +81,10 @@ namespace JRPG.Bootstrap
 
             ResetAllServices();
 
-            // Re-bake after the inventory reset
-            StartingInventoryBaker.Bake(_startingInventory, _inventory.Container, _data);
+            // Re-bake after the inventory reset. Passing the equipment manager re-applies the authored
+            // starting gear too — ResetAllServices unequipped everything, so a second New Game must put
+            // it back rather than leaving the protagonist stripped of kit a first New Game gives them.
+            StartingInventoryBaker.Bake(_startingInventory, _inventory.Container, _data, _equipment);
 
             // Session is committed here, before the (asynchronous) scene load finishes — a
             // caller that queries IsSessionActive from the scene-loaded callback must see true.

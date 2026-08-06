@@ -90,13 +90,15 @@ namespace JRPG.Combat.UI
             }
         }
 
-        private static string ItemName(string itemId)
+        /// Authored display name for an item id, for cost lines and equipment-grant attribution.
+        public static string ItemName(string itemId)
         {
             if (!string.IsNullOrEmpty(itemId)
                 && AppContext.Data is DataRegistry data
                 && data.TryGet<ItemData>(itemId, out var item)
                 && !string.IsNullOrEmpty(item.displayName))
                 return item.displayName;
+                
             return string.IsNullOrEmpty(itemId) ? "Item" : itemId;
         }
 

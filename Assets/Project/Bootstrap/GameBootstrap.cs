@@ -107,8 +107,8 @@ namespace JRPG.Bootstrap
             services.Register<IEquipmentService>(equipment);
             saveContributors.Register(equipment);
 
-            // Bake starting inventory (idempotent).
-            StartingInventoryBaker.Bake(startingInventory, inventory.Container, data);
+            // Bake starting inventory + starting equipment (idempotent).
+            StartingInventoryBaker.Bake(startingInventory, inventory.Container, data, equipment);
 
             // Combat service. Reads the active party (runtime instances) and consumes items via the
             // lean IInventoryService.
