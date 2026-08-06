@@ -44,6 +44,10 @@ namespace JRPG.Progression.UI
         /// Skill actions backing the rows, index-aligned. Null for the empty-state row.
         private readonly List<CombatActionData> _rowSkills = new();
 
+        /// Item id that granted the row's skill, or null when the character knows it outright.
+        /// Index-aligned with <see cref="_rowSkills"/>.
+        private readonly List<string> _rowSources = new();
+
         /// False = focused skill's description; true = the character's passives.
         private bool _showPassives;
 
@@ -61,12 +65,14 @@ namespace JRPG.Progression.UI
         protected override IReadOnlyList<RowModel> BuildRows()
         {
             _rowSkills.Clear();
+            _rowSources.Clear();
             var rows = new List<RowModel>();
 
             var subject = Context?.Subject;
             if (subject == null)
             {
                 _rowSkills.Add(null);
+                _rowSources.Add(null);
                 rows.Add(RowModel.Simple("none", "No character selected.", null, Context, enabled: false,
                                          disabledReason: string.Empty));
                 return rows;
@@ -74,37 +80,72 @@ namespace JRPG.Progression.UI
 
             var data = AppContext.Data as DataRegistry;
 
+            // Learned skills first, in the order the character learned them.
+            var known = new HashSet<string>();
             for (int i = 0; i < subject.skillIds.Count; i++)
             {
-                CombatActionData action = null;
-                data?.TryGet(subject.skillIds[i], out action);
+                if (!known.Add(subject.skillIds[i])) continue;
+                AddSkillRow(rows, data, subject.skillIds[i], grantedBy: null);
+            }
 
-                rows.Add(new RowModel
-                {
-                    id = subject.skillIds[i],
-                    label = action != null && !string.IsNullOrEmpty(action.displayName)
-                        ? action.displayName
-                        : subject.skillIds[i],
+            // Then anything the character's gear unlocks.
+            foreach (var unlocked in EquipmentUnlocks(subject.SourceDataId))
+            {
+                // Only Skill-category unlocks belong in a skills list; gear can also unlock other
+                // categories.
+                if (data == null || !data.TryGet<CombatActionData>(unlocked.actionId, out var action)
+                    || action == null || action.category != CombatActionCategory.Skill)
+                    continue;
 
-                    auxText = action != null ? CostLine(action) : string.Empty,
-                    // Nothing to submit — this list is for inspection. Rows stay enabled so the cursor
-                    // can move over them and drive the detail panel.
-                    enabled = true,
-                    action = null,
-                    context = Context,
-                });
+                // Already learned
+                if (known.Contains(unlocked.actionId)) continue;
 
-                _rowSkills.Add(action);
+                AddSkillRow(rows, data, unlocked.actionId, grantedBy: unlocked.sourceItemId);
             }
 
             if (rows.Count == 0)
             {
                 _rowSkills.Add(null);
+                _rowSources.Add(null);
+
                 rows.Add(RowModel.Simple("empty", "No skills learned.", null, Context, enabled: false,
                                          disabledReason: string.Empty));
             }
 
             return rows;
+        }
+
+        private void AddSkillRow(List<RowModel> rows, DataRegistry data, string skillId, string grantedBy)
+        {
+            CombatActionData action = null;
+            data?.TryGet(skillId, out action);
+
+            rows.Add(new RowModel
+            {
+                id = skillId,
+                label = action != null && !string.IsNullOrEmpty(action.displayName) ? action.displayName : skillId,
+                auxText = action != null ? CostLine(action) : string.Empty,
+                costText = grantedBy != null ? "EQUIP" : string.Empty,
+                enabled = true,
+                action = null,
+                context = Context,
+            });
+
+            _rowSkills.Add(action);
+            _rowSources.Add(grantedBy);
+        }
+
+        /// <summary>
+        /// Gear-unlocked actions for this character, from the equipment service.
+        /// </summary>
+        private IReadOnlyList<UnlockedAction> EquipmentUnlocks(string charId)
+        {
+            if (Context?.Services == null
+                || !Context.Services.TryResolve<IEquipmentService>(out var equipment)
+                || equipment == null)
+                return System.Array.Empty<UnlockedAction>();
+
+            return equipment.GetUnlockedActions(charId);
         }
 
         private static string CostLine(CombatActionData action)
@@ -216,11 +257,27 @@ namespace JRPG.Progression.UI
             var action = index >= 0 && index < _rowSkills.Count ? _rowSkills[index] : null;
             if (action == null) { detailPanel.Clear(); return; }
 
+            var body = string.IsNullOrEmpty(action.description) ? "No description." : action.description;
+
+            // Provenance for a gear-granted skill: it disappears when the item comes off, which the
+            // player needs to know before planning around it.
+            var source = index < _rowSources.Count ? _rowSources[index] : null;
+            if (!string.IsNullOrEmpty(source)) body += $"\n\nGranted by {ItemName(source)}.";
+
             detailPanel.ShowDetail(
                 string.IsNullOrEmpty(action.displayName) ? action.Id : action.displayName,
-                string.IsNullOrEmpty(action.description) ? "No description." : action.description,
+                body,
                 null,
                 CostLine(action));
+        }
+
+        private static string ItemName(string itemId)
+        {
+            var data = AppContext.Data as DataRegistry;
+            if (data != null && data.TryGet<ItemData>(itemId, out var item) && item != null)
+                return string.IsNullOrEmpty(item.displayName) ? item.Id : item.displayName;
+
+            return itemId;
         }
 
         /// <summary>

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: JRPG.Data::JRPG.Data.EquipmentData
   id: equip_test_ward_ring
   displayName: Ward Ring
-  description: 
+  description: Test accessory
   icon: {fileID: 0}
   category: 3
   stackLimit: 1
@@ -27,6 +27,16 @@ MonoBehaviour:
     consumedOnUse: 0
     requiredStoryFlag: 
   linkedEffects: []
+  combatEffects: []
+  combatTargetRule:
+    team: 1
+    selectionMode: 1
+    maxTargets: 1
+    requireLiving: 1
+    requireDefeated: 0
+    allowSelf: 1
+    requiredStatusId: 
+    maxHpFraction: 0
   slot: 3
   allowedCharacterIds: []
   requiredLevel: 1

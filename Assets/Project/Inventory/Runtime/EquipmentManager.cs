@@ -299,6 +299,38 @@ namespace JRPG.Inventory
             return deltas;
         }
 
+        /// <summary>
+        /// Actions unlocked by everything this character has equipped, with the item responsible.
+        ///
+        /// <para>Read from the slot table, which is this manager's own record, rather than from the
+        /// instance's mirrored id list.</para>
+        /// </summary>
+        public IReadOnlyList<UnlockedAction> GetUnlockedActions(string charId)
+        {
+            var unlocked = new List<UnlockedAction>();
+            if (string.IsNullOrEmpty(charId) || !_byChar.TryGetValue(charId, out var state)) return unlocked;
+
+            // One item can unlock several actions, and two items can unlock the same one; de-duplicate by
+            // action id.
+            var seen = new HashSet<string>();
+
+            foreach (var kv in state.slotToItemId)
+            {
+                if (string.IsNullOrEmpty(kv.Value)) continue;
+                if (!_registry.TryGet<EquipmentData>(kv.Value, out var equip) || equip?.actionUnlockIds == null) continue;
+
+                for (int i = 0; i < equip.actionUnlockIds.Count; i++)
+                {
+                    var actionId = equip.actionUnlockIds[i];
+                    if (string.IsNullOrEmpty(actionId) || !seen.Add(actionId)) continue;
+
+                    unlocked.Add(new UnlockedAction(actionId, kv.Value));
+                }
+            }
+
+            return unlocked;
+        }
+
         public string GetEquippedItemId(string charInstanceId, string slotName)
         {
             if (!_byChar.TryGetValue(charInstanceId, out var state)) return null;

@@ -17,3 +17,7 @@ MonoBehaviour:
     quantity: 5
   - itemId: equip_sword_iron
     quantity: 1
+  - itemId: equip_test_ward_ring
+    quantity: 1
+  - itemId: equip_test_ward_ring
+    quantity: 1
