@@ -146,6 +146,17 @@ namespace JRPG.Menu
             if (label != null) label.text = model.label ?? "";
             if (quantity != null) quantity.text = model.quantityText ?? "";
             if (cost != null) cost.text = model.costText ?? "";
+
+            if (auxLabel != null)
+            {
+                bool hasAux = !string.IsNullOrEmpty(model.auxText);
+                auxLabel.text = hasAux ? model.auxText : "";
+
+                // The GameObject, not the component: the row prefabs ship this slot inactive, so merely
+                // enabling the text would leave it invisible. Deactivating also drops it out of the
+                // layout entirely, which is what an unused slot should do.
+                if (auxLabel.gameObject.activeSelf != hasAux) auxLabel.gameObject.SetActive(hasAux);
+            }
             if (icon != null)
             {
                 icon.sprite = model.icon;
@@ -382,6 +393,7 @@ namespace JRPG.Menu
             if (auxLabel != null) auxLabel.color = _auxBaseColor;
             if (stateAffix != null) { stateAffix.text = ""; stateAffix.enabled = false; }
             if (stateIcon != null) { stateIcon.sprite = null; stateIcon.enabled = false; }
+            if (auxLabel != null && auxLabel.gameObject.activeSelf) auxLabel.gameObject.SetActive(false);
             _disabledReason = null;
             if (focusOutline != null) focusOutline.enabled = false;
             if (cursorRoot != null && cursorRoot.gameObject.activeSelf) cursorRoot.gameObject.SetActive(false);

@@ -23,6 +23,8 @@ namespace JRPG.Data
         public List<DialogueGraphData> dialogueGraphs = new();
         public List<BattleTriggerData> battleTriggers = new();
         public List<StatusEffectData> statuses = new();
+        public List<PassiveData> passives = new();
+
         public List<EnemyActionProfileData> enemyActionProfiles = new();
         public ElementInteractionMatrix elementMatrix;
     }

@@ -285,29 +285,87 @@ namespace JRPG.Party
         public IReadOnlyList<string> GetActivePartyIds() => _state.activeOrder;
         public IReadOnlyList<string> GetReservePartyIds() => _state.reserveOrder;
 
-        public bool TrySetActive(string id, int slot)
+        /// <summary>
+        /// Non-mutating form of the <see cref="TrySetActive"/> ladder, with the player-facing reason it
+        /// would be refused. Extracted so the party screen can grey a row and say why rather than
+        /// re-deriving cap/lock/scope rules in the view; <see cref="TrySetActive"/> runs this same check,
+        /// so the two can never disagree.
+        /// </summary>
+        public bool CanSetActive(string id, out string reason)
         {
-            if (!HasCharacter(id)) return false;
-            if (_state.lockedIds.Contains(id)) return false;
+            reason = null;
+
+            if (!HasCharacter(id)) { reason = "Not in the roster."; return false; }
+            if (_state.lockedIds.Contains(id)) { reason = "Locked by the story."; return false; }
 
             var currentState = _state.stateByCharacterId[id];
-            // Only characters already in the pool can be set Active.
             if (currentState != CharacterRosterState.Active
              && currentState != CharacterRosterState.Reserve
              && currentState != CharacterRosterState.Recruited
              && currentState != CharacterRosterState.Guest
-             && currentState != CharacterRosterState.Unavailable) return false;
+             && currentState != CharacterRosterState.Unavailable)
+            {
+                reason = "Not available to deploy.";
+                return false;
+            }
 
             int cap = EffectiveMaxActiveMembers();
-            int currentlyActive = _state.activeOrder.Count;
-            if (!_state.activeOrder.Contains(id) && currentlyActive >= cap) return false;
+            if (!_state.activeOrder.Contains(id) && _state.activeOrder.Count >= cap)
+            {
+                reason = $"Party is full ({cap}).";
+                return false;
+            }
 
-            // Honor scope's allowed list if set.
             if (_state.scopeStack.Count > 0)
             {
                 var top = _state.scopeStack.Peek().scope;
-                if (top.allowedCharacterIds.Count > 0 && !top.allowedCharacterIds.Contains(id)) return false;
+                if (top.allowedCharacterIds.Count > 0 && !top.allowedCharacterIds.Contains(id))
+                {
+                    reason = "Can't join here.";
+                    return false;
+                }
             }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Non-mutating form of the <see cref="MoveToReserve"/> ladder. Same rationale as
+        /// <see cref="CanSetActive"/>.
+        /// </summary>
+        public bool CanMoveToReserve(string id, out string reason)
+        {
+            reason = null;
+
+            if (!HasCharacter(id)) { reason = "Not in the roster."; return false; }
+            if (_state.lockedIds.Contains(id)) { reason = "Locked by the story."; return false; }
+
+            if (!_state.activeOrder.Contains(id) && !_state.reserveOrder.Contains(id))
+            {
+                reason = "Not travelling with the party.";
+                return false;
+            }
+
+            if (_state.activeOrder.Contains(id) && _state.activeOrder.Count <= 1)
+            {
+                reason = "Someone must stay active.";
+                return false;
+            }
+
+            // A scope that requires this character forces them active; benching would be undone
+            // immediately by ApplyTopScope, so refuse it here where the reason can be explained.
+            if (_state.scopeStack.Count > 0)
+            {
+                var top = _state.scopeStack.Peek().scope;
+                if (top.requiredCharacterIds.Contains(id)) { reason = "Required here."; return false; }
+            }
+
+            return true;
+        }
+
+        public bool TrySetActive(string id, int slot)
+        {
+            if (!CanSetActive(id, out _)) return false;
 
             _state.activeOrder.Remove(id);
             _state.reserveOrder.Remove(id);
@@ -320,12 +378,7 @@ namespace JRPG.Party
 
         public bool MoveToReserve(string id)
         {
-            if (!HasCharacter(id)) return false;
-            if (_state.lockedIds.Contains(id)) return false;
-            if (!_state.activeOrder.Contains(id) && !_state.reserveOrder.Contains(id)) return false;
-
-            // ≥1 active guarantee: refuse to bench the last active member.
-            if (_state.activeOrder.Contains(id) && _state.activeOrder.Count <= 1) return false;
+            if (!CanMoveToReserve(id, out _)) return false;
 
             _state.activeOrder.Remove(id);
 

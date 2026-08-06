@@ -62,7 +62,7 @@ namespace JRPG.Menu
             }
 
             entry.Count++;
-            if (entry.Count == 1 && !map.enabled) map.Enable();
+            if (entry.Count == 1 && !map.enabled) SetEnabled(map, true);
         }
 
         /// Drop a reference, disabling on the 1→0 transition — but only if we were the one who enabled it.
@@ -80,7 +80,24 @@ namespace JRPG.Menu
             // disabling it then throws just as enabling does.
             if (s_shuttingDown) return;
 
-            if (entry.OwnsEnable && map.enabled) map.Disable();
+            if (entry.OwnsEnable && map.enabled) SetEnabled(map, false);
+        }
+
+        /// <summary>
+        /// Enable/disable in one place.
+        ///
+        /// <para><b>Known editor-only residue.</b> Leaving play mode with a menu open triggers a domain
+        /// reload, which re-runs <c>OnEnable</c> on the still-active menu canvases <i>after</i> the Input
+        /// System has disposed its action state but while <c>Application.isPlaying</c> is still true —
+        /// so both guards above miss it and <c>Enable()</c> reports "Map must be contained in state".
+        /// It cannot be caught: the Input System <b>logs</b> that internally rather than throwing, and
+        /// exposes no predicate for "is this map still bound". A player build never reloads the domain,
+        /// so this is console noise on editor exit only, with no runtime effect.</para>
+        /// </summary>
+        private static void SetEnabled(InputActionMap map, bool enable)
+        {
+            if (enable) map.Enable();
+            else map.Disable();
         }
 
         // ---- Stale-press gating ---------------------------------------------------------------

@@ -20,6 +20,7 @@ namespace JRPG.Data
         private readonly Dictionary<string, DialogueGraphData> _dialogueGraphsById = new();
         private readonly Dictionary<string, BattleTriggerData> _battleTriggersById = new();
         private readonly Dictionary<string, StatusEffectData> _statusesById = new();
+        private readonly Dictionary<string, PassiveData> _passivesById = new();
         private readonly Dictionary<string, EnemyActionProfileData> _enemyProfilesById = new();
 
         public IReadOnlyDictionary<string, CharacterData> CharactersById => _charactersById;
@@ -32,6 +33,7 @@ namespace JRPG.Data
         public IReadOnlyDictionary<string, DialogueGraphData> DialogueGraphsById => _dialogueGraphsById;
         public IReadOnlyDictionary<string, BattleTriggerData> BattleTriggersById => _battleTriggersById;
         public IReadOnlyDictionary<string, StatusEffectData> StatusesById => _statusesById;
+        public IReadOnlyDictionary<string, PassiveData> PassivesById => _passivesById;
         public IReadOnlyDictionary<string, EnemyActionProfileData> EnemyActionProfilesById => _enemyProfilesById;
 
         /// The authored elemental interaction table (Phase 11); null when the database has none.
@@ -50,6 +52,7 @@ namespace JRPG.Data
             _dialogueGraphsById.Clear();
             _battleTriggersById.Clear();
             _statusesById.Clear();
+            _passivesById.Clear();
             _enemyProfilesById.Clear();
 
             Index(db.characters, _charactersById, "characters");
@@ -62,6 +65,7 @@ namespace JRPG.Data
             Index(db.dialogueGraphs, _dialogueGraphsById, "dialogueGraphs");
             Index(db.battleTriggers, _battleTriggersById, "battleTriggers");
             Index(db.statuses, _statusesById, "statuses");
+            Index(db.passives, _passivesById, "passives");
             Index(db.enemyActionProfiles, _enemyProfilesById, "enemyActionProfiles");
 
             SynthesiseItemActions();
@@ -137,47 +141,63 @@ namespace JRPG.Data
                 {
                     if (_charactersById.TryGetValue(id, out var c) && c is T tc) { value = tc; return true; }
                 }
+
                 if (typeof(T) == typeof(EnemyData) || typeof(T).IsAssignableFrom(typeof(EnemyData)))
                 {
                     if (_enemiesById.TryGetValue(id, out var e) && e is T te) { value = te; return true; }
                 }
+
                 // Items (and its subclasses like EquipmentData) — typeof(T) == ItemData OR T is a derived item type.
                 if (typeof(ItemData).IsAssignableFrom(typeof(T)) || typeof(T) == typeof(ItemData))
                 {
                     if (_itemsById.TryGetValue(id, out var i) && i is T ti) { value = ti; return true; }
                 }
+
                 if (typeof(T) == typeof(CombatActionData) || typeof(T).IsAssignableFrom(typeof(CombatActionData)))
                 {
                     if (_combatActionsById.TryGetValue(id, out var a) && a is T ta) { value = ta; return true; }
                 }
+
                 if (typeof(T) == typeof(EncounterData) || typeof(T).IsAssignableFrom(typeof(EncounterData)))
                 {
                     if (_encountersById.TryGetValue(id, out var en) && en is T ten) { value = ten; return true; }
                 }
+
                 if (typeof(T) == typeof(ProgressionCurveData) || typeof(T).IsAssignableFrom(typeof(ProgressionCurveData)))
                 {
                     if (_progressionCurvesById.TryGetValue(id, out var pc) && pc is T tpc) { value = tpc; return true; }
                 }
+
                 if (typeof(T) == typeof(CharacterGrowthData) || typeof(T).IsAssignableFrom(typeof(CharacterGrowthData)))
                 {
                     if (_characterGrowthById.TryGetValue(id, out var g) && g is T tg) { value = tg; return true; }
                 }
+
                 if (typeof(T) == typeof(DialogueGraphData) || typeof(T).IsAssignableFrom(typeof(DialogueGraphData)))
                 {
                     if (_dialogueGraphsById.TryGetValue(id, out var dg) && dg is T tdg) { value = tdg; return true; }
                 }
+
                 if (typeof(T) == typeof(BattleTriggerData) || typeof(T).IsAssignableFrom(typeof(BattleTriggerData)))
                 {
                     if (_battleTriggersById.TryGetValue(id, out var bt) && bt is T tbt) { value = tbt; return true; }
                 }
+
                 if (typeof(T) == typeof(StatusEffectData) || typeof(T).IsAssignableFrom(typeof(StatusEffectData)))
                 {
                     if (_statusesById.TryGetValue(id, out var st) && st is T tst) { value = tst; return true; }
                 }
+
+                if (typeof(T) == typeof(PassiveData) || typeof(T).IsAssignableFrom(typeof(PassiveData)))
+                {
+                    if (_passivesById.TryGetValue(id, out var pv) && pv is T tpv) { value = tpv; return true; }
+                }
+
                 if (typeof(T) == typeof(EnemyActionProfileData) || typeof(T).IsAssignableFrom(typeof(EnemyActionProfileData)))
                 {
                     if (_enemyProfilesById.TryGetValue(id, out var ap) && ap is T tap) { value = tap; return true; }
                 }
+
                 if (typeof(T) == typeof(GameDataBase))
                 {
                     if (_charactersById.TryGetValue(id, out var c) && c is T tc) { value = tc; return true; }
@@ -190,9 +210,11 @@ namespace JRPG.Data
                     if (_dialogueGraphsById.TryGetValue(id, out var dg) && dg is T tdg) { value = tdg; return true; }
                     if (_battleTriggersById.TryGetValue(id, out var bt) && bt is T tbt) { value = tbt; return true; }
                     if (_statusesById.TryGetValue(id, out var st) && st is T tst) { value = tst; return true; }
+                    if (_passivesById.TryGetValue(id, out var pv) && pv is T tpv) { value = tpv; return true; }
                     if (_enemyProfilesById.TryGetValue(id, out var ap) && ap is T tap) { value = tap; return true; }
                 }
             }
+            
             value = null;
             return false;
         }

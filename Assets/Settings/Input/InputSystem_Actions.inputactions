@@ -1013,6 +1013,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "Change",
+                    "type": "Button",
+                    "id": "076e733b-5f76-4229-83c5-512aa91237b8",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -1194,6 +1203,17 @@
                 },
                 {
                     "name": "",
+                    "id": "8ecd46f4-12d9-42fa-8ef3-b76ba3a84002",
+                    "path": "<Gamepad>/buttonNorth",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Tab",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "a0a10003-0001-0001-0001-000000000003",
                     "path": "<Gamepad>/leftShoulder",
                     "interactions": "",
@@ -1233,6 +1253,17 @@
                     "processors": "",
                     "groups": "Keyboard&Mouse",
                     "action": "PageR",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "23b8b180-db7b-4060-840a-966fa77300c1",
+                    "path": "<Gamepad>/buttonWest",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Change",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

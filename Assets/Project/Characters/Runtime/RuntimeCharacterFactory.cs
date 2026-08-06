@@ -30,6 +30,14 @@ namespace JRPG.Characters
             inst.currentHP = inst.stats.GetFinal(StatType.MaxHP);
             inst.currentMP = inst.stats.GetFinal(StatType.MaxMP);
             inst.currentSP = inst.stats.GetFinal(StatType.MaxSP);
+
+            // Authored starting skills, at construction.
+            // A fresh instance is always level 1, so the authored defaults are the whole
+            // answer here; growth-table skills for higher levels still come from progression, which
+            // re-seeds on restore and on level-up.
+            for (int i = 0; i < data.defaultSkillIds.Count; i++)
+                inst.TryLearnSkill(data.defaultSkillIds[i]);
+
             return inst;
         }
 

@@ -81,6 +81,10 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 91d723a872df6f9479c43c5c3391947d, type: 2}
   - {fileID: 11400000, guid: 04365f8c9d4223746849474654b5702a, type: 2}
   - {fileID: 11400000, guid: b49f22a4b685994448c939c956af36f0, type: 2}
+  passives:
+  - {fileID: 11400000, guid: 9e151a114f5b3004084a1528cfa20d63, type: 2}
+  - {fileID: 11400000, guid: 06a23b999abc1b543a5b5e46dec230c0, type: 2}
+  - {fileID: 11400000, guid: f8bce449e37c44840943cad0d2c5b536, type: 2}
   enemyActionProfiles:
   - {fileID: 11400000, guid: 2db538d615d8d944bad9d1142086232a, type: 2}
   - {fileID: 11400000, guid: bb936fa915c4e11429bac3de1d5902f8, type: 2}

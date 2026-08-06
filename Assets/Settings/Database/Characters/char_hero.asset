@@ -39,10 +39,6 @@ MonoBehaviour:
   growthDataId: growth_hero_fixed
   defaultSkillIds:
   - skill_fire_01
-  - skill_water_01
-  - skill_buff_01
-  - skill_venom_strike
-  - skill_flame_wave
   - skill_status_01
   - skill_overdrive
   allowedSlots: 
