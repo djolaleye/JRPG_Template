@@ -34,7 +34,7 @@ MonoBehaviour:
     overlay: 1
     input: 1
   - menuId: combat_command
-    canvasPrefab: {fileID: 611929539224828377, guid: 0e7fda92f07102e4aba4edc504bb82cb, type: 3}
+    canvasPrefab: {fileID: 7228216578357734224, guid: e2e9bdbb60f4bc447925561c14ae0b3e, type: 3}
     mode: 2
     overlay: 2
     input: 2

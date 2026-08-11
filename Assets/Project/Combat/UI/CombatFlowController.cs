@@ -17,7 +17,7 @@ namespace JRPG.Combat.UI
         public static CombatFlowController Current { get; private set; }
 
         [Tooltip("Seconds to wait before an enemy acts, so turns are readable.")]
-        [SerializeField] private float enemyTurnDelay = 0.6f;
+        [SerializeField] private float enemyTurnDelay = 1.6f;
         [Tooltip("Seconds the \"X is stunned!\" notice stays up before a blocked turn is skipped. Applies " +
                  "to party and enemy actors alike.")]
         [SerializeField] private float blockedTurnNoticeSeconds = 1.2f;
@@ -32,6 +32,15 @@ namespace JRPG.Combat.UI
 
         private readonly List<string> _pendingTargetIds = new();
 
+        /// <summary>
+        /// The target the cursor is currently over on the target screen.
+        ///
+        /// <para>Distinct from <see cref="PendingTargetIds"/>, which only fills once the player has
+        /// committed. The HUD needs the pre-commit value so the enemy banner can follow the cursor as it
+        /// moves.</para>
+        /// </summary>
+        public string HighlightedTargetId { get; set; }
+
         public void SetPendingTargets(IEnumerable<string> combatantIds)
         {
             _pendingTargetIds.Clear();
@@ -41,6 +50,7 @@ namespace JRPG.Combat.UI
         public void ClearPendingSelection()
         {
             PendingActionId = null;
+            HighlightedTargetId = null;
             _pendingTargetIds.Clear();
         }
 

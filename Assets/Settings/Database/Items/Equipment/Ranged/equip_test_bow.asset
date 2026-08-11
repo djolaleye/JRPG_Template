@@ -40,13 +40,8 @@ MonoBehaviour:
   slot: 1
   allowedCharacterIds: []
   requiredLevel: 1
-  statModifiers:
-  - stat: 3
-    modifierType: 0
-    value: 9
-    sourceId: equip_test_bow
-    isPermanent: 0
-  weaponBasePower: 14
+  statModifiers: []
+  weaponBasePower: 5
   elementAffinities: []
   statusImmunityIds: []
   passiveEffectIds: []

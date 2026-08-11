@@ -39,11 +39,16 @@ MonoBehaviour:
     maxHpFraction: 0
   slot: 0
   allowedCharacterIds: []
-  requiredLevel: 1
+  requiredLevel: 3
   statModifiers:
   - stat: 3
     modifierType: 0
     value: 5
+    sourceId: equip_test_greatsword
+    isPermanent: 0
+  - stat: 7
+    modifierType: 0
+    value: -2
     sourceId: equip_test_greatsword
     isPermanent: 0
   weaponBasePower: 25

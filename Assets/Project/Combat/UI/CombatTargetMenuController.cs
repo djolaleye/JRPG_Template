@@ -28,5 +28,24 @@ namespace JRPG.Combat.UI
             }
             return rows;
         }
+
+        /// <summary>
+        /// Publishes the cursor's position to the flow controller so the HUD's enemy banner can follow
+        /// it. Read-only bookkeeping.
+        /// </summary>
+        protected override void OnHighlightChanged(int index, RowModel model)
+        {
+            var flow = CombatFlowController.Current;
+            if (flow != null) flow.HighlightedTargetId = model.id;
+        }
+
+        protected override void OnDisable()
+        {
+            // The banner must not keep pointing at a target on a screen that is gone.
+            var flow = CombatFlowController.Current;
+            if (flow != null) flow.HighlightedTargetId = null;
+
+            base.OnDisable();
+        }
     }
 }

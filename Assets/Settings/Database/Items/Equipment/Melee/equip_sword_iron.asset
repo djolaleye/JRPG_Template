@@ -43,13 +43,8 @@ MonoBehaviour:
   statModifiers:
   - stat: 3
     modifierType: 0
-    value: 5
-    sourceId: 
-    isPermanent: 0
-  - stat: 7
-    modifierType: 0
-    value: -1
-    sourceId: 
+    value: 3
+    sourceId: equip_sword_iron
     isPermanent: 0
   weaponBasePower: 10
   elementAffinities: []
