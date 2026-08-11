@@ -23,14 +23,37 @@ namespace JRPG.Progression.UI
             if (Context.Services.TryResolve<IPartyService>(out var partySvc))
                 partyRuntime = partySvc as IPartyRuntimeQueries;
 
+            // Skills gained with room to spare: an announcement, not a decision. Without this the
+            // player would only discover them by opening a menu later.
+            var learned = progression.LearnedSkills;
+            if (learned.Count > 0)
+            {
+                rows.Add(RowModel.Separator("hdr_learned", "NEW SKILL UNLOCKED!"));
+
+                for (int i = 0; i < learned.Count; i++)
+                {
+                    var entry = learned[i];
+                    string owner = CharacterName(data, entry.characterId);
+
+                    rows.Add(new RowModel
+                    {
+                        id = "learned_" + entry.characterId + "_" + entry.skillId,
+                        label = "  " + SkillName(data, entry.skillId),
+                        auxText = $"{owner} · Lv {entry.atLevel}   {SkillDescription(data, entry.skillId)}",
+                        costText = SkillCost(data, entry.skillId),
+                        enabled = false,
+                    });
+                }
+            }
+
             var pending = progression.NextPendingSkillChoice();
             if (pending != null)
             {
-                string who = data != null && data.TryGet<CharacterData>(pending.characterId, out var cd)
-                    ? cd.displayName : pending.characterId;
+                string who = CharacterName(data, pending.characterId);
 
+                rows.Add(RowModel.Separator("hdr_replace", "SKILL LIST FULL"));
                 rows.Add(Info(pending.characterId, $"{who} learned {SkillName(data, pending.newSkillId)}!"));
-                rows.Add(Info(pending.characterId + "_hint", "  Skill list is full — choose one to forget:"));
+                rows.Add(Info(pending.characterId + "_hint", "  Choose one to forget:"));
 
                 // The skills currently held: picking one swaps it for the new skill.
                 var inst = partyRuntime?.ResolveInstanceById(pending.characterId);
@@ -64,12 +87,28 @@ namespace JRPG.Progression.UI
             rows.Add(new RowModel
             {
                 id = "finish",
-                label = "Finish",
+                label = "Continue",
                 enabled = !progression.HasPendingSkillChoices(),
-                action = new ContinuePostBattleAction(requiresCompletable: false),
+                action = new ContinuePostBattleAction(PostBattleGate.SkillChoicesResolved),
                 context = Context,
             });
             return rows;
+        }
+
+        private static string CharacterName(DataRegistry data, string characterId)
+        {
+            if (data != null && data.TryGet<CharacterData>(characterId, out var cd) && cd != null
+                && !string.IsNullOrEmpty(cd.displayName))
+                return cd.displayName;
+            return characterId;
+        }
+
+        private static string SkillDescription(DataRegistry data, string skillId)
+        {
+            if (data != null && data.TryGet<CombatActionData>(skillId, out var a) && a != null
+                && !string.IsNullOrEmpty(a.description))
+                return a.description;
+            return string.Empty;
         }
 
         private static string SkillName(DataRegistry data, string skillId)

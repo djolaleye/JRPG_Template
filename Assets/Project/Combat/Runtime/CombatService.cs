@@ -466,6 +466,8 @@ namespace JRPG.Combat
             _resolver.Passives.Dispatch(PassiveHook.AfterAction, actor, _battle, result);
 
             _bus.Publish(new BattleActionResolved(_battle.battleId, actor.combatantId, action.Id, result.success));
+            _bus.Publish(new BattleEffectsResolved(_battle.battleId, actor.combatantId, action.Id,
+                                                   result.success, result.effects, result.defeatedCombatantIds));
 
             EnterTurnTransition(result);
             return result;

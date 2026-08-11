@@ -75,6 +75,16 @@ namespace JRPG.Progression
 
         public bool HasPendingSkillChoices() => _state.pendingSkillChoices.Count > 0;
 
+        /// <summary>Skills gained outright this flow — announcements, not decisions.</summary>
+        public IReadOnlyList<LearnedSkill> LearnedSkills => _state.learnedSkills;
+
+        /// <summary>
+        /// True when the post-battle flow has anything skill-related to show: either a skill was
+        /// gained outright, or one is waiting on a replacement decision. The flow controller uses this
+        /// to decide whether the skill screen appears at all.
+        /// </summary>
+        public bool HasSkillOutcomes() => _state.learnedSkills.Count > 0 || _state.pendingSkillChoices.Count > 0;
+
         public PendingSkillChoice NextPendingSkillChoice()
             => _state.pendingSkillChoices.Count > 0 ? _state.pendingSkillChoices[0] : null;
 
@@ -137,6 +147,8 @@ namespace JRPG.Progression
             _state.lastProcessedBattleResult = result;
             _state.pendingLevelUps.Clear();
             _state.pendingAllocations.Clear();
+            // Without this the next battle re-announces the skills the last one granted.
+            _state.learnedSkills.Clear();
             HasAppliedCurrentResult = false;
 
             // Preview first, mutate on confirm
@@ -191,9 +203,19 @@ namespace JRPG.Progression
                     if (lu.pointsGranted > 0) progress.unspentAttributePoints += lu.pointsGranted;
                     _state.pendingLevelUps.Add(lu);
 
-                    // Skills unlocked by this level
+                    // Skills unlocked by this level. Two outcomes: learned outright, or the list was
+                    // full and the player owes a decision. Both are recorded — the announcement screen
+                    // needs the first, and it was previously computed and thrown away.
                     var learned = new List<string>();
                     var overflow = _skills.ApplyLevelUpLearning(inst, lu.oldLevel, lu.newLevel, learned);
+
+                    for (int s = 0; s < learned.Count; s++)
+                        _state.learnedSkills.Add(new LearnedSkill
+                        {
+                            characterId = characterId,
+                            skillId = learned[s],
+                            atLevel = lu.newLevel,
+                        });
 
                     for (int s = 0; s < overflow.Count; s++)
                         _state.pendingSkillChoices.Add(new PendingSkillChoice
@@ -362,6 +384,7 @@ namespace JRPG.Progression
             _state.pendingLevelUps.Clear();
             _state.pendingAllocations.Clear();
             _state.pendingSkillChoices.Clear();
+            _state.learnedSkills.Clear();
             _state.postBattleFlowActive = false;
             _state.lastProcessedBattleResult = null;
             CurrentRewards = null;

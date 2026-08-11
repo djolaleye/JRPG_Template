@@ -4,15 +4,25 @@ using JRPG.Services;
 
 namespace JRPG.Progression.UI
 {
+    /// <summary>
+    /// The post-battle screens, in order.
+    ///
+    /// <para>Victory → Results → Level Up → Attributes → New Skill. Every screen after Results is
+    /// conditional: no level-ups skips the last three outright, and each of the others appears only
+    /// when it has something to say.</para>
+    ///
+    /// <para><b>Skill outcomes come last, after allocation.</b> They are the final consequence of
+    /// levelling, and a skill replacement is the one decision that can be declined — asking for it
+    /// before the player has finished spending points buried it mid-flow.</para>
+    /// </summary>
     public enum PostBattleFlowState
     {
         Idle,
         VictorySummary,
-        RewardReview,
-        XpPreview,
+        Results,
         LevelUpReview,
-        SkillChoice,
         AttributeAllocation,
+        SkillChoice,
         Complete,
     }
 
@@ -71,30 +81,31 @@ namespace JRPG.Progression.UI
             switch (CurrentState)
             {
                 case PostBattleFlowState.VictorySummary:
-                    Transition(PostBattleFlowState.RewardReview, "postbattle_rewards");
+                    Transition(PostBattleFlowState.Results, "postbattle_results");
                     break;
 
-                case PostBattleFlowState.RewardReview:
-                    Transition(PostBattleFlowState.XpPreview, "postbattle_xp");
-                    break;
-
-                case PostBattleFlowState.XpPreview:
-                    // Confirmation point: XP/level-ups/points are applied here (preview-first rule).
+                case PostBattleFlowState.Results:
+                    // Confirmation point: XP/level-ups/points/skills are applied here, so everything
+                    // shown up to now was a projection (preview-first rule).
                     progression.ApplyBattleResult();
+
                     if (progression.PendingLevelUps.Count > 0)
                         Transition(PostBattleFlowState.LevelUpReview, "postbattle_levelup");
                     else
-                        CompleteFlow();
+                        AdvanceAfterLevelUps(progression);
                     break;
 
                 case PostBattleFlowState.LevelUpReview:
-                    // Skill decisions come first: they are a consequence of the level-ups just shown.
-                    if (progression.HasPendingSkillChoices())
-                        Transition(PostBattleFlowState.SkillChoice, "postbattle_skill");
-                    else if (progression.HasPendingAttributeAllocations())
-                        Transition(PostBattleFlowState.AttributeAllocation, "postbattle_allocate");
-                    else
-                        CompleteFlow();
+                    AdvanceAfterLevelUps(progression);
+                    break;
+
+                case PostBattleFlowState.AttributeAllocation:
+                    if (progression.HasPendingAttributeAllocations())
+                    {
+                        Debug.Log("[JRPG.Progression.UI] Cannot continue — unspent attribute points remain.");
+                        break;
+                    }
+                    AdvanceAfterAllocation(progression);
                     break;
 
                 case PostBattleFlowState.SkillChoice:
@@ -103,17 +114,28 @@ namespace JRPG.Progression.UI
                         Debug.Log("[JRPG.Progression.UI] Cannot continue — a skill decision is pending.");
                         break;
                     }
-                    if (progression.HasPendingAttributeAllocations())
-                        Transition(PostBattleFlowState.AttributeAllocation, "postbattle_allocate");
-                    else
-                        CompleteFlow();
-                    break;
-
-                case PostBattleFlowState.AttributeAllocation:
-                    if (progression.CanCompletePostBattleFlow()) CompleteFlow();
-                    else Debug.Log("[JRPG.Progression.UI] Cannot finish — unspent attribute points remain.");
+                    CompleteFlow();
                     break;
             }
+        }
+
+        /// Allocation, then skills, then done — skipping whichever have nothing to show.
+        private void AdvanceAfterLevelUps(ProgressionService progression)
+        {
+            if (progression.HasPendingAttributeAllocations())
+                Transition(PostBattleFlowState.AttributeAllocation, "postbattle_allocate");
+            else
+                AdvanceAfterAllocation(progression);
+        }
+
+        private void AdvanceAfterAllocation(ProgressionService progression)
+        {
+            // Covers both kinds of skill outcome: gained outright (an announcement) and gained at the
+            // cap (a decision). One screen handles both, so one check gates it.
+            if (progression.HasSkillOutcomes())
+                Transition(PostBattleFlowState.SkillChoice, "postbattle_skill");
+            else
+                CompleteFlow();
         }
 
         private void Transition(PostBattleFlowState next, string menuId)

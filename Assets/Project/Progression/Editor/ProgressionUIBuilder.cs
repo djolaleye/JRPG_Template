@@ -26,21 +26,24 @@ namespace JRPG.Progression.Editor
             EnsureFolder(OutFolder);
 
             var victory = BuildMenuPrefab<VictorySummaryMenuController>("PostBattleVictory", "postbattle_victory", "Victory");
-            var rewards = BuildMenuPrefab<RewardReviewMenuController>("PostBattleRewards", "postbattle_rewards", "Rewards");
-            var xp = BuildMenuPrefab<XpPreviewMenuController>("PostBattleXpPreview", "postbattle_xp", "Experience");
+            var results = BuildMenuPrefab<ResultsMenuController>("PostBattleResults", "postbattle_results", "Result");
             var levelUp = BuildMenuPrefab<LevelUpReviewMenuController>("PostBattleLevelUp", "postbattle_levelup", "Level Up!");
-            var allocate = BuildMenuPrefab<AttributeAllocationMenuController>("PostBattleAllocate", "postbattle_allocate", "Attribute Points");
+            var allocate = BuildMenuPrefab<AttributeAllocationMenuController>("PostBattleAllocate", "postbattle_allocate", "Attributes");
 
             RegisterEntries(
                 (victory, "postbattle_victory", OverlayState.RewardScreen),
-                (rewards, "postbattle_rewards", OverlayState.RewardScreen),
-                (xp, "postbattle_xp", OverlayState.RewardScreen),
+                (results, "postbattle_results", OverlayState.RewardScreen),
                 (levelUp, "postbattle_levelup", OverlayState.LevelUpScreen),
                 (allocate, "postbattle_allocate", OverlayState.LevelUpScreen));
 
+            // The rewards and XP screens merged into Results. Their registry entries would otherwise
+            // linger pointing at deleted prefabs, and MenuService resolves purely by id.
+            RetireEntries("postbattle_rewards", "postbattle_xp");
+            DeletePrefabs("PostBattleRewards", "PostBattleXpPreview");
+
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            Debug.Log("[JRPG.Progression] Built Phase 8 post-battle UI prefabs + registry entries.");
+            Debug.Log("[JRPG.Progression] Built post-battle UI prefabs + registry entries (Victory → Results → Level Up → Attributes).");
         }
 
         private static GameObject BuildMenuPrefab<T>(string prefabName, string menuId, string title) where T : MenuController
@@ -112,6 +115,35 @@ namespace JRPG.Progression.Editor
                 existing.input = InputContext.Menu;
             }
             EditorUtility.SetDirty(registry);
+        }
+
+        /// <summary>Drops registry entries for screens that no longer exist. Idempotent.</summary>
+        private static void RetireEntries(params string[] menuIds)
+        {
+            var registry = FindRegistry();
+            if (registry == null) return;
+
+            foreach (var id in menuIds)
+            {
+                var entry = registry.Find(id);
+                if (entry == null) continue;
+
+                registry.entries.Remove(entry);
+                Debug.Log($"[JRPG.Progression] Retired registry entry '{id}'.");
+            }
+            EditorUtility.SetDirty(registry);
+        }
+
+        private static void DeletePrefabs(params string[] prefabNames)
+        {
+            foreach (var name in prefabNames)
+            {
+                string path = $"{OutFolder}/{name}.prefab";
+                if (AssetDatabase.LoadAssetAtPath<GameObject>(path) == null) continue;
+
+                AssetDatabase.DeleteAsset(path);
+                Debug.Log($"[JRPG.Progression] Deleted obsolete prefab '{path}'.");
+            }
         }
 
         private static ContextualCanvasRegistry FindRegistry()

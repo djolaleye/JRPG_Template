@@ -20,20 +20,33 @@ namespace JRPG.Progression.UI
             {
                 string name = data != null && data.TryGet<CharacterData>(lu.characterId, out var cd)
                     ? cd.displayName : lu.characterId;
-                rows.Add(Info(lu.characterId + "_" + lu.newLevel, $"{name}  Lv{lu.oldLevel} > Lv{lu.newLevel}"));
 
-                if (lu.statIncreases.Count > 0)
+                rows.Add(RowModel.Separator(lu.characterId + "_" + lu.newLevel,
+                    $"LEVEL UP!   {name}   Lv {lu.oldLevel} → {lu.newLevel}"));
+
+                // One row per stat that moved, so each gain reads on its own line with its own "UP!"
+                // rather than being crushed into a single run-on string.
+                for (int i = 0; i < lu.statIncreases.Count; i++)
                 {
-                    var sb = new StringBuilder("    ");
-                    for (int i = 0; i < lu.statIncreases.Count; i++)
+                    var inc = lu.statIncreases[i];
+                    rows.Add(new RowModel
                     {
-                        if (i > 0) sb.Append("  ");
-                        sb.Append($"{lu.statIncreases[i].stat} +{lu.statIncreases[i].value:0.#}");
-                    }
-                    rows.Add(Info(lu.characterId + "_" + lu.newLevel + "_stats", sb.ToString()));
+                        id = $"{lu.characterId}_{lu.newLevel}_{inc.stat}",
+                        label = "  " + inc.stat,
+                        costText = $"+{inc.value:0.#}",
+                        auxText = "UP!",
+                        enabled = false,
+                    });
                 }
+
                 if (lu.pointsGranted > 0)
-                    rows.Add(Info(lu.characterId + "_" + lu.newLevel + "_pts", $"    Attribute points +{lu.pointsGranted}"));
+                    rows.Add(new RowModel
+                    {
+                        id = $"{lu.characterId}_{lu.newLevel}_pts",
+                        label = "  Attribute points",
+                        costText = "+" + lu.pointsGranted,
+                        enabled = false,
+                    });
             }
 
             rows.Add(RowModel.Simple("continue", "Continue", new ContinuePostBattleAction(), Context));

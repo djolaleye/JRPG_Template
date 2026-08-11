@@ -6,5 +6,8 @@
       "Bash(xargs grep -l \"GameDatabase\\\\|StartingInventory\")",
       "mcp__unity-mcp__Unity_Camera_Capture"
     ]
+  },
+  "enabledPlugins": {
+    "caveman@caveman": true
   }
 }

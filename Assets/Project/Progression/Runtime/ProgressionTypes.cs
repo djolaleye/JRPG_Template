@@ -38,6 +38,18 @@ namespace JRPG.Progression
         public List<string> currentSkillIds = new();
     }
 
+    /// <summary>
+    /// A skill gained outright during this post-battle flow — no decision needed, only an
+    /// announcement. The counterpart to <see cref="PendingSkillChoice"/>, which is what the same
+    /// unlock becomes when the character's skill list is already full.
+    /// </summary>
+    public class LearnedSkill
+    {
+        public string characterId;
+        public string skillId;
+        public int atLevel;
+    }
+
     /// Non-mutating projection of what applying a battle result would do. Shown on the XP preview
     /// screen before the player confirms.
     public class ProgressionPreview

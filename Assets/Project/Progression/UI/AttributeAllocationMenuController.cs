@@ -30,18 +30,28 @@ namespace JRPG.Progression.UI
                 string name = data != null && data.TryGet<CharacterData>(pending.characterId, out var cd)
                     ? cd.displayName : pending.characterId;
 
-                rows.Add(Info(pending.characterId, $"{name}  —  points left: {progress.unspentAttributePoints}"));
+                rows.Add(RowModel.Separator(pending.characterId,
+                    $"{name}   Lv {progress.currentLevel}   —   {progress.unspentAttributePoints} POINTS AVAILABLE"));
 
                 bool hasPoints = progress.unspentAttributePoints > 0;
                 foreach (var stat in AttributePointDistributor.AllowedStats)
                 {
+                    // before → after from the domain's own projection rather than "current + 1": a point
+                    // is a permanent Flat modifier, and derived stats do not necessarily move 1:1 with it.
+                    var projected = progression.PreviewAttributePoint(pending.characterId, stat);
                     int current = inst?.stats.GetFinal(stat) ?? 0;
+
+                    string delta = projected.allowed && projected.after != projected.before
+                        ? $"{projected.before} → {projected.after}"
+                        : current.ToString();
+
                     rows.Add(new RowModel
                     {
                         id = pending.characterId + "_" + stat,
                         label = $"  {stat}",
-                        quantityText = $"{current} > {current + 1}",
+                        costText = delta,
                         enabled = hasPoints,
+                        disabledReason = hasPoints ? null : "No points left.",
                         action = new AllocatePointAction(pending.characterId, stat),
                         context = Context,
                     });
@@ -51,9 +61,12 @@ namespace JRPG.Progression.UI
             rows.Add(new RowModel
             {
                 id = "finish",
-                label = "Finish",
-                enabled = progression.CanCompletePostBattleFlow(),
-                action = new ContinuePostBattleAction(requiresCompletable: true),
+                label = "Confirm",
+                // Gated on points only. Gating on full completability would deadlock here, because a
+                // pending skill decision belongs to the screen that comes AFTER this one.
+                enabled = !progression.HasPendingAttributeAllocations(),
+                disabledReason = "Spend all attribute points first.",
+                action = new ContinuePostBattleAction(PostBattleGate.AttributePointsSpent),
                 context = Context,
             });
             return rows;

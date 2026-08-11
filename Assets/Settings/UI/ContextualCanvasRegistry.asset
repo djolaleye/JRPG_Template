@@ -58,16 +58,6 @@ MonoBehaviour:
     mode: 2
     overlay: 5
     input: 1
-  - menuId: postbattle_rewards
-    canvasPrefab: {fileID: 3261446769997238092, guid: 2090fa9a970e6814eb212ec6e07b6c09, type: 3}
-    mode: 2
-    overlay: 5
-    input: 1
-  - menuId: postbattle_xp
-    canvasPrefab: {fileID: 3504908231752946163, guid: c286904f10832664c84f2355245bed1e, type: 3}
-    mode: 2
-    overlay: 5
-    input: 1
   - menuId: postbattle_levelup
     canvasPrefab: {fileID: 3468764292834631001, guid: 913a9584c7629244b8b412feef7a06ef, type: 3}
     mode: 2
@@ -142,4 +132,9 @@ MonoBehaviour:
     canvasPrefab: {fileID: 8808777415453492218, guid: 6fda496c767c6f04bb419047748f24f7, type: 3}
     mode: 1
     overlay: 1
+    input: 1
+  - menuId: postbattle_results
+    canvasPrefab: {fileID: 1863569497652148288, guid: c0e4d520018c36d449e85cc6cb73c36a, type: 3}
+    mode: 2
+    overlay: 5
     input: 1
