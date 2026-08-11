@@ -139,6 +139,37 @@ namespace JRPG.Combat
                 if (equip.actionUnlockIds != null)
                     for (int u = 0; u < equip.actionUnlockIds.Count; u++)
                         combatant.profile.AddUnlockedAction(equip.actionUnlockIds[u], equip.Id);
+
+                RecordWeaponSlot(combatant.profile, equip);
+            }
+        }
+
+        /// <summary>
+        /// Files a weapon's flat stat contribution under its slot on the profile.
+        ///
+        /// <para>Needed because both weapons fold into one stat block: by the time combat starts, a
+        /// sword's Strength and a bow's Strength are indistinguishable there. A Ranged action has to
+        /// trade one for the other, which means knowing each separately.</para>
+        ///
+        /// <para>Only <see cref="ModifierType.Flat"/> modifiers are recorded.</para>
+        /// </summary>
+        private static void RecordWeaponSlot(CombatProfile profile, EquipmentData equip)
+        {
+            bool isRanged = equip.slot == EquipmentSlot.RangedWeapon;
+            if (!isRanged && equip.slot != EquipmentSlot.MeleeWeapon) return;
+
+            profile.SetWeaponItem(isRanged, equip.Id);
+
+            if (equip.HasWeaponBasePower) profile.SetWeaponBasePower(isRanged, equip.weaponBasePower);
+
+            if (equip.statModifiers == null) return;
+
+            for (int i = 0; i < equip.statModifiers.Count; i++)
+            {
+                var m = equip.statModifiers[i];
+                if (m.modifierType != ModifierType.Flat) continue;
+
+                profile.AddWeaponStat(isRanged, m.stat, m.value);
             }
         }
 

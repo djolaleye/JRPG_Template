@@ -18,6 +18,53 @@ namespace JRPG.Combat
 
         public readonly List<string> skillIds = new(); /// This combatant's own Skill-category actions, in authored order.
 
+        // ---- Weapon slots ---------------------------------------------------------------------
+        //
+        // Both weapons' stat modifiers folded into the combatant's single stat block. These record
+        // each weapon's contribution separately so a Ranged action can trade one for the other without
+        // a second stat block.
+
+        private readonly Dictionary<StatType, float> _meleeWeaponStats = new();
+        private readonly Dictionary<StatType, float> _rangedWeaponStats = new();
+
+        public string MeleeWeaponItemId { get; private set; }
+        public string RangedWeaponItemId { get; private set; }
+
+        public bool HasRangedWeapon => !string.IsNullOrEmpty(RangedWeaponItemId);
+        public bool HasMeleeWeapon => !string.IsNullOrEmpty(MeleeWeaponItemId);
+
+        private int _meleeWeaponBasePower = -1;
+        private int _rangedWeaponBasePower = -1;
+
+        public int WeaponBasePower(bool isRanged) => isRanged ? _rangedWeaponBasePower : _meleeWeaponBasePower;
+
+        public bool HasWeaponBasePower(bool isRanged) => WeaponBasePower(isRanged) >= 0;
+
+        public void SetWeaponBasePower(bool isRanged, int basePower)
+        {
+            if (isRanged) _rangedWeaponBasePower = basePower;
+            else _meleeWeaponBasePower = basePower;
+        }
+
+        /// <summary>Flat contribution this slot's weapon makes to <paramref name="stat"/>. 0 when empty.</summary>
+        public float WeaponStat(bool isRanged, StatType stat)
+            => (isRanged ? _rangedWeaponStats : _meleeWeaponStats).TryGetValue(stat, out var v) ? v : 0f;
+
+        /// <summary>Direct write of one weapon-slot stat contribution.</summary>
+        public void AddWeaponStat(bool isRanged, StatType stat, float value)
+        {
+            var table = isRanged ? _rangedWeaponStats : _meleeWeaponStats;
+
+            table.TryGetValue(stat, out var existing);
+            table[stat] = existing + value;
+        }
+
+        public void SetWeaponItem(bool isRanged, string itemId)
+        {
+            if (isRanged) RangedWeaponItemId = itemId;
+            else MeleeWeaponItemId = itemId;
+        }
+
         /// <summary>
         /// The cap on <see cref="skillIds"/>.
         ///

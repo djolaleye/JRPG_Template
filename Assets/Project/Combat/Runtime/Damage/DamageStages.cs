@@ -27,6 +27,45 @@ namespace JRPG.Combat
         }
     }
 
+    /// <summary>
+    /// 2b. Basic attack of the weapon in hand.
+    ///
+    /// <para><b>Weapon stats, ranged only.</b> <see cref="AttackerStatStage"/> added the full stat
+    /// total, which includes both weapons because equipment modifiers all land on one stat block.
+    /// This trades the melee weapon's share for the ranged weapon's, so a bow shot is scored by the bow
+    /// rather than by the sword plus the bow.</para>
+    ///
+    /// <para>Inert for every other category, and for enemies, which carry no equipment.</para>
+    /// </summary>
+    public sealed class WeaponSlotStage : IDamageStage
+    {
+        public string Name => "weapon";
+
+        public void Apply(DamageContext ctx)
+        {
+            if (ctx.action == null) return;
+
+            bool isRanged = ctx.action.category == CombatActionCategory.Ranged;
+            bool isMelee = ctx.action.category == CombatActionCategory.Melee;
+            if (!isRanged && !isMelee) return;
+
+            var profile = ctx.actor?.profile;
+            if (profile == null) return;
+
+            // Base power: replace the action's authored value with the weapon's, when it has one.
+            if (profile.HasWeaponBasePower(isRanged))
+                ctx.runningDamage += profile.WeaponBasePower(isRanged) - ctx.effect.basePower;
+
+            if (!isRanged || !profile.HasRangedWeapon) return;
+
+            float melee = profile.WeaponStat(isRanged: false, ctx.effect.attackStat);
+            float ranged = profile.WeaponStat(isRanged: true, ctx.effect.attackStat);
+
+            // Scaled the same way AttackerStatStage scaled the total it is correcting.
+            ctx.runningDamage += (ranged - melee) * ctx.effect.statScale;
+        }
+    }
+
     /// 3. Accuracy vs evasion.
     public sealed class AccuracyEvasionStage : IDamageStage
     {

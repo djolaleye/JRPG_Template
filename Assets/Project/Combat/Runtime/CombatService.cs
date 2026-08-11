@@ -382,9 +382,27 @@ namespace JRPG.Combat
                     && !unlocked)
                     continue;
 
+                // A ranged attack needs something to fire. Listed but unusable would be the wrong call:
+                if (action.category == CombatActionCategory.Ranged && !HasRangedWeapon(actor)) continue;
+
                 availableActions.Add(action);
             }
             return availableActions;
+        }
+
+        /// <summary>
+        /// Whether this combatant can use a <see cref="CombatActionCategory.Ranged"/> action.
+        ///
+        /// <para>Enemies have no equipment and therefore no profile weapons; they are permitted, so an
+        /// authored enemy ranged attack still works. The restriction is about a player character holding
+        /// no bow, not about the category itself.</para>
+        /// </summary>
+        public bool HasRangedWeapon(CombatantInstance actor)
+        {
+            if (actor == null) return false;
+            if (actor.team != CombatantTeam.Party) return true;
+
+            return actor.profile != null && actor.profile.HasRangedWeapon;
         }
 
         public IReadOnlyList<CombatantInstance> GetValidTargets(string combatantId, string actionId)
@@ -588,6 +606,14 @@ namespace JRPG.Combat
                 && !unlockedByGear)
             {
                 reason = $"{actor.displayName} does not know '{action.Id}'.";
+                return false;
+            }
+
+            // Mirrors the GetAvailableActions gate, so a ranged attack cannot be submitted by a caller
+            // that never consulted the list (i.e. AI selectors).
+            if (action.category == CombatActionCategory.Ranged && !HasRangedWeapon(actor))
+            {
+                reason = $"{actor.displayName} has no ranged weapon equipped.";
                 return false;
             }
 

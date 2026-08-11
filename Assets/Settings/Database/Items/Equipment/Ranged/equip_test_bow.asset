@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5fdf8cd4f37838d4ba4d5417b1ba5a25, type: 3}
-  m_Name: equip_sword_iron
+  m_Name: equip_test_bow
   m_EditorClassIdentifier: JRPG.Data::JRPG.Data.EquipmentData
-  id: equip_sword_iron
-  displayName: Iron Sword
-  description: A reliable blade. +5 STR, -1 SPD.
+  id: equip_test_bow
+  displayName: Test Bow
+  description: Ranged test weapon.
   icon: {fileID: 0}
   category: 3
   stackLimit: 1
@@ -37,21 +37,16 @@ MonoBehaviour:
     allowSelf: 1
     requiredStatusId: 
     maxHpFraction: 0
-  slot: 0
+  slot: 1
   allowedCharacterIds: []
   requiredLevel: 1
   statModifiers:
   - stat: 3
     modifierType: 0
-    value: 5
-    sourceId: 
+    value: 9
+    sourceId: equip_test_bow
     isPermanent: 0
-  - stat: 7
-    modifierType: 0
-    value: -1
-    sourceId: 
-    isPermanent: 0
-  weaponBasePower: 10
+  weaponBasePower: 14
   elementAffinities: []
   statusImmunityIds: []
   passiveEffectIds: []

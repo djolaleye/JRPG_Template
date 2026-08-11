@@ -9,7 +9,8 @@ namespace JRPG.Data
         Guard,
         Item,
         Skill,
-        Flee
+        Flee,
+        Ranged
     }
 
     public enum CombatEffectType

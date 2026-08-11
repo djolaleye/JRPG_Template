@@ -14,6 +14,26 @@ namespace JRPG.Data
         [Tooltip("Applied to the wearer's stats")]
         public List<StatModifier> statModifiers = new();
 
+        [Header("Weapon")]
+        /// <summary>
+        /// Flat damage this weapon contributes to a basic attack, replacing the base power authored on
+        /// the attack action itself.
+        ///
+        /// <para>Only read for the two weapon slots, and only by
+        /// <see cref="CombatActionCategory.Melee"/> / <see cref="CombatActionCategory.Ranged"/> actions.
+        /// Skills keep their own authored base power.</para>
+        ///
+        /// <para>Negative means "unset": the action's authored base power is used instead. 0 is a
+        /// legitimate value (a weapon that adds only stats).</para>
+        /// </summary>
+        [Tooltip("Base damage this weapon gives a basic attack. " +
+                 "Negative = unset, action's authored value is used. Weapon slots only.")]
+        public int weaponBasePower = -1;
+
+        /// <summary>True when this item occupies a weapon slot and authored a base power to contribute.</summary>
+        public bool HasWeaponBasePower
+            => weaponBasePower >= 0 && (slot == EquipmentSlot.MeleeWeapon || slot == EquipmentSlot.RangedWeapon);
+
         [Header("Combat integration")]
         [Tooltip("Elemental responses granted by wearing this.")]
         public List<ElementAffinityEntry> elementAffinities = new();

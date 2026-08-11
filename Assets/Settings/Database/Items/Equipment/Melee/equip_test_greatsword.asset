@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5fdf8cd4f37838d4ba4d5417b1ba5a25, type: 3}
-  m_Name: equip_sword_iron
+  m_Name: equip_test_greatsword
   m_EditorClassIdentifier: JRPG.Data::JRPG.Data.EquipmentData
-  id: equip_sword_iron
-  displayName: Iron Sword
-  description: A reliable blade. +5 STR, -1 SPD.
+  id: equip_test_greatsword
+  displayName: Test Greatsword
+  description: High base power melee test weapon.
   icon: {fileID: 0}
   category: 3
   stackLimit: 1
@@ -44,14 +44,9 @@ MonoBehaviour:
   - stat: 3
     modifierType: 0
     value: 5
-    sourceId: 
+    sourceId: equip_test_greatsword
     isPermanent: 0
-  - stat: 7
-    modifierType: 0
-    value: -1
-    sourceId: 
-    isPermanent: 0
-  weaponBasePower: 10
+  weaponBasePower: 25
   elementAffinities: []
   statusImmunityIds: []
   passiveEffectIds: []

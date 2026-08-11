@@ -26,6 +26,7 @@ namespace JRPG.Combat
             return new DamagePipeline()
                 .Add(new BasePowerStage())                          // 1
                 .Add(new AttackerStatStage())                       // 2
+                .Add(new WeaponSlotStage())                         // 2b
                 .Add(new AccuracyEvasionStage(status, tuning))      // 3
                 .Add(new DefenseStage())                            // 4
                 .Add(new ElementalStage(elementMatrix))             // 5
