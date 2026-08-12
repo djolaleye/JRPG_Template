@@ -6,10 +6,9 @@ namespace JRPG.Data
     {
         ReturnToExploration,
         StartBattle,      // targetId = encounterId
-        OpenMenu,         // Phase 9 stub
-        ChangePartyScope, // Phase 9 stub
+        OpenMenu,         // stub
+        ChangePartyScope, // stub
         None,
-        // Phase 10 combat-integration exits (appended — existing serialized indices must not shift):
         ResumeCombat,        // resume the held battle (default when a combat interruption ends)
         EndCombat,           // targetId = outcome ("Victory"/"Defeat"); ends the current battle
         StartFollowUpBattle  // targetId = encounterId; ends the current battle then starts another

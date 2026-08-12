@@ -6,8 +6,8 @@ namespace JRPG.Menu
     /// Shared motion timings for menus and screen transitions.
     ///
     /// <para><b>Reduced motion is the point of this asset.</b> Every animating UI component reads its
-    /// durations through <see cref="Duration"/> instead of hard-coding them, so the accessibility
-    /// toggle in Phase 12.12 can flip <see cref="reducedMotion"/> once and have every screen honour
+    /// durations through <see cref="Duration"/> instead of hard-coding them, so an eventual accessibility
+    /// toggle can flip <see cref="reducedMotion"/> once and have every screen honour
     /// it. Components must never read the raw fields directly.</para>
     /// </summary>
     [CreateAssetMenu(menuName = "JRPG/UI/Menu Animation Profile", fileName = "MenuAnimationProfile")]
@@ -35,7 +35,7 @@ namespace JRPG.Menu
 
         [Header("Dialogue")]
         [Tooltip("Characters revealed per second by the typewriter. 0 = instant. " +
-                 "Overridden per-player by the Text Speed setting in Phase 12.12.")]
+                 "Overridden per-player by the Text Speed setting")]
         [Min(0f)] public float textCharactersPerSecond = 45f;
 
         [Tooltip("Seconds a fully-revealed auto-advance line waits before advancing.")]

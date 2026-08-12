@@ -11,10 +11,10 @@ namespace JRPG.Save
         // without running any restore — this is what SaveSystemCore.GetSlotInfo() parses so a
         // slot-select screen can show a summary (and learn which scene to load) up front.
 
-        // [Planned — Phase 14] Scene/checkpoint restoration.
-        // No Scene/Checkpoint Manager yet. PlayerSaveData carries the active scene name, which
+        // [Planned] Scene/checkpoint restoration.
+        // PlayerSaveData carries the active scene name, which
         // Save() mirrors into sceneId (falling back to the active scene when the player
-        // contributor is absent). checkpointId stays unassigned until Phase 14.
+        // contributor is absent).
         public string sceneId;
         public string checkpointId;
 

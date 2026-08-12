@@ -5,8 +5,7 @@ using JRPG.Services;
 
 namespace JRPG.Dialogue
 {
-    /// Headless dialogue harness: start/advance/choose graphs and inspect story state via context-menu
-    /// actions, so Phase 9 can be validated without walking the world.
+    /// Headless dialogue harness: start/advance/choose graphs and inspect story state via context-menu actions
     public sealed class DialogueDebugPanel : MonoBehaviour
     {
         [SerializeField] private string graphId = "dialogue_blacksmith_greeting";

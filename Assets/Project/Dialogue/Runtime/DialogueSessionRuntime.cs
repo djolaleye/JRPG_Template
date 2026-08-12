@@ -5,8 +5,7 @@ using JRPG.Services;
 
 namespace JRPG.Dialogue
 {
-    /// Mutable state for one active dialogue session. Not saved directly (Phase 9) — only the
-    /// persistent outcomes it produces (story flags, completed graphs) are saved via story state.
+    /// Mutable state for one active dialogue session.
     public sealed class DialogueSessionRuntime
     {
         public string sessionId;

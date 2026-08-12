@@ -92,11 +92,6 @@ namespace JRPG.Menu
         /// <summary>
         /// A row that navigates to another screen, with its enabled state and its disabled reason both
         /// taken from the action's own <see cref="IMenuAction.CanExecute"/>/<see cref="IMenuAction.GetDisabledReason"/>.
-        ///
-        /// <para>Destination screens land across several sub-phases, so a menu of destinations is mostly
-        /// rows that may or may not resolve yet. Deriving both flags from the action keeps that in one
-        /// place — a row lights up by itself the moment its screen is registered, and never claims to be
-        /// available when the domain says otherwise.</para>
         /// </summary>
         protected RowModel NavigationRow(string id, string label, string menuId,
                                          string unavailableReason = null,

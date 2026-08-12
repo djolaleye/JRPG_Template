@@ -3,8 +3,7 @@ using JRPG.Data;
 
 namespace JRPG.Combat
 {
-    /// Restores HP to every resolved target, capped at MaxHP. Defeated combatants are not revived by a
-    /// heal — that is the Revive effect's job (Phase 11.3).
+    /// Restores HP to every resolved target, capped at MaxHP.
     public sealed class HealEffectExecutor : IEffectExecutor
     {
         public CombatEffectType Type => CombatEffectType.Heal;
@@ -38,7 +37,7 @@ namespace JRPG.Combat
     }
 
     /// Brings a defeated ally back. Only meaningful against dead targets, which requires the DeadAlly
-    /// target mode (Phase 11.5) to select them.
+    /// target mode to select them.
     public sealed class ReviveEffectExecutor : IEffectExecutor
     {
         public CombatEffectType Type => CombatEffectType.Revive;

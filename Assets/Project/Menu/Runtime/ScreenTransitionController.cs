@@ -7,7 +7,7 @@ namespace JRPG.Menu
 {
     /// <summary>
     /// Single full-screen fader. Everything that needs the screen to go black and come
-    /// back — scene swaps in Phase 12.2, and later menu open/close — drives this component rather than
+    /// back — scene swaps and later menu open/close — drives this component rather than
     /// animating a CanvasGroup of its own.
     ///
     /// <para><b>Shape of the API.</b> <see cref="ISceneFlowService"/>-style loaders are coroutine based

@@ -11,7 +11,7 @@ namespace JRPG.Combat.UI
     /// Drives the combat UI loop and carries the only piece of cross-menu state (the pending action id).
     /// Opens the command menu on a party turn and advances enemy turns after a short delay. All work is
     /// deferred out of the (synchronous) combat event handlers into Update/coroutines to avoid reentrancy
-    /// with the engine. Also renders a minimal battle-status text (full HUD is Phase 12).
+    /// with the engine.
     public sealed class CombatFlowController : MonoBehaviour
     {
         public static CombatFlowController Current { get; private set; }

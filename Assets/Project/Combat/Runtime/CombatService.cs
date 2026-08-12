@@ -449,7 +449,6 @@ namespace JRPG.Combat
                 return preview;
             }
             preview.usable = true;
-            // Phase 6 preview is structural (targets resolved); detailed damage prediction can be added later.
             for (int i = 0; i < targets.Count; i++)
                 preview.predictedEffects.Add(new EffectResult { targetCombatantId = targets[i].combatantId });
             return preview;
@@ -499,7 +498,6 @@ namespace JRPG.Combat
         {
             _battle.phase = CombatPhase.TurnTransition;
 
-            // Phase 11 status timing (turn-end / round-end ticks) hooks in here too.
             _battle.triggerState.heldResult = result;
             if (OnTurnTransition(result))
             {

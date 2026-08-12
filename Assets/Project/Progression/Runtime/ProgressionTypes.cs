@@ -74,7 +74,7 @@ namespace JRPG.Progression
     public class ResolvedRewards
     {
         public int totalXp;
-        public int currency; // Display only in Phase 8 — no persisted wallet.
+        public int currency; // Currently display only 
         public List<GrantedDrop> drops = new();
     }
 

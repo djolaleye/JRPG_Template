@@ -40,8 +40,7 @@ namespace JRPG.Bootstrap
         /// <param name="services">
         /// Resolved from, not just read at construction: <see cref="ISceneFlowService"/>,
         /// <see cref="ISaveService"/> and <see cref="IMenuService"/> are all looked up lazily on
-        /// each call. Scene flow does not exist until Phase 12.2, and the other two are conditional
-        /// on bootstrap inspector wiring, so none of them can be a constructor dependency.
+        /// each call.
         /// </param>
         /// <param name="newGameSceneName">Content scene a fresh game starts in.</param>
         /// <param name="titleSceneName">Content scene <see cref="ReturnToTitle"/> returns to.</param>
@@ -223,11 +222,6 @@ namespace JRPG.Bootstrap
                 return true;
             }
 
-            Debug.LogWarning($"[JRPG.Session] LoadGame(slot {slot}): no ISceneFlowService registered — restoring " +
-                             $"without loading scene '{sceneName}'. The player payload will be skipped unless that " +
-                             "scene already happens to be loaded, so the player position/rotation may not restore. " +
-                             "This resolves itself once Phase 12.2 registers ISceneFlowService.");
-
             if (!save.Load(slot)) return false;
 
             IsSessionActive = true;
@@ -271,7 +265,7 @@ namespace JRPG.Bootstrap
         // ---- Helpers --------------------------------------------------------------------------
 
         /// <summary>
-        /// Lazy lookup of the Phase 12.2 scene loader. Lazy rather than injected because it is
+        /// Lazy lookup of the scene loader. Lazy rather than injected because it is
         /// registered (if at all) after this service, and today not at all.
         /// </summary>
         private bool TryGetSceneFlow(out ISceneFlowService sceneFlow)

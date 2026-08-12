@@ -70,7 +70,7 @@ namespace JRPG.Data
         {
             base.OnValidate();
             if (levelUpMode == LevelUpMode.RandomVariance)
-                Debug.LogWarning($"[JRPG.Data] '{name}': RandomVariance is not implemented in Phase 8.", this);
+                Debug.LogWarning($"[JRPG.Data] '{name}': RandomVariance is not implemented.", this);
 
             for (int i = 0; i < fixedGrowthPerLevel.Count; i++)
             {

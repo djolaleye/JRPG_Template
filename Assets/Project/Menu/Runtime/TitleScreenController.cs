@@ -100,7 +100,7 @@ namespace JRPG.Menu
             if (_menus == null || !_menus.HasMenu(mainMenuId))
             {
                 Debug.LogError($"[JRPG.Menu] Title cannot open '{mainMenuId}': the menu service is " +
-                               "missing or has no entry for it. Run JRPG/Setup/Build Phase 12.3 Title Screen.", this);
+                               "missing or has no entry for it. Run JRPG/Setup/Build Title Screen.", this);
                 return;
             }
 

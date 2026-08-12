@@ -1,7 +1,7 @@
 namespace JRPG.Data
 {
 
-    /// Placeholder for the equipment slot vocabulary. Fully wired in the inventory/equipment phase.
+    /// Equipment slot vocabulary.
     public enum EquipmentSlot
     {
         MeleeWeapon,

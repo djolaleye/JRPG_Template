@@ -7,7 +7,7 @@ namespace JRPG.Menu
     /// re-serialized per prefab, so retuning navigation does not mean touching a dozen prefabs.
     ///
     /// Read by <see cref="RowUIController"/> (cursor + state treatment) and <see cref="MenuController"/>
-    /// (wrap/repeat). Accessibility toggles in Phase 12.12 write to the runtime overrides here rather
+    /// (wrap/repeat). Accessibility toggles write to the runtime overrides here rather
     /// than to each screen.
     /// </summary>
     [CreateAssetMenu(menuName = "JRPG/UI/Menu Navigation Profile", fileName = "MenuNavigationProfile")]

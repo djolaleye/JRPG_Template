@@ -10,9 +10,7 @@ namespace JRPG.Menu
     ///
     /// <para><b>Rows explain themselves.</b> Every destination row is built through
     /// <see cref="MenuController.NavigationRow"/>, so a screen that does not exist yet — Progression,
-    /// Equipment, Settings — renders greyed with its reason attached.
-    /// They light up on their own as those sub-phases register their screens; this controller
-    /// needs no edit when they do.</para>
+    /// Equipment, Settings — renders greyed with its reason attached.</para>
     ///
     /// Exit to Main Menu discards unsaved progress, so it
     /// routes through <see cref="ConfirmPromptController"/> (which defaults to Cancel) before

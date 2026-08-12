@@ -26,8 +26,8 @@ namespace JRPG.Bootstrap
         [SerializeField] private ContextualCanvasRegistry menuRegistry;
         [SerializeField] private Transform menuParent;
 
-        [Tooltip("Optional (Phase 10): importance→presentation mapping for mid-battle/contextual dialogue. " +
-                 "If unset, a built-in fallback is used (Passive→passive overlay, Critical→blocks input).")]
+        [Tooltip("Optional): importance→presentation mapping for mid-battle/contextual dialogue. " +
+                 "Fallback if unset (Passive→passive overlay, Critical→blocks input).")]
         [SerializeField] private DialoguePresentationProfile dialoguePresentationProfile;
 
         [Tooltip("Stable id of the protagonist character. Seeded directly to Active and locked to Active/Reserve transitions.")]
@@ -127,7 +127,7 @@ namespace JRPG.Bootstrap
             var dialogue = new DialogueService(services, bus, state, data, party, inventory, story);
             services.Register<IDialogueService>(dialogue);
 
-            // Phase 10 mid-battle interruption evaluator. Bridges combat↔dialogue: it uses CombatService
+            // Mid-battle interruption evaluator. Bridges combat↔dialogue: it uses CombatService
             // concretely but is exposed only as ICombatInterruptionService, and resolves IDialogueService
             // lazily (dialogue is constructed just above; combat below cannot depend on it directly).
             var interrupter = new CombatSequenceInterrupter(combat, data, services, bus)
@@ -160,7 +160,7 @@ namespace JRPG.Bootstrap
             }
 
             // Session lifecycle (New Game / Load Game / Return to Title). Constructed last because
-            // it sequences resets across every stateful service above. ISceneFlowService (Phase 12.2),
+            // it sequences resets across every stateful service above. ISceneFlowService,
             // ISaveService and IMenuService are resolved lazily off the registry inside it, so it is
             // safe for them to be registered later or not at all.
             var session = new SessionService(services, state, data,

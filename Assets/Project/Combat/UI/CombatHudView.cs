@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using TMPro;
@@ -41,6 +42,16 @@ namespace JRPG.Combat.UI
         [Tooltip("Everything that should vanish outside combat.")]
         [SerializeField] private CanvasGroup contentGroup;
 
+        [Header("Action announcement")]
+        [SerializeField] private GameObject actionBannerRoot;
+        [SerializeField] private TMP_Text actionBannerLabel;
+
+        [Min(0.1f)][SerializeField] private float actionBannerSeconds = 1.4f;
+
+        [Header("Floater anchors")]
+        [Tooltip("Where enemy floaters spawn. Enemies spread horizontally across this row.")]
+        [SerializeField] private RectTransform enemyAnchorRow;
+
         private static bool _turnOrderHidden;
 
         private readonly TurnOrderService _turnOrder = new();
@@ -48,20 +59,133 @@ namespace JRPG.Combat.UI
         private InputAction _toggle;
         private bool _hooked;
 
+        private IEventBus _bus;
+        private Coroutine _bannerRoutine;
+
+        /// <summary>The live HUD, so the floater layer can ask it where a combatant is on screen.</summary>
+        public static CombatHudView Current { get; private set; }
+
         private static CombatService Combat => CombatFlowController.Current?.Combat;
 
         // ---- Lifecycle ----------------------------------------------------------------------------
 
         private void OnEnable()
         {
+            Current = this;
+
+            _bus = AppContext.Bus;
+            _bus?.Subscribe<BattleActionResolved>(OnActionResolved);
+
             HookInput(true);
             ApplyTurnOrderVisibility();
+            HideActionBanner();
             Refresh();
         }
 
-        private void OnDisable() => HookInput(false);
+        private void OnDisable()
+        {
+            _bus?.Unsubscribe<BattleActionResolved>(OnActionResolved);
+            if (Current == this) Current = null;
+
+            HookInput(false);
+        }
 
         private void LateUpdate() => Refresh();
+
+        // ---- Action announcement -------------------------------------------------------------------
+
+        /// <summary>
+        /// Names the action that just resolved, for <b>either team</b>.
+        /// </summary>
+        private void OnActionResolved(BattleActionResolved e)
+        {
+            if (!e.Success || actionBannerLabel == null) return;
+
+            string actionName = e.ActionId;
+            if (AppContext.Data is DataRegistry data && data.TryGet<CombatActionData>(e.ActionId, out var action)
+                && action != null && !string.IsNullOrEmpty(action.displayName))
+                actionName = action.displayName;
+
+            var actor = Combat?.CurrentBattle?.FindCombatant(e.ActorCombatantId);
+            // actionBannerLabel.text = actor != null ? $"{actor.displayName}   {actionName}" : actionName;
+            actionBannerLabel.text = actionName;
+
+            if (actionBannerRoot != null) actionBannerRoot.SetActive(true);
+
+            if (_bannerRoutine != null) StopCoroutine(_bannerRoutine);
+            _bannerRoutine = StartCoroutine(HideBannerAfterDelay());
+        }
+
+        private IEnumerator HideBannerAfterDelay()
+        {
+            float t = 0f;
+            while (t < actionBannerSeconds)
+            {
+                t += Time.unscaledDeltaTime;
+                yield return null;
+            }
+
+            HideActionBanner();
+            _bannerRoutine = null;
+        }
+
+        private void HideActionBanner()
+        {
+            if (actionBannerRoot != null) actionBannerRoot.SetActive(false);
+        }
+
+        // ---- Floater anchoring ---------------------------------------------------------------------
+
+        /// <summary>
+        /// Where a combatant's floater should appear, in <c>floaterRoot</c>-local coordinates.
+        ///
+        /// <para>Combatants currently have no scene transforms, so a floater is anchored to whatever on-screen
+        /// element stands for that combatant: a party member's status widget, or the enemy's slot spread
+        /// along <see cref="enemyAnchorRow"/>. This is the single seam to change when battle actors are
+        ///  added.</para>
+        /// </summary>
+        public Vector2 AnchorFor(string combatantId)
+        {
+            var battle = Combat?.CurrentBattle;
+            if (battle == null || string.IsNullOrEmpty(combatantId)) return Vector2.zero;
+
+            var c = battle.FindCombatant(combatantId);
+            if (c == null) return Vector2.zero;
+
+            if (c.team == CombatantTeam.Party)
+            {
+                int slot = battle.partyCombatants.IndexOf(c);
+                var widget = partyPanel != null ? partyPanel.SlotAt(slot) : null;
+
+                // Just above the member's own vitals widget, so the number is unmistakably theirs.
+                if (widget != null)
+                    return LocalCenter(widget.transform as RectTransform) + new Vector2(0f, 70f);
+
+                return new Vector2(-600f, -320f);
+            }
+
+            int index = battle.enemyCombatants.IndexOf(c);
+            int count = Mathf.Max(1, battle.enemyCombatants.Count);
+
+            float rowWidth = enemyAnchorRow != null ? enemyAnchorRow.rect.width : 900f;
+            float step = rowWidth / count;
+            float x = -rowWidth * 0.5f + step * (index + 0.5f);
+            float y = enemyAnchorRow != null ? LocalCenter(enemyAnchorRow).y : 120f;
+
+            return new Vector2(x, y);
+        }
+
+        /// <summary>Centre of <paramref name="rt"/> expressed in this canvas's local space.</summary>
+        private Vector2 LocalCenter(RectTransform rt)
+        {
+            if (rt == null) return Vector2.zero;
+
+            var canvasRect = transform as RectTransform;
+            if (canvasRect == null) return Vector2.zero;
+
+            var world = rt.TransformPoint(rt.rect.center);
+            return canvasRect.InverseTransformPoint(world);
+        }
 
         // ---- Rendering ----------------------------------------------------------------------------
 
@@ -213,8 +337,9 @@ namespace JRPG.Combat.UI
         {
             var sb = new StringBuilder();
 
-            sb.Append(emphasised ? $"<b>{e.displayName}</b>" : e.displayName);
             sb.Append("   Lv ").Append(e.level);
+            sb.Append(emphasised ? $"<b>{e.displayName}</b>" : e.displayName);
+            sb.Append("   HP ").Append(e.currentHP).Append('/').Append(e.stats.GetFinal(StatType.MaxHP));
 
             var statuses = DescribeStatuses(e, data);
             if (!string.IsNullOrEmpty(statuses)) sb.Append("   ").Append(statuses);

@@ -207,9 +207,21 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2079260747249650522, guid: 5f8ac168c44a0884ea2f1fe3475c8925, type: 3}
+      propertyPath: m_TextStyleHashCode
+      value: -1183493901
+      objectReference: {fileID: 0}
+    - target: {fileID: 3596832185258144835, guid: 5f8ac168c44a0884ea2f1fe3475c8925, type: 3}
+      propertyPath: m_TextStyleHashCode
+      value: -1183493901
+      objectReference: {fileID: 0}
     - target: {fileID: 7535780188151283311, guid: 5f8ac168c44a0884ea2f1fe3475c8925, type: 3}
       propertyPath: m_Name
       value: CombatHud
+      objectReference: {fileID: 0}
+    - target: {fileID: 8155560725631253252, guid: 5f8ac168c44a0884ea2f1fe3475c8925, type: 3}
+      propertyPath: m_TextStyleHashCode
+      value: -1183493901
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
