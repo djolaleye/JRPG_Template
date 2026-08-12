@@ -11,11 +11,12 @@ namespace JRPG.Save
         // without running any restore — this is what SaveSystemCore.GetSlotInfo() parses so a
         // slot-select screen can show a summary (and learn which scene to load) up front.
 
-        // [Planned] Scene/checkpoint restoration.
-        // PlayerSaveData carries the active scene name, which
-        // Save() mirrors into sceneId (falling back to the active scene when the player
-        // contributor is absent).
+        // PlayerSaveData carries the active scene name, which Save() mirrors into sceneId (falling back
+        // to the active scene when the player contributor is absent). GetSlotInfo() reads it without
+        // running a restore, so the load flow knows which scene to bring up first.
         public string sceneId;
+
+        // [Planned] Checkpoint restoration. Currently - a load resumes from the saved player position rather than a checkpoint.
         public string checkpointId;
 
         /// Total accumulated play seconds. See SaveSystemCore's play-time accounting comment.

@@ -4,8 +4,8 @@ using JRPG.Services;
 
 namespace JRPG.Progression.UI
 {
-    /// Base for the post-battle placeholder screens: cancel is suppressed (the flow cannot be
-    /// backed out of) and rows are rebuilt from ProgressionService state.
+    /// Base for the post-battle screens: cancel is suppressed (the flow cannot be backed out of) and
+    /// rows are rebuilt from ProgressionService state.
     public abstract class PostBattleMenuControllerBase : MenuController
     {
         protected static ProgressionService Progression

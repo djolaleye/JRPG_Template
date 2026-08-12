@@ -10,8 +10,11 @@ namespace JRPG.Combat
     {
         public string battleId;
         public string encounterId;
-        // [Planned — Phase 11] Escape rules. Plumbed from EncounterData.escapable but not yet read;
-        // BattleOutcome.Escaped is likewise unreachable until the escape action exists.
+        /// <summary>
+        /// Whether this encounter permits fleeing, copied from <c>EncounterData.escapable</c> at battle
+        /// start. Read by <see cref="EscapeResolver"/>, which owns the escape chance and the player-facing
+        /// blocked reason; a successful escape ends the battle as <c>BattleOutcome.Escaped</c>.
+        /// </summary>
         public bool escapable;
 
         public List<CombatantInstance> partyCombatants = new();

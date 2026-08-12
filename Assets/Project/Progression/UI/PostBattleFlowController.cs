@@ -26,9 +26,14 @@ namespace JRPG.Progression.UI
         Complete,
     }
 
-    /// Sequences the post-battle placeholder screens. Owns ordering only — all math lives in
-    /// ProgressionService. Menus replace each other (Close current + Open next); on completion the
-    /// controller closes everything, restores exploration state, and lets the service commit.
+    /// <summary>
+    /// Sequences the post-battle screens (see <see cref="PostBattleFlowState"/> for the order and why).
+    /// Owns ordering only — all math lives in ProgressionService. Menus replace each other
+    /// (Close current + Open next); on completion the controller closes everything, restores exploration
+    /// state, and lets the service commit.
+    ///
+    /// <para><see cref="Continue"/> is the authority on which screen follows which, including the skips.</para>
+    /// </summary>
     public sealed class PostBattleFlowController : MonoBehaviour
     {
         public static PostBattleFlowController Current { get; private set; }

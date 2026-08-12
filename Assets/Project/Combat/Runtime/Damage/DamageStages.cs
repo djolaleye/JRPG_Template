@@ -98,6 +98,9 @@ namespace JRPG.Combat
                 hitChance -= ctx.target.stats.GetFinal(StatType.Evasion) * _tuning.evasionPerPoint;
 
             if (hitChance >= 1f) return;             // can't miss == skip the roll
+
+            if (ctx.isPreview) return;
+
             if (ctx.rng.NextDouble() >= hitChance) ctx.missed = true;
         }
     }
@@ -178,6 +181,10 @@ namespace JRPG.Combat
             if (_status != null) critChance += _status.GetCritChanceModifier(ctx.actor);
 
             if (critChance <= 0f) return;
+
+            // Preview shows the non-critical baseline, for the same reason accuracy does not roll.
+            if (ctx.isPreview) return;
+
             if (ctx.rng.NextDouble() >= critChance) return;
 
             ctx.critical = true;

@@ -27,14 +27,20 @@ namespace JRPG.Combat
         /// Deterministic RNG for accuracy/crit rolls — seeded per battle so runs are reproducible.
         public System.Random rng;
 
+        /// <summary>
+        /// True when this run is a non-binding projection for the UI rather than a real hit.
+        /// </summary>
+        public bool isPreview;
+
         public void Reset(CombatantInstance actor, CombatantInstance target, CombatEffect effect,
-            CombatActionData action, System.Random rng)
+            CombatActionData action, System.Random rng, bool isPreview = false)
         {
             this.actor = actor;
             this.target = target;
             this.effect = effect;
             this.action = action;
             this.rng = rng;
+            this.isPreview = isPreview;
 
             runningDamage = 0f;
             finalAmount = 0;

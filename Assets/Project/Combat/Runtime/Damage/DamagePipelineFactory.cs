@@ -4,9 +4,9 @@ namespace JRPG.Combat
 {
     /// Builds the standard damage pipeline. Central place for the full stage list.
     ///
-    /// Stages marked "placeholder" are currently inert, holding their slot in the ordering.
-    /// TODO:
-    ///   EquipmentStage → 11.4, PassiveModifierStage → 11.4.
+    /// Every stage is live except <see cref="DifficultyStage"/>, which is inert and holds its slot in
+    /// the ordering so a difficulty multiplier can be dropped in without renumbering the rest.
+    /// Some stages also go inert when their collaborator is null — see the parameter docs below.
     public static class DamagePipelineFactory
     {
         /// <param name="elementMatrix">

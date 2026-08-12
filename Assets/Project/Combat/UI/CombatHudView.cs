@@ -437,6 +437,8 @@ namespace JRPG.Combat.UI
 
         private void HookInput(bool subscribe)
         {
+            if (!Application.isPlaying) return;
+
             if (playerControls == null) return;
 
             if (_map == null)

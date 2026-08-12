@@ -3,10 +3,10 @@ using System;
 namespace JRPG.Services
 {
     /// <summary>
-    /// Owns loading/unloading the additive <i>content</i> scene on top of the always-resident Bootstrap scene. Phase 12.2 supplies the concrete,
-    /// coroutine-driven implementation; this interface exists now so
-    /// <see cref="ISessionService"/> can be written against it and degrade gracefully while it is
-    /// still absent from the registry.
+    /// Owns loading/unloading the additive <i>content</i> scene on top of the always-resident Startup
+    /// scene. <c>SceneFlowService</c>, a MonoBehaviour on that scene, is the concrete coroutine-driven
+    /// implementation and registers itself. Callers still degrade gracefully when it is absent from the
+    /// registry, since a scene opened directly in the editor will not have it.
     ///
     /// Deliberate constraints:
     /// <list type="bullet">

@@ -449,8 +449,57 @@ namespace JRPG.Combat
                 return preview;
             }
             preview.usable = true;
+
+            // Project each damaging effect against each resolved target through the real pipeline, so the
+            // confirm screen shows the formula's own answer rather than a second, drifting estimate.
+            // Non-damage effects (heals, buffs, statuses) still contribute a target entry so the screen
+            // can name who is affected.
             for (int i = 0; i < targets.Count; i++)
-                preview.predictedEffects.Add(new EffectResult { targetCombatantId = targets[i].combatantId });
+            {
+                var target = targets[i];
+
+                if (action.effects == null || action.effects.Count == 0)
+                {
+                    preview.predictedEffects.Add(new EffectResult { targetCombatantId = target.combatantId });
+                    continue;
+                }
+
+                for (int e = 0; e < action.effects.Count; e++)
+                {
+                    var effect = action.effects[e];
+
+                    if (effect.type != CombatEffectType.Damage)
+                    {
+                        preview.predictedEffects.Add(new EffectResult
+                        {
+                            targetCombatantId = target.combatantId,
+                            effectType = effect.type.ToString(),
+                            element = effect.element,
+                        });
+                        continue;
+                    }
+
+                    var ctx = _resolver.Damage.RunPreview(actor, target, effect, action);
+
+                    // Report the damage that will actually land. Execution clamps a hit to the target's
+                    // remaining HP.
+                    int applied = ctx.immune ? 0 : Mathf.Min(ctx.finalAmount, target.currentHP);
+
+                    preview.predictedEffects.Add(new EffectResult
+                    {
+                        targetCombatantId = target.combatantId,
+                        effectType = effect.type.ToString(),
+                        amount = applied,
+                        hpBefore = target.currentHP,
+                        hpAfter = Mathf.Max(0, target.currentHP - applied),
+                        wasDefeated = applied >= target.currentHP && target.currentHP > 0,
+                        absorbed = ctx.absorbed,
+                        immune = ctx.immune,
+                        element = ctx.element,
+                    });
+                }
+            }
+
             return preview;
         }
 
@@ -571,8 +620,8 @@ namespace JRPG.Combat
             CompleteTurnTransition(result);
         }
 
-        /// Extension seam for Phase 10 (CombatSequenceInterrupter) and Phase 11 (status timing).
-        /// Returns true if an interactive interruption is now holding the turn transition.
+        /// Turn-transition hook. <see cref="CombatSequenceInterrupter"/> uses it to match battle triggers
+        /// at this point; returns true if an interactive interruption is now holding the transition.
         private bool OnTurnTransition(ActionResult result)
             => Interrupter != null && Interrupter.EvaluateAtTurnTransition(_battle, result);
 

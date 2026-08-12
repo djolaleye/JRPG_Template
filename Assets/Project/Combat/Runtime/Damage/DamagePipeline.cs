@@ -55,11 +55,19 @@ namespace JRPG.Combat
             return true;
         }
 
+        /// <summary>
+        /// Non-mutating projection of a hit, for specific screens/tooltips.
+        /// </summary>
+        public DamageContext RunPreview(CombatantInstance actor, CombatantInstance target,
+            JRPG.Data.CombatEffect effect, JRPG.Data.CombatActionData action)
+            => Run(actor, target, effect, action, rng: null, isPreview: true);
+
         /// Runs every stage in order and returns the populated context
         public DamageContext Run(CombatantInstance actor, CombatantInstance target,
-            JRPG.Data.CombatEffect effect, JRPG.Data.CombatActionData action, System.Random rng)
+            JRPG.Data.CombatEffect effect, JRPG.Data.CombatActionData action, System.Random rng,
+            bool isPreview = false)
         {
-            _ctx.Reset(actor, target, effect, action, rng);
+            _ctx.Reset(actor, target, effect, action, rng, isPreview);
 
             StringBuilder sb = AuditEnabled ? new StringBuilder() : null;
             sb?.Append($"[dmg] {actor?.displayName} → {target?.displayName} ({_ctx.element})");

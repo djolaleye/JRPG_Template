@@ -10,7 +10,7 @@ namespace JRPG.Party
         public List<string> allowedCharacterIds = new();
         public List<string> requiredCharacterIds = new();
         public List<string> lockedCharacterIds = new();
-        public int maxActiveMembers = 3;
+        public int maxActiveMembers = 4;
 
         public PartyScope() { }
 

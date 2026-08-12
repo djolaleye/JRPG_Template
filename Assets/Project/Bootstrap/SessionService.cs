@@ -277,12 +277,10 @@ namespace JRPG.Bootstrap
         /// <summary>
         /// Hands the world transition to <see cref="ISceneFlowService"/> when it exists.
         ///
-        /// Absent-service fallback: until Phase 12.2 lands there is no scene loader, and the content
-        /// scene is whatever the editor already had open. Rather than fail, this logs a clear
-        /// warning and drops straight into the exploration layered state, so the New Game flow is
-        /// exercisable today — it just does not change scenes. That matches the behaviour of the
-        /// interim <c>autoStartExploration</c> path in GameBootstrap, which stays in place until the
-        /// real flow is wired to the title screen.
+        /// Absent-service fallback: <c>SceneFlowService</c> registers itself from the Startup scene, so
+        /// a misconfigured build or a scene opened directly in the editor can leave it missing. Rather
+        /// than fail, this logs a clear warning and drops straight into the exploration layered state —
+        /// the New Game flow still runs, it just does not change scenes.
         /// </summary>
         private void EnterContentScene(string sceneName, string caller, Action onSceneReady)
         {
@@ -297,8 +295,8 @@ namespace JRPG.Bootstrap
             }
 
             Debug.LogWarning($"[JRPG.Session] {caller}: no ISceneFlowService registered — scene '{sceneName}' was " +
-                             "not loaded; entering Exploration in whatever scene is already open. Registered in " +
-                             "Phase 12.2.");
+                             "not loaded; entering Exploration in whatever scene is already open. " +
+                             "SceneFlowService registers itself from the Startup scene — is that scene loaded?");
 
             SetExplorationState();
             onSceneReady?.Invoke();

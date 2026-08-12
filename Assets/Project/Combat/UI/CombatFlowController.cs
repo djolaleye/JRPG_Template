@@ -23,6 +23,12 @@ namespace JRPG.Combat.UI
         [SerializeField] private float blockedTurnNoticeSeconds = 1.2f;
         [Tooltip("Optional: auto-start this encounter on Start (isolated testing). Leave empty to wait for a trigger.")]
         [SerializeField] private string autoStartEncounterId = "";
+
+        [Tooltip("Seconds the escape notice stays up. Escaping otherwise snaps back to exploration with " +
+                 "no acknowledgement that the attempt succeeded.")]
+        [SerializeField] private float escapeNoticeSeconds = 1.6f;
+
+        [SerializeField] private string escapeNoticeText = "Got away safely!";
         [SerializeField] private TMP_Text statusText;
 
         /// Cross-menu selection state for the command → action → target → confirm flow. UI-only: the
@@ -136,6 +142,10 @@ namespace JRPG.Combat.UI
             _menus?.CloseAll();
             _lastActionSummary = $"Battle ended: {e.Outcome}";
             RefreshStatus();
+
+
+            if (e.Outcome == BattleOutcome.Escaped)
+                PassiveDialogueSink.Current?.ShowLine(null, escapeNoticeText, escapeNoticeSeconds);
         }
 
         // ---- Turn loop ----

@@ -1041,6 +1041,8 @@ MonoBehaviour:
   enemyTurnDelay: 0.6
   blockedTurnNoticeSeconds: 1.2
   autoStartEncounterId: 
+  escapeNoticeSeconds: 1.6
+  escapeNoticeText: Got away safely!
   statusText: {fileID: 0}
 --- !u!4 &1782637661
 Transform:

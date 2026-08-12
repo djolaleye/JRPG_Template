@@ -36,7 +36,7 @@ namespace JRPG.Data
         public IReadOnlyDictionary<string, PassiveData> PassivesById => _passivesById;
         public IReadOnlyDictionary<string, EnemyActionProfileData> EnemyActionProfilesById => _enemyProfilesById;
 
-        /// The authored elemental interaction table (Phase 11); null when the database has none.
+        /// The authored elemental interaction table; null when the database has none.
         public ElementInteractionMatrix ElementMatrix { get; private set; }
 
         public void Build(GameDatabase db)
