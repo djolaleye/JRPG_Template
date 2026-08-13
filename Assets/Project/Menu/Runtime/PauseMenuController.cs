@@ -9,8 +9,8 @@ namespace JRPG.Menu
     /// The in-world pause menu.
     ///
     /// <para><b>Rows explain themselves.</b> Every destination row is built through
-    /// <see cref="MenuController.NavigationRow"/>, so a screen that does not exist yet — Progression,
-    /// Equipment, Settings — renders greyed with its reason attached.</para>
+    /// <see cref="MenuController.NavigationRow"/>, so a screen that does not exist yet — Settings —
+    /// renders greyed with its reason attached rather than silently missing.</para>
     ///
     /// Exit to Main Menu discards unsaved progress, so it
     /// routes through <see cref="ConfirmPromptController"/> (which defaults to Cancel) before
@@ -26,7 +26,10 @@ namespace JRPG.Menu
         protected override IReadOnlyList<RowModel> BuildRows() => new[]
         {
             NavigationRow("party", "Party", "party"),
-            NavigationRow("progression", "Progression", "progression", "No progression screen yet."),
+            // No Progression row: there is no such screen and no plan for one. What it would have held
+            // is already reachable — per-character level/XP/stats/skills on the character detail screen
+            // (via Party), and attribute allocation in the post-battle flow, which is the only point
+            // points are granted. A permanently greyed row advertised a destination that is not coming.
             NavigationRow("inventory", "Inventory", "inventory"),
             NavigationRow("equipment", "Equipment", "equip", "No equipment screen yet."),
 

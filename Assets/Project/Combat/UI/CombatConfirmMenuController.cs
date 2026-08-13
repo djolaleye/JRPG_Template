@@ -43,6 +43,13 @@ namespace JRPG.Combat.UI
             return rows;
         }
 
+        // Yes/No rather than Confirm/Back: this screen asks a question, and the rows are the answer.
+        public override IReadOnlyList<InputPrompt> Prompts { get; } = new[]
+        {
+            new InputPrompt("Cancel", "No"),
+            new InputPrompt("Submit", "Yes"),
+        };
+
         private static string TargetNames(CombatService combat, IReadOnlyList<string> targetIds)
         {
             var battle = combat.CurrentBattle;

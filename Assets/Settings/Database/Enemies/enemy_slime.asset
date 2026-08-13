@@ -31,17 +31,17 @@ MonoBehaviour:
   - stat: 6
     value: 2
   - stat: 7
-    value: 30
+    value: 3
   - stat: 8
     value: 2
   - stat: 9
     value: 1
   level: 1
-  baseXpReward: 55
+  baseXpReward: 10
   baseCurrencyReward: 15
   possibleDrops:
   - itemId: item_potion_small
-    dropChance: 1
+    dropChance: 0.5
     minQuantity: 1
     maxQuantity: 1
   elementAffinities: []

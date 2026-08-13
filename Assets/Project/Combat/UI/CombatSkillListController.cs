@@ -66,6 +66,12 @@ namespace JRPG.Combat.UI
             return rows;
         }
 
+        public override IReadOnlyList<InputPrompt> Prompts { get; } = new[]
+        {
+            new InputPrompt("Cancel", "Back"),
+            new InputPrompt("Submit", "Confirm"),
+        };
+
         private RowModel SkillRow(CombatActionData action, CombatantInstance actor,
                                   CombatService combat, string actorId, string grantedBy)
         {

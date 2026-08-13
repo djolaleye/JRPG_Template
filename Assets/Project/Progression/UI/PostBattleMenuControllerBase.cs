@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine.InputSystem;
 using JRPG.Menu;
 using JRPG.Services;
@@ -15,6 +16,16 @@ namespace JRPG.Progression.UI
 
         protected static RowModel Info(string id, string label)
             => new() { id = id, label = label, enabled = false };
+
+        /// <summary>
+        /// Every post-battle screen advances the same way and none can be backed out of, so the prompt
+        /// set is declared once here rather than repeated per screen. A screen with extra affordances
+        /// (the allocation steppers) overrides this.
+        /// </summary>
+        public override IReadOnlyList<InputPrompt> Prompts { get; } = new[]
+        {
+            new InputPrompt("Submit", "Next"),
+        };
 
         protected override void OnCancel(InputAction.CallbackContext ctx)
         {

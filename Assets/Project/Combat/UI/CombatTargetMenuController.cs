@@ -29,6 +29,13 @@ namespace JRPG.Combat.UI
             return rows;
         }
 
+        public override IReadOnlyList<InputPrompt> Prompts { get; } = new[]
+        {
+            new InputPrompt("Navigate", "Target"),
+            new InputPrompt("Cancel", "Back"),
+            new InputPrompt("Submit", "Confirm"),
+        };
+
         /// <summary>
         /// Publishes the cursor's position to the flow controller so the HUD's enemy banner can follow
         /// it. Read-only bookkeeping.

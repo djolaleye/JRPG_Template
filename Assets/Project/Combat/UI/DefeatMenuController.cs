@@ -51,6 +51,11 @@ namespace JRPG.Combat.UI
             return rows;
         }
 
+        public override IReadOnlyList<InputPrompt> Prompts { get; } = new[]
+        {
+            new InputPrompt("Submit", "Confirm"),
+        };
+
         /// No backing out of a game over.
         protected override void OnCancel(InputAction.CallbackContext ctx) { }
     }
