@@ -30,7 +30,8 @@ namespace JRPG.Data
         [Tooltip("Legacy flat roster. Used only when 'enemies' is empty.")]
         public List<string> enemyIds = new();
 
-        public string battleSceneId;
+        [Tooltip("Stable id of the CombatArenaDefinition this battle is staged in.")]
+        public string arenaId;
 
         [Header("Escape rules")]
         [Tooltip("Whether fleeing is permitted at all.")]

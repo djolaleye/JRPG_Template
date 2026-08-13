@@ -25,7 +25,7 @@ MonoBehaviour:
   enemyIds:
   - enemy_slime
   - enemy_fire_slime
-  battleSceneId: 
+  arenaId: arena_fields
   escapable: 1
   isBoss: 0
   escapeDifficulty: 1

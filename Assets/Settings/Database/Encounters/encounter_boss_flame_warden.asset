@@ -26,7 +26,7 @@ MonoBehaviour:
     slotId: ember_right
     displayNameOverride: Ember Whelp B
   enemyIds: []
-  battleSceneId: 
+  arenaId: arena_boss_hall
   escapable: 0
   isBoss: 1
   escapeDifficulty: 1

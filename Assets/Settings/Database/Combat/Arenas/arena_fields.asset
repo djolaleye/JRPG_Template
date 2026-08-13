@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1cec044b1490fd94694e6b1a17630460, type: 3}
+  m_Name: arena_fields
+  m_EditorClassIdentifier: JRPG.Data::JRPG.Data.CombatArenaDefinition
+  id: arena_fields
+  displayName: Open Fields
+  description: 
+  arenaPrefab: {fileID: 5556149629957337702, guid: 9ea8f2ee7ed20074eb183615b9c71a96, type: 3}
+  isBossArena: 0
+  requiredPartyFormations: 4
+  requiredEnemyFormations: 6

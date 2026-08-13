@@ -106,8 +106,9 @@ namespace JRPG.Combat.Editor
             }
 
             asset.enemyIds = enemyIds;
-            asset.battleSceneId = string.Empty;
             asset.escapable = escapable;
+            // arenaId is left alone: ArenaContentBuilder assigns it, and re-running this builder must
+            // not wipe an arena an author has already chosen.
             SetStableId(asset, id);
 
             if (created) AssetDatabase.CreateAsset(asset, path);

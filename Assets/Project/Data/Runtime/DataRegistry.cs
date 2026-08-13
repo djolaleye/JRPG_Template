@@ -22,6 +22,7 @@ namespace JRPG.Data
         private readonly Dictionary<string, StatusEffectData> _statusesById = new();
         private readonly Dictionary<string, PassiveData> _passivesById = new();
         private readonly Dictionary<string, EnemyActionProfileData> _enemyProfilesById = new();
+        private readonly Dictionary<string, CombatArenaDefinition> _arenasById = new();
 
         public IReadOnlyDictionary<string, CharacterData> CharactersById => _charactersById;
         public IReadOnlyDictionary<string, EnemyData> EnemiesById => _enemiesById;
@@ -35,6 +36,7 @@ namespace JRPG.Data
         public IReadOnlyDictionary<string, StatusEffectData> StatusesById => _statusesById;
         public IReadOnlyDictionary<string, PassiveData> PassivesById => _passivesById;
         public IReadOnlyDictionary<string, EnemyActionProfileData> EnemyActionProfilesById => _enemyProfilesById;
+        public IReadOnlyDictionary<string, CombatArenaDefinition> ArenasById => _arenasById;
 
         /// The authored elemental interaction table; null when the database has none.
         public ElementInteractionMatrix ElementMatrix { get; private set; }
@@ -54,6 +56,7 @@ namespace JRPG.Data
             _statusesById.Clear();
             _passivesById.Clear();
             _enemyProfilesById.Clear();
+            _arenasById.Clear();
 
             Index(db.characters, _charactersById, "characters");
             Index(db.enemies, _enemiesById, "enemies");
@@ -67,6 +70,7 @@ namespace JRPG.Data
             Index(db.statuses, _statusesById, "statuses");
             Index(db.passives, _passivesById, "passives");
             Index(db.enemyActionProfiles, _enemyProfilesById, "enemyActionProfiles");
+            Index(db.arenas, _arenasById, "arenas");
 
             SynthesiseItemActions();
 
@@ -198,6 +202,11 @@ namespace JRPG.Data
                     if (_enemyProfilesById.TryGetValue(id, out var ap) && ap is T tap) { value = tap; return true; }
                 }
 
+                if (typeof(T) == typeof(CombatArenaDefinition) || typeof(T).IsAssignableFrom(typeof(CombatArenaDefinition)))
+                {
+                    if (_arenasById.TryGetValue(id, out var ar) && ar is T tar) { value = tar; return true; }
+                }
+
                 if (typeof(T) == typeof(GameDataBase))
                 {
                     if (_charactersById.TryGetValue(id, out var c) && c is T tc) { value = tc; return true; }
@@ -212,6 +221,7 @@ namespace JRPG.Data
                     if (_statusesById.TryGetValue(id, out var st) && st is T tst) { value = tst; return true; }
                     if (_passivesById.TryGetValue(id, out var pv) && pv is T tpv) { value = tpv; return true; }
                     if (_enemyProfilesById.TryGetValue(id, out var ap) && ap is T tap) { value = tap; return true; }
+                    if (_arenasById.TryGetValue(id, out var ar) && ar is T tar) { value = tar; return true; }
                 }
             }
             

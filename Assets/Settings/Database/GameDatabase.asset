@@ -93,4 +93,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 2db538d615d8d944bad9d1142086232a, type: 2}
   - {fileID: 11400000, guid: bb936fa915c4e11429bac3de1d5902f8, type: 2}
   - {fileID: 11400000, guid: a713be7ad3f5c784f9e2f7b876449ae3, type: 2}
+  arenas:
+  - {fileID: 11400000, guid: ee1eec9ff5a42a84fa669c3e0f99eebc, type: 2}
+  - {fileID: 11400000, guid: 873e90d626589104a98029d0afaabda2, type: 2}
   elementMatrix: {fileID: 11400000, guid: eb895200428d3e74bb11e3cb278679a8, type: 2}

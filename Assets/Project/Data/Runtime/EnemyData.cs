@@ -27,6 +27,9 @@ namespace JRPG.Data
 
         [Tooltip("Skill-category actions this enemy can use (max 8).")]
         public List<string> skillIds = new();
+
+        [Tooltip("Optional. Battle body staged on an arena spawn point. Null uses the placeholder capsule.")]
+        public GameObject battlePrefab;
     }
 
     [Serializable]

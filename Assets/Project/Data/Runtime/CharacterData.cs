@@ -25,12 +25,11 @@ namespace JRPG.Data
         public List<string> statusImmunityIds = new();
         public List<string> passiveEffectIds = new();
 
-        /// <summary>
-        /// Speaker bust for dialogue, and the portrait for party/character screens.
-        ///
-        /// <para>Optional by design: every consumer falls back to the name plate alone.</para>
-        /// </summary>
+
         [Tooltip("Optional. Speaker bust / portrait. Consumers fall back to the name plate alone when null.")]
         public Sprite portraitSprite;
+
+        [Tooltip("Optional. Battle body staged on an arena spawn point. Null uses the placeholder capsule.")]
+        public GameObject battlePrefab;
     }
 }

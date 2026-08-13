@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using JRPG.Data;
+using JRPG.Combat.Arena;
 
 namespace JRPG.Combat.Editor
 {
@@ -71,6 +72,9 @@ namespace JRPG.Combat.Editor
                 }
             }
 
+            // Arenas. Indexed first so the encounter pass can resolve arenaId references.
+            var arenasById = ValidateArenas(db, errors, warnings);
+
             // Encounters.
             for (int i = 0; i < db.encounters.Count; i++)
             {
@@ -80,12 +84,18 @@ namespace JRPG.Combat.Editor
 
                 if (string.IsNullOrWhiteSpace(enc.Id))
                     errors.Add($"Encounter '{enc.name}' has an empty stable Id.");
-                if (enc.enemyIds == null || enc.enemyIds.Count == 0)
+                // ResolveRoster, not the legacy enemyIds list: an encounter that authors only the
+                // rich roster (which every boss does) would otherwise report "no enemies" and have
+                // its enemy references skipped entirely.
+                var roster = enc.ResolveRoster();
+                if (roster.Count == 0)
                     warnings.Add($"Encounter '{label}' has no enemies.");
                 else
-                    foreach (var id in enc.enemyIds)
-                        if (!enemyIds.Contains(id))
-                            errors.Add($"Encounter '{label}' references missing enemy '{id}'.");
+                    foreach (var entry in roster)
+                        if (!enemyIds.Contains(entry.enemyId))
+                            errors.Add($"Encounter '{label}' references missing enemy '{entry.enemyId}'.");
+
+                ValidateEncounterArena(enc, label, arenasById, errors, warnings);
             }
 
             foreach (var w in warnings) Debug.LogWarning($"[CombatValidator] {w}");
@@ -94,6 +104,95 @@ namespace JRPG.Combat.Editor
                 Debug.Log("[CombatValidator] Combat data validation passed.");
             else
                 Debug.Log($"[CombatValidator] Done: {errors.Count} error(s), {warnings.Count} warning(s).");
+        }
+
+        /// <summary>
+        /// Arena assets and the prefabs they point at. The structural checks live on
+        /// <see cref="ArenaRoot.Validate"/> so the editor pass and the runtime staging guard cannot
+        /// drift apart; this method adds the checks that need the database's view — duplicate ids,
+        /// and coverage against the arena's own declared requirements.
+        /// </summary>
+        private static Dictionary<string, CombatArenaDefinition> ValidateArenas(
+            GameDatabase db, List<string> errors, List<string> warnings)
+        {
+            var arenasById = new Dictionary<string, CombatArenaDefinition>();
+            if (db.arenas == null) return arenasById;
+
+            for (int i = 0; i < db.arenas.Count; i++)
+            {
+                var arena = db.arenas[i];
+                if (arena == null) { errors.Add($"arenas[{i}] is null."); continue; }
+
+                string label = string.IsNullOrEmpty(arena.Id) ? arena.name : arena.Id;
+
+                if (string.IsNullOrWhiteSpace(arena.Id))
+                    errors.Add($"Arena '{arena.name}' has an empty stable Id.");
+                else if (arenasById.ContainsKey(arena.Id))
+                    errors.Add($"Duplicate arena Id '{arena.Id}'.");
+                else
+                    arenasById[arena.Id] = arena;
+
+                if (arena.arenaPrefab == null)
+                {
+                    errors.Add($"Arena '{label}' has no arena prefab assigned.");
+                    continue;
+                }
+
+                var root = arena.arenaPrefab.GetComponentInChildren<ArenaRoot>(true);
+                if (root == null)
+                {
+                    errors.Add($"Arena '{label}' prefab '{arena.arenaPrefab.name}' carries no ArenaRoot component.");
+                    continue;
+                }
+
+                if (!root.Validate(out var structuralError))
+                {
+                    errors.Add($"Arena '{label}': {structuralError}");
+                    continue;
+                }
+
+                int party = root.GetMaxSupported(ArenaTeam.Party);
+                if (party < arena.requiredPartyFormations)
+                    errors.Add($"Arena '{label}' requires {arena.requiredPartyFormations} player spawn points, " +
+                               $"but only {party} are configured.");
+
+                int enemy = root.GetMaxSupported(ArenaTeam.Enemy);
+                if (enemy < arena.requiredEnemyFormations)
+                    errors.Add($"Arena '{label}' requires {arena.requiredEnemyFormations} enemy spawn points, " +
+                               $"but only {enemy} are configured.");
+
+                if (root.Dressing == null)
+                    warnings.Add($"Arena '{label}' has no dressing root — the staging will look bare.");
+            }
+
+            return arenasById;
+        }
+
+        private static void ValidateEncounterArena(EncounterData enc, string label,
+                                                   Dictionary<string, CombatArenaDefinition> arenasById,
+                                                   List<string> errors, List<string> warnings)
+        {
+            if (string.IsNullOrWhiteSpace(enc.arenaId))
+            {
+                errors.Add($"Encounter '{label}' has no arenaId — the battle transition cannot stage it.");
+                return;
+            }
+
+            if (!arenasById.TryGetValue(enc.arenaId, out var arena))
+            {
+                errors.Add($"Encounter '{label}' references missing arena '{enc.arenaId}'.");
+                return;
+            }
+
+            // A boss on a shared arena still runs; it just throws away the one place unique staging
+            // was meant to go. Warning, not an error.
+            if (enc.isBoss && !arena.isBossArena)
+                warnings.Add($"Boss encounter '{label}' uses shared arena '{arena.Id}' rather than a dedicated one.");
+
+            int rosterSize = enc.ResolveRoster().Count;
+            if (rosterSize > arena.requiredEnemyFormations)
+                errors.Add($"Encounter '{label}' fields {rosterSize} enemies but arena '{arena.Id}' only " +
+                           $"guarantees {arena.requiredEnemyFormations} enemy spawn points.");
         }
     }
 }

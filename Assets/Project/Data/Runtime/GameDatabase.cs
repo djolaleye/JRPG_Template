@@ -26,6 +26,9 @@ namespace JRPG.Data
         public List<PassiveData> passives = new();
 
         public List<EnemyActionProfileData> enemyActionProfiles = new();
+
+        public List<CombatArenaDefinition> arenas = new();
+
         public ElementInteractionMatrix elementMatrix;
     }
 }
