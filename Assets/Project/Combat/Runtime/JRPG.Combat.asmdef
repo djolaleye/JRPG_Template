@@ -6,7 +6,8 @@
         "JRPG.Data",
         "JRPG.Services",
         "JRPG.Characters",
-        "JRPG.Party"
+        "JRPG.Party",
+        "Unity.Cinemachine"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

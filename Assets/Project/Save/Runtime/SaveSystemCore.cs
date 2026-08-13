@@ -18,7 +18,8 @@ namespace JRPG.Save
         //     actually populating sceneId + playTime, so slots can be summarized without a restore.
         // v4: party payload carries each character's current HP/MP/SP. Before this, restore rebuilt
         //     instances and progression refilled every pool, so loading was a silent full heal.
-        public const int CurrentSaveVersion = 4;
+        // v5: added the "world" contributor (encounter Ready/InProgress/Complete state).
+        public const int CurrentSaveVersion = 5;
 
         private readonly SaveRegistry _registry;
         private readonly SaveFileConfig _config;
@@ -416,6 +417,9 @@ namespace JRPG.Save
                     case 3:
                         MigrateV3ToV4(dto);
                         break;
+                    case 4:
+                        MigrateV4ToV5(dto);
+                        break;
                     default:
                         Debug.LogError($"[JRPG.Save] No migration step defined from v{v}.");
                         return false;
@@ -458,6 +462,16 @@ namespace JRPG.Save
             if (dto.party != null) dto.party.resources ??= new List<CharacterResourceEntry>();
         }
 
+        /// v4 → v5:  added the "world" contributor carrying encounter Ready/InProgress/Complete state.
+        /// A legacy save predates encounter tracking entirely, so an empty ledger is the correct
+        /// reading: every encounter is Ready, which is exactly how that save behaved when written.
+        /// Nothing can be inferred from the older payloads — encounter completion was never recorded.
+        private static void MigrateV4ToV5(GameSaveData dto)
+        {
+            dto.world ??= new WorldSaveData();
+            dto.world.encounters ??= new List<EncounterStateEntry>();
+        }
+
         private string SlotPath(int slot)
         {
             var fileName = string.Format(_config.fileNameFormat, slot);
@@ -498,6 +512,10 @@ namespace JRPG.Save
                     if (payload is StorySaveData storyP) dto.story = storyP;
                     else Debug.LogError($"[JRPG.Save] Unexpected payload type for key 'story': {payload?.GetType().Name}");
                     break;
+                case "world":
+                    if (payload is WorldSaveData worldP) dto.world = worldP;
+                    else Debug.LogError($"[JRPG.Save] Unexpected payload type for key 'world': {payload?.GetType().Name}");
+                    break;
                 default:
                     Debug.LogWarning($"[JRPG.Save] Unknown SaveKey '{key}' (no field in GameSaveData).");
                     break;
@@ -524,6 +542,10 @@ namespace JRPG.Save
                     if (dto.story == null) return null;
                     dto.story.version = dto.version;
                     return dto.story;
+                case "world":
+                    if (dto.world == null) return null;
+                    dto.world.version = dto.version;
+                    return dto.world;
                 default:
                     return null;
             }

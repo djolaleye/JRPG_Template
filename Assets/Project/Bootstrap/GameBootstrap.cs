@@ -85,6 +85,12 @@ namespace JRPG.Bootstrap
             services.Register<IRecruitmentConditionEvaluator>(story);
             saveContributors.Register(story);
 
+            // Encounter ledger. Independent of every other service — it holds ids and enum values
+            // only — so it is built early and registered as its own save contributor.
+            var world = new WorldStateService(bus);
+            services.Register<IWorldStateService>(world);
+            saveContributors.Register(world);
+
             var party = new PartyService(data, bus, protagonistId, story);
             services.Register<IPartyService>(party);
             // PartyService implements both roster surfaces. Register the runtime-instance surface

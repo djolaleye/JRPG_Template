@@ -47,5 +47,8 @@ namespace JRPG.Save
 
         // Story flags + completed dialogue markers.
         public StorySaveData story = new();
+
+        // Encounter lifecycle state. Never records an in-flight battle — see WorldStateService.
+        public WorldSaveData world = new();
     }
 }

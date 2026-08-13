@@ -43,6 +43,7 @@
   <Project Path="Unity.AI.Animate.csproj" />
   <Project Path="JRPG.Save.csproj" />
   <Project Path="Unity.AI.Assistant.Tools.Editor.csproj" />
+  <Project Path="JRPG.Combat.Editor.csproj" />
   <Project Path="glTFast.Export.csproj" />
   <Project Path="JRPG.Combat.UI.csproj" />
   <Project Path="Unity.Burst.Editor.csproj" />
@@ -63,11 +64,11 @@
   <Project Path="Unity.AI.Navigation.Editor.csproj" />
   <Project Path="Unity.AI.Toolkit.GenerationObjectPicker.csproj" />
   <Project Path="Unity.AI.Assistant.API.Editor.csproj" />
-  <Project Path="JRPG.Combat.Editor.csproj" />
   <Project Path="glTFast.Documentation.Examples.csproj" />
   <Project Path="JRPG.Progression.UI.csproj" />
   <Project Path="Unity.AI.Generators.UI.AIDropdownIntegrations.csproj" />
   <Project Path="JRPG.Progression.csproj" />
+  <Project Path="JRPG.Party.csproj" />
   <Project Path="Unity.InputSystem.ForUI.csproj" />
   <Project Path="Unity.AI.Generators.Asset.csproj" />
   <Project Path="Unity.AI.Navigation.csproj" />
@@ -96,7 +97,6 @@
   <Project Path="JRPG.Bootstrap.Editor.csproj" />
   <Project Path="Unity.AI.Assistant.Bridge.Editor.csproj" />
   <Project Path="Unity.AI.Toolkit.Compliance.csproj" />
-  <Project Path="JRPG.Party.csproj" />
   <Project Path="Unity.InputSystem.DocCodeSamples.csproj" />
   <Project Path="Unity.AI.Toolkit.GenerationContextMenu.csproj" />
   <Project Path="glTFast.dots.csproj" />

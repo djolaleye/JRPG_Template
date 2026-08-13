@@ -128,6 +128,10 @@ namespace JRPG.Bootstrap
             _party.ResetForNewGame();
             _progression.ResetForNewGame();
 
+            // World state holds only encounter ids and enum values, so it reads nothing above and
+            // nothing above reads it — resolved lazily rather than added to the constructor.
+            if (_services.TryResolve<IWorldStateService>(out var world)) world.ResetForNewGame();
+
             ResetTransientSessionServices();
         }
 
