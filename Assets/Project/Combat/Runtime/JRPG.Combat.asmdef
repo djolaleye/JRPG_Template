@@ -7,7 +7,8 @@
         "JRPG.Services",
         "JRPG.Characters",
         "JRPG.Party",
-        "Unity.Cinemachine"
+        "Unity.Cinemachine",
+        "Unity.TextMeshPro"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

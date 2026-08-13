@@ -15,6 +15,19 @@ namespace JRPG.Combat
             _data = data;
         }
 
+        /// <summary>
+        /// Combatant ids, as formulas rather than literals.
+        ///
+        /// <para>Arena staging runs before the battle exists, so it has to name the bodies it
+        /// spawns using the same ids the engine will mint moments later. Both sides call these, so the
+        /// two can never drift into disagreeing about who a body belongs to.</para>
+        /// </summary>
+        public static string PartyCombatantId(string characterId) => $"party_{characterId}";
+
+        /// Enemy slots always carry an id — <c>EncounterData.ResolveRoster</c> fills a missing one
+        /// deterministically — so this is the id every authored encounter produces.
+        public static string EnemyCombatantId(string slotId) => $"enemy_{slotId}";
+
         /// Party combatant. Clones the character's stat block so temporary combat modifiers cannot
         /// leak into exploration state. Current HP/MP/SP are copied from the live instance and are
         /// committed back at battle end via sourceRuntimeId.
@@ -25,7 +38,7 @@ namespace JRPG.Combat
 
             var combatant = new CombatantInstance
             {
-                combatantId = $"party_{character.SourceDataId}",
+                combatantId = PartyCombatantId(character.SourceDataId),
                 sourceDataId = character.SourceDataId,
                 sourceRuntimeId = character.InstanceId,
                 team = CombatantTeam.Party,
@@ -50,7 +63,7 @@ namespace JRPG.Combat
             if (!string.IsNullOrEmpty(slot.slotId))
             {
                 combatant.encounterSlotId = slot.slotId;
-                combatant.combatantId = $"enemy_{slot.slotId}";
+                combatant.combatantId = EnemyCombatantId(slot.slotId);
             }
             if (!string.IsNullOrEmpty(slot.displayNameOverride))
                 combatant.displayName = slot.displayNameOverride;

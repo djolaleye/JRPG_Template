@@ -60,5 +60,35 @@ namespace JRPG.Services
         /// once the destination is live.
         /// </summary>
         void SwapTo(string sceneName, Action onComplete = null);
+
+        // ---- Overlay slot -------------------------------------------------------------------------
+        //
+        // A second, independent scene layered *on top of* the content scene rather than replacing it.
+        // Combat is the reason it exists: the battle needs its own environment while the exploration
+        // scene stays resident, holding the player where they were standing.
+        //
+        // The overlay deliberately does not fade. A content swap owns its own cover because it is the
+        // whole transition; an overlay load is one step inside a longer sequence the caller is
+        // choreographing, and a fade of its own would fight that.
+
+        /// <summary>Name of the overlay scene currently loaded, or <c>null</c>/empty when none is.</summary>
+        string CurrentOverlayScene { get; }
+
+        /// <summary>
+        /// Loads <paramref name="sceneName"/> additively alongside the content scene, without
+        /// unloading or touching it.
+        ///
+        /// <para><paramref name="makeActive"/> hands the overlay the active-scene role, which decides
+        /// whose lighting settings and skybox the frame renders with — an arena lit by the world
+        /// scene's environment is the symptom of getting this wrong. <see cref="UnloadOverlay"/> gives
+        /// the role back to the content scene.</para>
+        /// </summary>
+        void LoadOverlay(string sceneName, bool makeActive = true, Action onLoaded = null);
+
+        /// <summary>
+        /// Unloads the overlay and returns the active-scene role to the content scene. Safe to call
+        /// when no overlay is loaded — the callback still fires.
+        /// </summary>
+        void UnloadOverlay(Action onUnloaded = null);
     }
 }

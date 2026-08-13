@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using Unity.Cinemachine;
 using JRPG.Data;
@@ -44,6 +45,9 @@ namespace JRPG.Combat.Arena
                  "and a combatant respawn stay independent.")]
         [SerializeField] private Transform combatantRoot;
 
+        [Tooltip("Body used for any combatant with no authored battlePrefab. Tinted by team.")]
+        [SerializeField] private GameObject placeholderCombatant;
+
         [Header("Camera")]
         [Tooltip("The scene's presentation camera.")]
         [SerializeField] private Camera combatCamera;
@@ -64,6 +68,22 @@ namespace JRPG.Combat.Arena
         public Transform ArenaMount => arenaMount;
         public Transform CombatantRoot => combatantRoot;
         public Camera CombatCamera => combatCamera;
+        public GameObject PlaceholderCombatant => placeholderCombatant;
+
+        /// The arena prefab instance currently staged, or null.
+        public GameObject ArenaInstance { get; private set; }
+
+        /// The staged arena's contract component. Distinct from the definition's prefab template.
+        public ArenaRoot StagedArena { get; private set; }
+
+        private readonly Dictionary<string, CombatantPresentation> _bodies = new();
+
+        /// Staged bodies by combatant id — the same ids the engine uses, so a later floater or
+        /// highlight can find a body without keeping a roster of its own.
+        public IReadOnlyDictionary<string, CombatantPresentation> Bodies => _bodies;
+
+        public CombatantPresentation FindBody(string combatantId)
+            => !string.IsNullOrEmpty(combatantId) && _bodies.TryGetValue(combatantId, out var body) ? body : null;
 
         private void Awake()
         {
@@ -141,6 +161,52 @@ namespace JRPG.Combat.Arena
         {
             State = CombatSceneState.Ending;
             SetCameraActive(false);
+            ClearStaging();
+        }
+
+        // ---- Staged content --------------------------------------------------------------------
+
+        /// Takes ownership of what the staging pass built, so teardown has a single place to look.
+        public void AdoptStaging(GameObject arenaInstance, ArenaRoot stagedArena,
+                                 IReadOnlyList<CombatantPresentation> bodies)
+        {
+            ArenaInstance = arenaInstance;
+            StagedArena = stagedArena;
+
+            _bodies.Clear();
+            if (bodies == null) return;
+
+            for (int i = 0; i < bodies.Count; i++)
+            {
+                var body = bodies[i];
+                if (body == null || string.IsNullOrEmpty(body.CombatantId)) continue;
+
+                // Two bodies claiming one id would silently shadow each other for every later lookup.
+                if (!_bodies.TryAdd(body.CombatantId, body))
+                    Debug.LogError($"[JRPG.Combat.Arena] Duplicate combatant id '{body.CombatantId}' " +
+                                   "among the staged bodies.", body);
+            }
+        }
+
+        /// <summary>
+        /// Destroys the arena and every body. Called before restaging (a retry reuses this scene) and
+        /// again on teardown, so it must be safe to run twice and safe to run on nothing.
+        /// </summary>
+        public void ClearStaging()
+        {
+            _bodies.Clear();
+            StagedArena = null;
+
+            if (ArenaInstance != null)
+            {
+                Destroy(ArenaInstance);
+                ArenaInstance = null;
+            }
+
+            if (combatantRoot == null) return;
+
+            for (int i = combatantRoot.childCount - 1; i >= 0; i--)
+                Destroy(combatantRoot.GetChild(i).gameObject);
         }
 
         /// Aborts setup. The director reads <see cref="State"/> and unwinds rather than activating
