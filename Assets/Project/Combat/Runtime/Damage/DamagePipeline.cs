@@ -7,7 +7,7 @@ namespace JRPG.Combat
     /// adding/removing/reordering a rule is a change to this list rather than to action execution.
     ///
     /// Stage order: base power → attacker stat → equipment → accuracy/evasion → defense →
-    /// element → critical → status → passive → difficulty → guard → clamp/round.
+    /// element → critical → status → passive → difficulty → variance → guard → clamp/round.
     public sealed class DamagePipeline
     {
         private readonly List<IDamageStage> _stages = new();

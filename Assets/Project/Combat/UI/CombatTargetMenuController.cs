@@ -37,6 +37,14 @@ namespace JRPG.Combat.UI
         };
 
         /// <summary>
+        /// Left/right step the target list, exactly as up/down do.
+        ///
+        /// <para>One selection model drives both axes — which also keeps
+        /// <see cref="OnHighlightChanged"/> as the single place the HUD banner is updated from.</para>
+        /// </summary>
+        protected override void OnNavigateHorizontal(int dir) => MoveSelection(dir);
+
+        /// <summary>
         /// Publishes the cursor's position to the flow controller so the HUD's enemy banner can follow
         /// it. Read-only bookkeeping.
         /// </summary>

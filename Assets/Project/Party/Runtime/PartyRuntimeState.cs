@@ -17,8 +17,8 @@ namespace JRPG.Party
         /// </summary>
         public readonly HashSet<string> lockedIds = new();
 
-        public int maxActiveMembers = 4;
-        public int maxTotalParty = 8;
+        public int maxActiveMembers = PartyRules.MaxActiveMembers;
+        public int maxTotalParty = PartyRules.MaxTotalParty;
 
         public readonly Stack<ScopeSnapshot> scopeStack = new();
     }

@@ -34,6 +34,7 @@ namespace JRPG.Combat
                 .Add(new StatusModifierStage(status))               // 7
                 .Add(new PassiveModifierStage(passives))            // 8
                 .Add(new DifficultyStage())                         // 9 (placeholder)
+                .Add(new VarianceStage(tuning))                     // 9b
                 .Add(new GuardStage())                              // 10
                 .Add(new ClampRoundStage());                        // 11
         }

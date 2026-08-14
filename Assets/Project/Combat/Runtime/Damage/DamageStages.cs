@@ -243,6 +243,35 @@ namespace JRPG.Combat
         public void Apply(DamageContext ctx) { }
     }
 
+    /// <summary>
+    /// 9b. Random spread on the finished figure.
+    /// </summary>
+    public sealed class VarianceStage : IDamageStage
+    {
+        private readonly CombatTuning _tuning;
+
+        public VarianceStage(CombatTuning tuning)
+        {
+            _tuning = tuning;
+        }
+
+        public string Name => "variance";
+
+        public void Apply(DamageContext ctx)
+        {
+            if (ctx.isPreview) return;
+            if (ctx.missed || ctx.immune) return;   // the amount is already zero
+
+            float variance = _tuning?.damageVariance ?? 0f;
+            if (variance <= 0f) return;
+            if (ctx.rng == null) return;
+
+            // The per-battle seeded stream, so a replayed battle rolls the same numbers.
+            float roll = (float)(ctx.rng.NextDouble() * 2.0 - 1.0);   // [-1, +1)
+            ctx.runningDamage *= 1f + roll * variance;
+        }
+    }
+
     /// 10. Guard and defensive reactions. Reads the target's guard multiplier, matching prior behavior
     public sealed class GuardStage : IDamageStage
     {

@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using JRPG.Characters;
+using JRPG.Core;
 using JRPG.Data;
 using JRPG.Party;
 using JRPG.Services;
@@ -35,16 +36,35 @@ namespace JRPG.Dialogue
             switch (name)
             {
                 case "ProtagonistName": return SlotName(0);
-                case "PartyMember_1": return SlotName(0);
-                case "PartyMember_2": return SlotName(1);
-                case "PartyMember_3": return SlotName(2);
                 case "ActiveHealer": return HealerName();
                 case "CurrentSpeaker": return context.speakerContextId ?? "";
                 case "ItemName": return _data != null && _data.TryGet<ItemData>(arg, out var item) ? item.displayName : Unknown($"ItemName:{arg}");
                 case "CharacterName": return _data != null && _data.TryGet<CharacterData>(arg, out var cd) ? cd.displayName : Unknown($"CharacterName:{arg}");
                 case "Flag": return _story != null ? _story.GetInt(arg).ToString() : "0";
-                default: return Unknown(arg == null ? name : $"{name}:{arg}");
+                default:
+                    if (TryResolvePartySlot(name, out var slotName)) return slotName;
+                    return Unknown(arg == null ? name : $"{name}:{arg}");
             }
+        }
+
+        /// <summary>
+        /// <c>[PartyMember_N]</c>, 1-based, for every slot the party can actually field.
+        ///
+        /// <para>Derived from <see cref="PartyRules.MaxActiveMembers"/> rather than written out as one
+        /// case per slot.</para>
+        /// </summary>
+        private bool TryResolvePartySlot(string name, out string result)
+        {
+            result = null;
+
+            const string prefix = "PartyMember_";
+            if (!name.StartsWith(prefix, System.StringComparison.Ordinal)) return false;
+
+            if (!int.TryParse(name.Substring(prefix.Length), out int oneBased)) return false;
+            if (oneBased < 1 || oneBased > PartyRules.MaxActiveMembers) return false;
+
+            result = SlotName(oneBased - 1);
+            return true;
         }
 
         private string SlotName(int slot)

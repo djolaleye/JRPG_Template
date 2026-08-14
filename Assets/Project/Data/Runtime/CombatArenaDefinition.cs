@@ -22,8 +22,8 @@ namespace JRPG.Data
 
         [Header("Required coverage")]
         [Tooltip("Largest party size this arena must support. The prefab needs a party formation for " +
-                 "every count from 1 to this number. Matches PartyRuntimeState.maxActiveMembers.")]
-        [Min(1)] public int requiredPartyFormations = 4;
+                 "every count from 1 to this number.")]
+        [Min(1)] public int requiredPartyFormations = PartyRules.MaxActiveMembers;
 
         [Tooltip("Largest enemy roster this arena must support. The prefab needs an enemy formation " +
                  "for every count from 1 to this number.")]

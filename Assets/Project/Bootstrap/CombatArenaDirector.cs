@@ -349,15 +349,50 @@ namespace JRPG.Bootstrap
             if (e.Previous.Mode != GameMode.Combat || e.Current.Mode == GameMode.Combat) return;
             if (_context == null || _tearingDown) return;
 
+            // Going to the main menu means the whole world is being replaced by a scene swap that
+            // owns the screen and unloads the overlay on its way. Running the normal teardown against
+            // it would fight for the fader and then restore Exploration state over the title screen.
+            if (e.Current.Mode == GameMode.MainMenu)
+            {
+                Abandon("the session returned to the title screen");
+                return;
+            }
+
             _tearingDown = true;
             StartCoroutine(ExitCombatRoutine());
         }
 
+        /// <summary>
+        /// Drops the battle without touching the screen or the game state, for the cases where
+        /// something else is already replacing the world. Releases the exploration camera because the
+        /// enter path disabled it, and that scene may still be resident for a few more frames.
+        /// </summary>
+        private void Abandon(string reason)
+        {
+            StopAllCoroutines();
+            _busy = false;
+            _tearingDown = false;
+            _context = null;
+
+            var scene = CombatSceneController.Current;
+            if (scene != null) scene.BeginEnding();
+
+            var presentation = ExplorationPresentationSink.Current;
+            if (presentation != null)
+            {
+                presentation.SetCameraActive(true);
+                presentation.ReleaseFocus();
+            }
+
+            Debug.Log($"[JRPG.Arena] Battle abandoned — {reason}.");
+        }
+
         private void OnGameLoaded(GameLoaded e)
         {
-            // A load replaces the world wholesale; a context describing the previous one is worse than
-            // none. The overlay itself is dropped by the scene-flow guard on the content swap.
-            _context = null;
+            // A load replaces the world wholesale.
+            // The overlay itself is dropped by the scene-flow guard on the content swap, which
+            // also owns the screen — so this abandons rather than tearing down.
+            if (_context != null) Abandon("a save was loaded");
         }
 
         private IEnumerator ExitCombatRoutine()
@@ -411,22 +446,41 @@ namespace JRPG.Bootstrap
 
         // ---- Screen -----------------------------------------------------------------------------
 
-        private IEnumerator Cover()
+        /// <summary>
+        /// Longest we will wait on a fade callback.
+        ///
+        /// <para><b>Why a timeout at all.</b> <c>ScreenTransitionController</c> is interrupt-and-retarget:
+        /// a second caller — a scene swap, say — cancels the first request and <i>drops</i> its pending
+        /// callbacks rather than firing them. Waiting on a callback that will never come strands this
+        /// coroutine mid-teardown, holding a battle context forever. Continuing after the timeout is
+        /// always better than not continuing at all: whoever superseded us owns the screen and will
+        /// uncover it.</para>
+        /// </summary>
+        private const float FadeCallbackTimeout = 3f;
+
+        private IEnumerator Cover() => AwaitFade(done => transition.FadeOut(done), "fade out");
+
+        private IEnumerator Uncover() => AwaitFade(done => transition.FadeIn(done), "fade in");
+
+        private IEnumerator AwaitFade(System.Action<System.Action> begin, string label)
         {
             if (transition == null) yield break;
 
-            bool covered = false;
-            transition.FadeOut(() => covered = true);
-            while (!covered) yield return null;
-        }
+            bool done = false;
+            begin(() => done = true);
 
-        private IEnumerator Uncover()
-        {
-            if (transition == null) yield break;
+            float deadline = Time.realtimeSinceStartup + FadeCallbackTimeout;
+            while (!done)
+            {
+                if (Time.realtimeSinceStartup > deadline)
+                {
+                    Debug.LogWarning($"[JRPG.Arena] The {label} callback never arrived — another caller " +
+                                     "took the screen. Continuing.", this);
+                    yield break;
+                }
 
-            bool clear = false;
-            transition.FadeIn(() => clear = true);
-            while (!clear) yield return null;
+                yield return null;
+            }
         }
     }
 }

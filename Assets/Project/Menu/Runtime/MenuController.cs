@@ -180,8 +180,25 @@ namespace JRPG.Menu
 
             int dir = v.y > 0.5f ? -1 : v.y < -0.5f ? +1 : 0;
             if (dir == 0) return;
+
+            MoveSelection(dir);
+        }
+
+        /// <summary>
+        /// Steps focus by <paramref name="dir"/> rows, skipping disabled ones and wrapping at both
+        /// ends.
+        ///
+        /// <para>Protected so a screen can drive it from a channel other than the vertical stick —
+        /// the combat target list maps left/right onto it, because its rows are enemies laid out
+        /// horizontally in the arena and up/down alone contradicts what the player sees.</para>
+        /// </summary>
+        protected void MoveSelection(int dir)
+        {
+            if (populator == null || dir == 0) return;
+
             int n = populator.ActiveRows.Count;
             if (n == 0) return;
+
             int idx = _selectedIndex;
             for (int step = 0; step < n; step++)
             {

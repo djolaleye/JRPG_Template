@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using JRPG.Core;
 
 namespace JRPG.Party
 {
@@ -10,7 +11,8 @@ namespace JRPG.Party
         public List<string> allowedCharacterIds = new();
         public List<string> requiredCharacterIds = new();
         public List<string> lockedCharacterIds = new();
-        public int maxActiveMembers = 4;
+        /// Defaults to the unrestricted cap; a scope authored below it is the point of a scope.
+        public int maxActiveMembers = PartyRules.MaxActiveMembers;
 
         public PartyScope() { }
 

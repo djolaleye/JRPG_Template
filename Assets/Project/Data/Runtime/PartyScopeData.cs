@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using JRPG.Core;
 
 namespace JRPG.Data
 {
@@ -13,6 +14,8 @@ namespace JRPG.Data
         public List<string> allowedCharacterIds = new();
         public List<string> requiredCharacterIds = new();
         public List<string> lockedCharacterIds = new();
-        public int maxActiveMembers = 4;
+        [Tooltip("Cap while this scope is pushed. Defaults to the unrestricted cap; author it lower " +
+                 "to restrict the party for a story section.")]
+        public int maxActiveMembers = PartyRules.MaxActiveMembers;
     }
 }

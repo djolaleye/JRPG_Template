@@ -39,12 +39,25 @@ namespace JRPG.Combat.UI
                 context = Context,
             });
 
+            var loadLast = new LoadLastSaveAction();
             rows.Add(new RowModel
             {
-                id = "return",
-                label = "Return to Exploration",
+                id = "load_last",
+                label = "Load Last Save",
+                enabled = loadLast.CanExecute(Context),
+                action = loadLast,
+                context = Context,
+                disabledReason = loadLast.GetDisabledReason(Context),
+            });
+
+            // Always enabled, and last. Without it a first battle lost before the player ever saved —
+            // with retry unavailable — would be a screen with no working exit.
+            rows.Add(new RowModel
+            {
+                id = "return_title",
+                label = "Return to Title",
                 enabled = true,
-                action = new ReturnToExplorationAction(),
+                action = new ReturnToTitleFromDefeatAction(),
                 context = Context,
             });
 
