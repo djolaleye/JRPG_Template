@@ -16,11 +16,19 @@ namespace JRPG.Progression
             _data = data;
         }
 
-        public ResolvedRewards Resolve(BattleResultData result, int dropSeed)
+        private static int ScaleXp(int baseXp, float multiplier)
+        {
+            if (baseXp <= 0 || Mathf.Approximately(multiplier, 1f)) return baseXp;
+
+            return Mathf.Max(1, Mathf.RoundToInt(baseXp * Mathf.Max(0f, multiplier)));
+        }
+
+        public ResolvedRewards Resolve(BattleResultData result, int dropSeed, float xpMultiplier = 1f)
         {
             var rewards = new ResolvedRewards
             {
-                totalXp = result.baseXP,
+                // Rounded, and floored at 1 for any battle that awarded anything at all
+                totalXp = ScaleXp(result.baseXP, xpMultiplier),
                 currency = result.currency,
             };
 

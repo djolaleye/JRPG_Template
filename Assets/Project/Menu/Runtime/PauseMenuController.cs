@@ -35,6 +35,9 @@ namespace JRPG.Menu
 
             NavigationRow("save", "Save", "save", "No save screen yet.", SaveGate),
             NavigationRow("load", "Load", "load_pause", "No load screen yet.", LoadGate),
+
+            NavigationRow("difficulty", "Difficulty", "difficulty_pause", "No difficulty screen yet."),
+
             NavigationRow("settings", "Settings", "settings", "No settings screen yet."),
 
             RowModel.Simple(ExitRowId, "Exit to Main Menu", new ReturnToTitleAction(), Context),

@@ -4,9 +4,8 @@ namespace JRPG.Combat
 {
     /// Builds the standard damage pipeline. Central place for the full stage list.
     ///
-    /// Every stage is live except <see cref="DifficultyStage"/>, which is inert and holds its slot in
-    /// the ordering so a difficulty multiplier can be dropped in without renumbering the rest.
-    /// Some stages also go inert when their collaborator is null — see the parameter docs below.
+    /// Every stage is live. Several go inert when their collaborator is null — see the parameter docs
+    /// below — which is how a harness builds a pipeline without statuses, passives or difficulty.
     public static class DamagePipelineFactory
     {
         /// <param name="elementMatrix">
@@ -18,8 +17,10 @@ namespace JRPG.Combat
         /// </param>
         /// <param name="tuning">Stat-contribution knobs; defaults are zero-impact (see CombatTuning).</param>
         /// <param name="passives">Runtime passive registry; when null the passive stage is inert.</param>
+        /// <param name="difficulty">Difficulty tuning; when null the difficulty stage is inert.</param>
         public static DamagePipeline CreateStandard(ElementInteractionMatrix elementMatrix = null,
-            StatusProcessor status = null, CombatTuning tuning = null, PassiveRegistry passives = null)
+            StatusProcessor status = null, CombatTuning tuning = null, PassiveRegistry passives = null,
+            JRPG.Services.IDifficultyService difficulty = null)
         {
             tuning ??= CombatTuning.Default;
 
@@ -33,7 +34,7 @@ namespace JRPG.Combat
                 .Add(new CriticalStage(status, tuning))             // 6
                 .Add(new StatusModifierStage(status))               // 7
                 .Add(new PassiveModifierStage(passives))            // 8
-                .Add(new DifficultyStage())                         // 9 (placeholder)
+                .Add(new DifficultyStage(difficulty))               // 9
                 .Add(new VarianceStage(tuning))                     // 9b
                 .Add(new GuardStage())                              // 10
                 .Add(new ClampRoundStage());                        // 11

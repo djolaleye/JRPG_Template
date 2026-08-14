@@ -18,6 +18,7 @@ namespace JRPG.Combat
         private readonly DataRegistry _data;
         private readonly IPartyRuntimeQueries _party;
         private readonly IInventoryService _inventory;
+        private readonly IDifficultyService _difficulty;
 
         private readonly CombatantFactory _factory;
         private readonly TurnOrderService _turnOrder = new();
@@ -39,15 +40,21 @@ namespace JRPG.Combat
         private readonly Dictionary<string, (int hp, int mp, int sp)> _battleStartResources = new();
 
         public CombatService(IEventBus bus, GameStateController state, DataRegistry data,
-            IPartyRuntimeQueries party, IInventoryService inventory)
+            IPartyRuntimeQueries party, IInventoryService inventory,
+            IDifficultyService difficulty = null)
         {
             _bus = bus;
             _state = state;
             _data = data;
             _party = party;
             _inventory = inventory;
+
+            // Optional so a combat harness can run without a difficulty service; the pipeline stage
+            // and the retry rule both fall back to neutral behaviour.
+            _difficulty = difficulty;
+
             _factory = new CombatantFactory(data);
-            _resolver = new CombatActionResolver(inventory, data);
+            _resolver = new CombatActionResolver(inventory, data, difficulty: difficulty);
             _profileAI = new ProfileEnemyActionSelector(data, _resolver, _resolver.Rng);
             _enemyAI = _profileAI;
 
@@ -713,10 +720,17 @@ namespace JRPG.Combat
             else if (outcome == BattleOutcome.Defeat)
             {
                 // Hand the screen to the defeat flow, mirroring how victory hands off to the
-                // post-battle flow. The controller owns the exit (retry or return to exploration),
-                // so combat does not force a state change here.
+                // post-battle flow. The controller owns the exit (retry, load, or title), so combat
+                // does not force a state change here.
+                //
+                // Whether a retry is allowed is decided once, here: the battle has to be replayable at
+                // all (_lastRequest records how it started) AND the difficulty has to permit it. Hard
+                // forbids retries, and gating it at the publish site keeps that rule out of the UI.
+                bool canRetry = _lastRequest.HasValue
+                                && (_difficulty?.CurrentProfile.allowRetry ?? true);
+
                 _bus.Publish(new DefeatFlowStarted(_battle.battleId, _battle.encounterId ?? string.Empty,
-                    _lastRequest.HasValue));
+                    canRetry));
             }
             else
             {

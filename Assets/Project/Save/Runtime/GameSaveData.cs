@@ -50,5 +50,8 @@ namespace JRPG.Save
 
         // Encounter lifecycle state. Never records an in-flight battle — see WorldStateService.
         public WorldSaveData world = new();
+
+        // The selected difficulty. The tuning it maps to is authored data, not save state.
+        public DifficultySaveData difficulty = new();
     }
 }

@@ -22,7 +22,13 @@ namespace JRPG.Menu
         {
             var rows = new List<RowModel>(5);
 
-            rows.Add(RowModel.Simple("new_game", "New Game", new NewGameAction(), Context));
+            // New Game goes through the difficulty picker, which starts the session once the player
+            // has chosen and confirmed. Falls back to starting directly if that screen is missing, so
+            // a project that strips the picker still has a working New Game.
+            rows.Add(MenuExists("difficulty")
+                ? RowModel.Simple("new_game", "New Game",
+                                  new OpenSubmenuAction("difficulty", "No difficulty screen is available."), Context)
+                : RowModel.Simple("new_game", "New Game", new NewGameAction(), Context));
 
             int recent = MostRecentSlot(out var recentInfo);
             if (recent >= 0)

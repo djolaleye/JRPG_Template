@@ -19,7 +19,8 @@ namespace JRPG.Save
         // v4: party payload carries each character's current HP/MP/SP. Before this, restore rebuilt
         //     instances and progression refilled every pool, so loading was a silent full heal.
         // v5: added the "world" contributor (encounter Ready/InProgress/Complete state).
-        public const int CurrentSaveVersion = 5;
+        // v6: added the "difficulty" contributor (the selected Easy/Normal/Hard setting).
+        public const int CurrentSaveVersion = 6;
 
         private readonly SaveRegistry _registry;
         private readonly SaveFileConfig _config;
@@ -420,6 +421,9 @@ namespace JRPG.Save
                     case 4:
                         MigrateV4ToV5(dto);
                         break;
+                    case 5:
+                        MigrateV5ToV6(dto);
+                        break;
                     default:
                         Debug.LogError($"[JRPG.Save] No migration step defined from v{v}.");
                         return false;
@@ -472,6 +476,15 @@ namespace JRPG.Save
             dto.world.encounters ??= new List<EncounterStateEntry>();
         }
 
+        /// v5 → v6:  added the "difficulty" contributor. A save written before difficulty existed was
+        /// played under exactly one set of rules — the unmodified ones — so Normal is not a guess, it
+        /// is what that game actually was. Nothing in the older payloads implies anything else.
+        private static void MigrateV5ToV6(GameSaveData dto)
+        {
+            dto.difficulty ??= new DifficultySaveData();
+            dto.difficulty.difficulty = Difficulty.Normal;
+        }
+
         private string SlotPath(int slot)
         {
             var fileName = string.Format(_config.fileNameFormat, slot);
@@ -516,6 +529,10 @@ namespace JRPG.Save
                     if (payload is WorldSaveData worldP) dto.world = worldP;
                     else Debug.LogError($"[JRPG.Save] Unexpected payload type for key 'world': {payload?.GetType().Name}");
                     break;
+                case "difficulty":
+                    if (payload is DifficultySaveData diffP) dto.difficulty = diffP;
+                    else Debug.LogError($"[JRPG.Save] Unexpected payload type for key 'difficulty': {payload?.GetType().Name}");
+                    break;
                 default:
                     Debug.LogWarning($"[JRPG.Save] Unknown SaveKey '{key}' (no field in GameSaveData).");
                     break;
@@ -546,6 +563,10 @@ namespace JRPG.Save
                     if (dto.world == null) return null;
                     dto.world.version = dto.version;
                     return dto.world;
+                case "difficulty":
+                    if (dto.difficulty == null) return null;
+                    dto.difficulty.version = dto.version;
+                    return dto.difficulty;
                 default:
                     return null;
             }

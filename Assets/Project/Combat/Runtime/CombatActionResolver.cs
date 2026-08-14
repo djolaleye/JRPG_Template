@@ -26,7 +26,8 @@ namespace JRPG.Combat
         /// individual rules can be swapped without touching this class.
         public CombatActionResolver(IInventoryService inventory, DataRegistry data,
             EffectExecutorRegistry executors = null, DamagePipeline damage = null, System.Random rng = null,
-            StatusProcessor status = null, PassiveRegistry passives = null, CostRegistry costs = null)
+            StatusProcessor status = null, PassiveRegistry passives = null, CostRegistry costs = null,
+            IDifficultyService difficulty = null)
         {
             _inventory = inventory;
             _data = data;
@@ -35,7 +36,7 @@ namespace JRPG.Combat
             _status = status ?? new StatusProcessor(data);
             _passives = passives ?? PassiveRegistry.CreateStandard();
             _damage = damage ?? DamagePipelineFactory.CreateStandard(
-                data?.ElementMatrix, _status, null, _passives);
+                data?.ElementMatrix, _status, null, _passives, difficulty);
             _rng = rng ?? new System.Random(DefaultCombatSeed);
         }
 

@@ -24,11 +24,9 @@ namespace JRPG.Data
         public List<BattleTriggerData> battleTriggers = new();
         public List<StatusEffectData> statuses = new();
         public List<PassiveData> passives = new();
-
         public List<EnemyActionProfileData> enemyActionProfiles = new();
-
         public List<CombatArenaDefinition> arenas = new();
-
         public ElementInteractionMatrix elementMatrix;
+        public DifficultySettings difficultySettings;
     }
 }

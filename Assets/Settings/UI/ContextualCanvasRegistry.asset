@@ -143,3 +143,13 @@ MonoBehaviour:
     mode: 2
     overlay: 6
     input: 1
+  - menuId: difficulty
+    canvasPrefab: {fileID: 2159463038167903944, guid: 57c1519d53ab3ee46801dda10386e94e, type: 3}
+    mode: 0
+    overlay: 0
+    input: 1
+  - menuId: difficulty_pause
+    canvasPrefab: {fileID: 6443842567884597301, guid: 29ad89ca3dc2d71478fbbd4bc69b124c, type: 3}
+    mode: 1
+    overlay: 1
+    input: 1

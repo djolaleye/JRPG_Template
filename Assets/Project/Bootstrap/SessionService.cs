@@ -132,6 +132,12 @@ namespace JRPG.Bootstrap
             // nothing above reads it — resolved lazily rather than added to the constructor.
             if (_services.TryResolve<IWorldStateService>(out var world)) world.ResetForNewGame();
 
+            // Difficulty returns to the default here; the picker applies the player's choice
+            // immediately afterwards, so a New Game that skipped it is still well-defined.
+            if (_services.TryResolve<IDifficultyService>(out var difficulty)
+                && difficulty is DifficultyService concreteDifficulty)
+                concreteDifficulty.ResetForNewGame();
+
             ResetTransientSessionServices();
         }
 

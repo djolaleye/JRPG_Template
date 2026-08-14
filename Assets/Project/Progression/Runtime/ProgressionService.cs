@@ -21,6 +21,7 @@ namespace JRPG.Progression
         private readonly IPartyService _party;
         private readonly IPartyRuntimeQueries _partyRuntime;
         private readonly IInventoryService _inventory;
+        private readonly IDifficultyService _difficulty;
 
         private readonly ProgressionEngine _engine;
         private readonly LevelUpApplier _applier = new();
@@ -34,13 +35,17 @@ namespace JRPG.Progression
         public int DropSeed { get; set; } = 20;
 
         public ProgressionService(DataRegistry data, IEventBus bus, IPartyService party,
-            IPartyRuntimeQueries partyRuntime, IInventoryService inventory)
+            IPartyRuntimeQueries partyRuntime, IInventoryService inventory,
+            IDifficultyService difficulty = null)
         {
             _data = data;
             _bus = bus;
             _party = party;
             _partyRuntime = partyRuntime;
             _inventory = inventory;
+
+            // Optional: a harness that constructs progression without difficulty gets the neutral rate.
+            _difficulty = difficulty;
 
             _engine = new ProgressionEngine(data);
             _distributor = new AttributePointDistributor(bus);
@@ -152,14 +157,18 @@ namespace JRPG.Progression
             HasAppliedCurrentResult = false;
 
             // Preview first, mutate on confirm
-            CurrentRewards = _rewardResolver.Resolve(result, DropSeed);
+            CurrentRewards = _rewardResolver.Resolve(result, DropSeed, XpMultiplier);
             CurrentPreview = _engine.BuildPreview(result, CurrentRewards, _party, _partyRuntime);
 
             _bus.Publish(new PostBattleFlowStarted(result.battleId));
         }
 
         public ProgressionPreview PreviewBattleResult(BattleResultData result)
-            => _engine.BuildPreview(result, _rewardResolver.Resolve(result, DropSeed), _party, _partyRuntime);
+            => _engine.BuildPreview(result, _rewardResolver.Resolve(result, DropSeed, XpMultiplier),
+                                    _party, _partyRuntime);
+
+        /// Difficulty's XP rate, or 1 when no difficulty service is wired.
+        private float XpMultiplier => _difficulty?.CurrentProfile.xpMultiplier ?? 1f;
 
         /// Confirms the current flow's rewards: grants drops, applies XP shares, resolves level-ups
         /// and stat growth, and queues manual attribute points.

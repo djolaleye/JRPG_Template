@@ -1,5 +1,6 @@
 using UnityEngine;
 using JRPG.Data;
+using JRPG.Services;
 using System;
 
 namespace JRPG.Combat
@@ -237,10 +238,42 @@ namespace JRPG.Combat
     }
 
     /// 9. Encounter/difficulty scaling — hook, inert until needed.
+    /// <summary>
+    /// 9. Difficulty scaling, applied from the enemy's point of view: how hard enemies hit, and how
+    /// easily they go down.
+    ///
+    /// <para><b>Not skipped for previews.</b> The multiplier is deterministic, so the confirm screen
+    /// should show the number the hit will actually land — unlike accuracy, crit and variance, which
+    /// are rolls and would make a preview meaningless.</para>
+    ///
+    /// <para>Party-on-party effects are untouched: a heal or a buff between allies involves no enemy
+    /// on either side, so neither multiplier applies.</para>
+    /// </summary>
     public sealed class DifficultyStage : IDamageStage
     {
+        private readonly IDifficultyService _difficulty;
+
+        public DifficultyStage(IDifficultyService difficulty = null)
+        {
+            _difficulty = difficulty;
+        }
+
         public string Name => "diff";
-        public void Apply(DamageContext ctx) { }
+
+        public void Apply(DamageContext ctx)
+        {
+            if (_difficulty == null) return;
+
+            var profile = _difficulty.CurrentProfile;
+
+            // Target-side first: damage the party deals to an enemy.
+            if (ctx.target != null && ctx.target.team == CombatantTeam.Enemy)
+                ctx.runningDamage *= profile.enemyDamageTakenMultiplier;
+
+            // Player-side: damage an enemy deals to the party.
+            if (ctx.actor != null && ctx.actor.team == CombatantTeam.Enemy)
+                ctx.runningDamage *= profile.enemyDamageDealtMultiplier;
+        }
     }
 
     /// <summary>

@@ -41,6 +41,8 @@ namespace JRPG.Data
         /// The authored elemental interaction table; null when the database has none.
         public ElementInteractionMatrix ElementMatrix { get; private set; }
 
+        public DifficultySettings DifficultySettings { get; private set; }
+
         public void Build(GameDatabase db)
         {
             if (db == null) throw new ArgumentNullException(nameof(db));
@@ -75,6 +77,7 @@ namespace JRPG.Data
             SynthesiseItemActions();
 
             ElementMatrix = db.elementMatrix;
+            DifficultySettings = db.difficultySettings;
         }
 
         /// Generates the combat action for every combat-usable item

@@ -91,6 +91,12 @@ namespace JRPG.Bootstrap
             services.Register<IWorldStateService>(world);
             saveContributors.Register(world);
 
+            // Difficulty. Built before combat and progression, which both read its profile — combat
+            // for the damage multipliers and the retry rule, progression for the XP rate.
+            var difficulty = new DifficultyService(bus, data);
+            services.Register<IDifficultyService>(difficulty);
+            saveContributors.Register(difficulty);
+
             var party = new PartyService(data, bus, protagonistId, story);
             services.Register<IPartyService>(party);
             // PartyService implements both roster surfaces. Register the runtime-instance surface
@@ -118,13 +124,13 @@ namespace JRPG.Bootstrap
 
             // Combat service. Reads the active party (runtime instances) and consumes items via the
             // lean IInventoryService.
-            var combat = new CombatService(bus, state, data, party, inventory);
+            var combat = new CombatService(bus, state, data, party, inventory, difficulty);
             services.Register<ICombatService>(combat);
 
             // Progression service. Consumes BattleResultPackaged (which carries the packaged result,
             // owns the post-battle flow, and persists per-character level/XP/points.
             // Registered as a save contributor after Party to re-stamp level/XP onto the instances PartyService rebuilds at level 1.
-            var progression = new ProgressionService(data, bus, party, party, inventory);
+            var progression = new ProgressionService(data, bus, party, party, inventory, difficulty);
             services.Register<IProgressionService>(progression);
             saveContributors.Register(progression);
 
