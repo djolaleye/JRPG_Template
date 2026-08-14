@@ -41,6 +41,22 @@ namespace JRPG.Inventory
         }
 
         /// <summary>
+        /// How many more of <paramref name="itemId"/> would fit right now — the preflight half of
+        /// <see cref="Add"/>, using the identical cap rule (the item's stackLimit, or 99 when the item
+        /// is unknown). A transaction that must not partially consume its costs asks this first, rather
+        /// than adding and reacting to the overflow it gets back.
+        /// </summary>
+        public int RoomFor(string itemId, ItemData item)
+        {
+            if (string.IsNullOrEmpty(itemId)) return 0;
+
+            int cap = item != null ? Math.Max(1, item.stackLimit) : 99;
+            int held = GetQuantity(itemId);
+
+            return Math.Max(0, cap - held);
+        }
+
+        /// <summary>
         /// Removes up to <paramref name="qty"/> of <paramref name="itemId"/>. Returns the amount actually removed.
         /// Drops the stack entry when quantity reaches 0 so queries stay clean.
         /// </summary>

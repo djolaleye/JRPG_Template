@@ -92,6 +92,7 @@ namespace JRPG.Combat.Editor
         {
             public int Add(string itemId, int quantity) => 0;
             public int Remove(string itemId, int quantity) => quantity;
+            public int RoomFor(string itemId) => 99;
             public int GetQuantity(string itemId) => 99;
             public bool Has(string itemId, int n = 1) => true;
         }

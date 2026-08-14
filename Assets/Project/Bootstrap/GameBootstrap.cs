@@ -91,6 +91,12 @@ namespace JRPG.Bootstrap
             services.Register<IWorldStateService>(world);
             saveContributors.Register(world);
 
+            // Chest ledger. Same shape as encounter ledger — stable ids and one enum, so it
+            // depends on nothing and nothing depends on it at construction time.
+            var chests = new ChestStateService();
+            services.Register<IChestStateService>(chests);
+            saveContributors.Register(chests);
+
             // Difficulty. Built before combat and progression, which both read its profile — combat
             // for the damage multipliers and the retry rule, progression for the XP rate.
             var difficulty = new DifficultyService(bus, data);

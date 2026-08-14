@@ -20,7 +20,8 @@ namespace JRPG.Save
         //     instances and progression refilled every pool, so loading was a silent full heal.
         // v5: added the "world" contributor (encounter Ready/InProgress/Complete state).
         // v6: added the "difficulty" contributor (the selected Easy/Normal/Hard setting).
-        public const int CurrentSaveVersion = 6;
+        // v7: added the "chests" contributor (which placed chests have been opened).
+        public const int CurrentSaveVersion = 7;
 
         private readonly SaveRegistry _registry;
         private readonly SaveFileConfig _config;
@@ -424,6 +425,9 @@ namespace JRPG.Save
                     case 5:
                         MigrateV5ToV6(dto);
                         break;
+                    case 6:
+                        MigrateV6ToV7(dto);
+                        break;
                     default:
                         Debug.LogError($"[JRPG.Save] No migration step defined from v{v}.");
                         return false;
@@ -485,6 +489,15 @@ namespace JRPG.Save
             dto.difficulty.difficulty = Difficulty.Normal;
         }
 
+        /// v6 → v7:  added the "chests" contributor. A save written before chests existed cannot have
+        /// opened one, and the ledger records openings only, so an empty list is the literal truth
+        /// rather than a default — every chest in that world is still as its scene authored it.
+        private static void MigrateV6ToV7(GameSaveData dto)
+        {
+            dto.chests ??= new ChestSaveData();
+            dto.chests.entries ??= new List<ChestStateEntry>();
+        }
+
         private string SlotPath(int slot)
         {
             var fileName = string.Format(_config.fileNameFormat, slot);
@@ -533,6 +546,10 @@ namespace JRPG.Save
                     if (payload is DifficultySaveData diffP) dto.difficulty = diffP;
                     else Debug.LogError($"[JRPG.Save] Unexpected payload type for key 'difficulty': {payload?.GetType().Name}");
                     break;
+                case "chests":
+                    if (payload is ChestSaveData chestP) dto.chests = chestP;
+                    else Debug.LogError($"[JRPG.Save] Unexpected payload type for key 'chests': {payload?.GetType().Name}");
+                    break;
                 default:
                     Debug.LogWarning($"[JRPG.Save] Unknown SaveKey '{key}' (no field in GameSaveData).");
                     break;
@@ -567,6 +584,10 @@ namespace JRPG.Save
                     if (dto.difficulty == null) return null;
                     dto.difficulty.version = dto.version;
                     return dto.difficulty;
+                case "chests":
+                    if (dto.chests == null) return null;
+                    dto.chests.version = dto.version;
+                    return dto.chests;
                 default:
                     return null;
             }

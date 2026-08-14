@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: df5d5bed518935942ababba13b587d78, type: 3}
+  m_Name: tool_chest_key
+  m_EditorClassIdentifier: JRPG.Data::JRPG.Data.ItemData
+  id: tool_chest_key
+  displayName: Chest Key
+  description: A plain iron key. Opens one locked chest, and is used up doing it.
+  icon: {fileID: 0}
+  category: 2
+  stackLimit: 9
+  canSell: 0
+  canDiscard: 1
+  usageRule:
+    usableInCombat: 0
+    usableInExploration: 1
+    targetLivingAlliesOnly: 0
+    consumedOnUse: 1
+    requiredStoryFlag: 
+  linkedEffects: []
+  combatEffects: []
+  combatTargetRule:
+    team: 1
+    selectionMode: 1
+    maxTargets: 1
+    requireLiving: 1
+    requireDefeated: 0
+    allowSelf: 1
+    requiredStatusId: 
+    maxHpFraction: 0

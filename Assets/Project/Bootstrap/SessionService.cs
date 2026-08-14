@@ -132,6 +132,10 @@ namespace JRPG.Bootstrap
             // nothing above reads it — resolved lazily rather than added to the constructor.
             if (_services.TryResolve<IWorldStateService>(out var world)) world.ResetForNewGame();
 
+            // Chests, likewise: clearing the ledger is what makes every placed chest fall back to the
+            // state its scene authored.
+            if (_services.TryResolve<IChestStateService>(out var chests)) chests.ResetForNewGame();
+
             // Difficulty returns to the default here; the picker applies the player's choice
             // immediately afterwards, so a New Game that skipped it is still well-defined.
             if (_services.TryResolve<IDifficultyService>(out var difficulty)

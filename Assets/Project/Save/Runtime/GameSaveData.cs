@@ -53,5 +53,8 @@ namespace JRPG.Save
 
         // The selected difficulty. The tuning it maps to is authored data, not save state.
         public DifficultySaveData difficulty = new();
+
+        // Which placed chests have been opened. Records opened chests only — see ChestStateService.
+        public ChestSaveData chests = new();
     }
 }

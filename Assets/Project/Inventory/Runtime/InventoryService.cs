@@ -45,6 +45,12 @@ namespace JRPG.Inventory
             return _container.Add(itemId, quantity, item);
         }
 
+        public int RoomFor(string itemId)
+        {
+            _registry.TryGet<ItemData>(itemId, out var item);
+            return _container.RoomFor(itemId, item);
+        }
+
         public int Remove(string itemId, int quantity) => _container.Remove(itemId, quantity);
         public int GetQuantity(string itemId) => _container.GetQuantity(itemId);
         public bool Has(string itemId, int n = 1) => _container.Has(itemId, n);
