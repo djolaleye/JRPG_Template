@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: JRPG.Data::JRPG.Data.CombatActionData
   id: skill_revive
   displayName: Revive
-  description: 
+  description: Returns a fallen ally to the fight.
   category: 3
   targetRule:
     team: 1

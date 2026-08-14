@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using JRPG.Core;
 using JRPG.Services;
@@ -7,13 +8,16 @@ namespace JRPG.Progression.UI
     /// <summary>
     /// The post-battle screens, in order.
     ///
-    /// <para>Victory → Results → Level Up → Attributes → New Skill. Every screen after Results is
-    /// conditional: no level-ups skips the last three outright, and each of the others appears only
-    /// when it has something to say.</para>
+    /// <para>Victory → Results → Level Up → Attributes → Skill Unlocked → New Skill. Every screen
+    /// after Results is conditional: no level-ups skips the rest outright, and each of the others
+    /// appears only when it has something to say.</para>
     ///
     /// <para><b>Skill outcomes come last, after allocation.</b> They are the final consequence of
-    /// levelling, and a skill replacement is the one decision that can be declined — asking for it
-    /// before the player has finished spending points buried it mid-flow.</para>
+    /// levelling.</para>
+    ///
+    /// <para><b>Unlocks precede the replacement decision</b>, and repeat once per skill offered —
+    /// including the ones the character has no room for. Being shown what was earned and then being
+    /// asked what to give up are two moments, in that order.</para>
     /// </summary>
     public enum PostBattleFlowState
     {
@@ -22,8 +26,34 @@ namespace JRPG.Progression.UI
         Results,
         LevelUpReview,
         AttributeAllocation,
+        SkillUnlocked,
         SkillChoice,
         Complete,
+    }
+
+    /// <summary>
+    /// One skill to announce on the unlock screen, whether or not the character can keep it.
+    ///
+    /// <para><see cref="RequiresChoice"/> distinguishes the two: false means it was already added,
+    /// true means the skill screen is about to ask what to forget in exchange. The screen says so,
+    /// rather than presenting an unavailable skill as though it had been gained.</para>
+    /// </summary>
+    public readonly struct SkillAnnouncement
+    {
+        public readonly string CharacterId;
+        public readonly string SkillId;
+
+        public readonly int AtLevel;
+
+        public readonly bool RequiresChoice;
+
+        public SkillAnnouncement(string characterId, string skillId, int atLevel, bool requiresChoice)
+        {
+            CharacterId = characterId;
+            SkillId = skillId;
+            AtLevel = atLevel;
+            RequiresChoice = requiresChoice;
+        }
     }
 
     /// <summary>
@@ -39,6 +69,18 @@ namespace JRPG.Progression.UI
         public static PostBattleFlowController Current { get; private set; }
 
         public PostBattleFlowState CurrentState { get; private set; } = PostBattleFlowState.Idle;
+
+        private readonly List<SkillAnnouncement> _announcements = new();
+        
+        public int SkillAnnouncementIndex { get; private set; } = -1;
+
+        /// The skill the unlock screen should be showing, or null when there is none.
+        public SkillAnnouncement? CurrentSkillAnnouncement
+            => SkillAnnouncementIndex >= 0 && SkillAnnouncementIndex < _announcements.Count
+                ? _announcements[SkillAnnouncementIndex]
+                : null;
+
+        public int SkillAnnouncementCount => _announcements.Count;
 
         private IEventBus _bus;
         private IMenuService _menus;
@@ -113,6 +155,10 @@ namespace JRPG.Progression.UI
                     AdvanceAfterAllocation(progression);
                     break;
 
+                case PostBattleFlowState.SkillUnlocked:
+                    AdvanceAfterUnlock(progression);
+                    break;
+
                 case PostBattleFlowState.SkillChoice:
                     if (progression.HasPendingSkillChoices())
                     {
@@ -133,11 +179,64 @@ namespace JRPG.Progression.UI
                 AdvanceAfterAllocation(progression);
         }
 
+        /// <summary>
+        /// Announce every skill on offer, then ask about the ones that need a decision.
+        ///
+        /// <para>A full skill list does not skip the announcement: the player is shown the skill
+        /// that was earned before being asked what to give up for it.</para>
+        /// </summary>
         private void AdvanceAfterAllocation(ProgressionService progression)
         {
-            // Covers both kinds of skill outcome: gained outright (an announcement) and gained at the
-            // cap (a decision). One screen handles both, so one check gates it.
-            if (progression.HasSkillOutcomes())
+            BuildAnnouncements(progression);
+
+            if (_announcements.Count > 0)
+            {
+                SkillAnnouncementIndex = 0;
+                Transition(PostBattleFlowState.SkillUnlocked, "postbattle_skill_unlocked");
+                return;
+            }
+
+            AdvanceAfterUnlocks(progression);
+        }
+
+        private void BuildAnnouncements(ProgressionService progression)
+        {
+            _announcements.Clear();
+
+            var learned = progression.LearnedSkills;
+            for (int i = 0; i < learned.Count; i++)
+                _announcements.Add(new SkillAnnouncement(learned[i].characterId, learned[i].skillId,
+                                                         learned[i].atLevel, requiresChoice: false));
+
+            // Offered but blocked. PendingSkillChoice records no level, so these announce without one.
+            var pending = progression.PendingSkillChoices;
+            for (int i = 0; i < pending.Count; i++)
+                _announcements.Add(new SkillAnnouncement(pending[i].characterId, pending[i].newSkillId,
+                                                         atLevel: 0, requiresChoice: true));
+        }
+
+        /// Steps to the next announcement, or past the stage entirely once they run out.
+        private void AdvanceAfterUnlock(ProgressionService progression)
+        {
+            int next = SkillAnnouncementIndex + 1;
+
+            if (next < _announcements.Count)
+            {
+                SkillAnnouncementIndex = next;
+
+                // Same screen again with a new subject: close and reopen so the rows rebuild from
+                // the moved cursor, exactly as a transition between two different screens would.
+                Transition(PostBattleFlowState.SkillUnlocked, "postbattle_skill_unlocked");
+                return;
+            }
+
+            SkillAnnouncementIndex = -1;
+            AdvanceAfterUnlocks(progression);
+        }
+
+        private void AdvanceAfterUnlocks(ProgressionService progression)
+        {
+            if (progression.HasPendingSkillChoices())
                 Transition(PostBattleFlowState.SkillChoice, "postbattle_skill");
             else
                 CompleteFlow();
@@ -153,6 +252,8 @@ namespace JRPG.Progression.UI
         private void CompleteFlow()
         {
             CurrentState = PostBattleFlowState.Complete;
+            SkillAnnouncementIndex = -1;
+            _announcements.Clear();
             _menus.CloseAll();
             Progression?.CompletePostBattleFlow();
 

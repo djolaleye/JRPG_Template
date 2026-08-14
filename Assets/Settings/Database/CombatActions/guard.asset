@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: JRPG.Data::JRPG.Data.CombatActionData
   id: guard
   displayName: Guard
-  description: 
+  description: Brace for impact. Halves the damage taken until the next turn.
   category: 1
   targetRule:
     team: 0

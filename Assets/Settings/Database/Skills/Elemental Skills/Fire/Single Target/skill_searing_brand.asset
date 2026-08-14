@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: JRPG.Data::JRPG.Data.CombatActionData
   id: skill_searing_brand
   displayName: Searing Brand
-  description: 
+  description: A branding blow that sears one target and sets them alight.
   category: 3
   targetRule:
     team: 2

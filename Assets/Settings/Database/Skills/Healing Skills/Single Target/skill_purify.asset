@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: JRPG.Data::JRPG.Data.CombatActionData
   id: skill_heal_02
   displayName: Purify
-  description: 
+  description: Cleanses one ally of stat debuffs and mends a little HP.
   category: 3
   targetRule:
     team: 1

@@ -137,6 +137,7 @@ MonoBehaviour:
   actionMapName: Menu
   menuId: combat_skills
   promptBar: {fileID: 3876337978078213246}
+  detailPanel: {fileID: 2168605004480867717}
 --- !u!1 &2418706996915884092
 GameObject:
   m_ObjectHideFlags: 0
@@ -953,6 +954,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: a36a09674b242ff438ead1678e6f487a, type: 3}
+--- !u!114 &2168605004480867717 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 689234003316161975, guid: a36a09674b242ff438ead1678e6f487a, type: 3}
+  m_PrefabInstance: {fileID: 1695825641337835570}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 38256e0c438a77e4ebe650d12fe70ed0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: JRPG.Menu::JRPG.Menu.DetailPanelController
 --- !u!224 &5353955131206874025 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 6757046220940108699, guid: a36a09674b242ff438ead1678e6f487a, type: 3}

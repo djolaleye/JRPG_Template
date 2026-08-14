@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: JRPG.Data::JRPG.Data.CombatActionData
   id: skill_mass_heal
   displayName: Mass Heal
-  description: 
+  description: Restores small HP to the whole party at once.
   category: 3
   targetRule:
     team: 1

@@ -14,6 +14,9 @@ namespace JRPG.Combat.UI
     /// element. Before this existed the pipeline computed all of it and the player saw a number change
     /// on a bar, if that.</para>
     ///
+    /// <para><b>Only effects that moved HP get a floater</b> — see <see cref="ShouldFloat"/>. Guard and
+    /// status-only actions have no number to show, and floating their zero was noise.</para>
+    ///
     /// <para><b>Each floater carries the target's resulting HP</b> (<c>hpAfter / maxHP</c>). The number
     /// alone says how hard the hit landed; the pair says whether it mattered — and it is the only place
     /// enemy HP is shown outside the target list.</para>
@@ -83,10 +86,40 @@ namespace JRPG.Combat.UI
 
             for (int i = 0; i < e.Effects.Count; i++)
             {
+                if (!ShouldFloat(e.Effects[i])) continue;
+
                 Spawn(e.Effects[i], battle);
-                if (staggerSeconds > 0f && i < e.Effects.Count - 1)
+
+                // The stagger belongs between two floaters that actually appear; pacing it off the raw
+                // effect index would leave a gap wherever a suppressed effect used to be.
+                if (staggerSeconds > 0f && HasLaterFloater(e, i))
                     yield return new WaitForSeconds(staggerSeconds);
             }
+        }
+
+        /// <summary>
+        /// Whether an effect has a number worth floating.
+        ///
+        /// <para><b>Decided by HP movement, not by effect type.</b> Guard, status application, stat
+        /// buffs and debuffs all resolve to an <c>amount</c> of zero, and floating "0" over a target
+        /// says nothing except that something happened. The alternative — listing the effect types to
+        /// suppress — would need every one of <c>StatusTick</c>, <c>PassiveRegen</c>,
+        /// <c>StatusExpired</c>, <c>EscapeFailed</c> and friends enumerated, since
+        /// <see cref="EffectResult.effectType"/> is a free-form tag rather than the enum, and would
+        /// silently miss the next tag someone adds.</para>
+        ///
+        /// <para>A miss or an immunity is HP-neutral but still reported: those are the outcome of an
+        /// attack, and saying nothing would be indistinguishable from the attack never happening.</para>
+        /// </summary>
+        private static bool ShouldFloat(EffectResult fx)
+            => fx.hpAfter != fx.hpBefore || fx.missed || fx.immune;
+
+        private static bool HasLaterFloater(BattleEffectsResolved e, int index)
+        {
+            for (int i = index + 1; i < e.Effects.Count; i++)
+                if (ShouldFloat(e.Effects[i])) return true;
+
+            return false;
         }
 
         private void Spawn(EffectResult fx, BattleContext battle)

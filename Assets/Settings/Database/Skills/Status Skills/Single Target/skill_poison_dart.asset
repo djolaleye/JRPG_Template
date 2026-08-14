@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: JRPG.Data::JRPG.Data.CombatActionData
   id: skill_status_01
   displayName: Poison Dart
-  description: 
+  description: A tainted dart that poisons one enemy.
   category: 3
   targetRule:
     team: 2

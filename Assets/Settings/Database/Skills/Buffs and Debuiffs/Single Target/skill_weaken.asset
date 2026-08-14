@@ -14,13 +14,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: JRPG.Data::JRPG.Data.CombatActionData
   id: skill_weaken
   displayName: Weaken
-  description: 
+  description: Saps one enemy's guard, lowering their defence.
   category: 3
   targetRule:
     team: 2
     selectionMode: 1
+    maxTargets: 1
     requireLiving: 1
+    requireDefeated: 0
     allowSelf: 1
+    requiredStatusId: 
+    maxHpFraction: 0
   costs:
   - type: 1
     costAmount: 4

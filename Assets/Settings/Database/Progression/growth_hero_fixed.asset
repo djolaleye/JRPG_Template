@@ -104,6 +104,6 @@ MonoBehaviour:
   learnedSkills:
   - level: 2
     skillId: skill_heal_01
-  - level: 3
+  - level: 7
     skillId: skill_earthquake
   autoAllocationRules: []

@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: JRPG.Data::JRPG.Data.CombatActionData
   id: action_flee
   displayName: Flee
-  description: 
+  description: Attempt to escape the battle. Success depends on the party's speed
+    and the encounter.
   category: 4
   targetRule:
     team: 0

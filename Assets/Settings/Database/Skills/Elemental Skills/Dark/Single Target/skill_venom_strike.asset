@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: JRPG.Data::JRPG.Data.CombatActionData
   id: skill_venom_strike
   displayName: Venom Strike
-  description: 
+  description: An envenomed blow to one enemy. Dark damage, and likely to leave the
+    target poisoned.
   category: 3
   targetRule:
     team: 2

@@ -244,7 +244,7 @@ MonoBehaviour:
   actionMapName: Menu
   menuId: combat_items
   promptBar: {fileID: 5258762403305773355}
-  detailPanel: {fileID: 0}
+  detailPanel: {fileID: 4921261837505819666}
 --- !u!1 &928072591676046669
 GameObject:
   m_ObjectHideFlags: 0
@@ -1061,6 +1061,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 6757046220940108699, guid: a36a09674b242ff438ead1678e6f487a, type: 3}
   m_PrefabInstance: {fileID: 5610204469502396837}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &4921261837505819666 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 689234003316161975, guid: a36a09674b242ff438ead1678e6f487a, type: 3}
+  m_PrefabInstance: {fileID: 5610204469502396837}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 38256e0c438a77e4ebe650d12fe70ed0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: JRPG.Menu::JRPG.Menu.DetailPanelController
 --- !u!1001 &5710929304413610132
 PrefabInstance:
   m_ObjectHideFlags: 0

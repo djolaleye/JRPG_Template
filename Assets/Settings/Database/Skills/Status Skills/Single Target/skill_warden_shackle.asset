@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: JRPG.Data::JRPG.Data.CombatActionData
   id: skill_warden_shackle
   displayName: Ember Shackle
-  description: 
+  description: Chains of ember bind one target, leaving them unable to act.
   category: 3
   targetRule:
     team: 2

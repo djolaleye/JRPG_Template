@@ -37,7 +37,7 @@ MonoBehaviour:
   - stat: 9
     value: 1
   level: 3
-  baseXpReward: 70
+  baseXpReward: 50
   baseCurrencyReward: 15
   possibleDrops:
   - itemId: item_bomb_fire
@@ -55,3 +55,4 @@ MonoBehaviour:
   skillIds:
   - skill_fire_01
   - skill_flame_wave
+  battlePrefab: {fileID: 0}

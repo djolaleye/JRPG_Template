@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: JRPG.Data::JRPG.Data.CombatActionData
   id: skill_buff_01
   displayName: Battle Cry
-  description: 
+  description: A rallying shout that raises the user's attack power.
   category: 3
   targetRule:
     team: 0

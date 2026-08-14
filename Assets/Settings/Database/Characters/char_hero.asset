@@ -41,14 +41,10 @@ MonoBehaviour:
   - skill_fire_01
   - skill_status_01
   - skill_overdrive
-  - skill_weaken
-  - skill_venom_strike
-  - skill_restore
-  - skill_revive
-  - skill_flame_wave
   allowedSlots: 
   recruitmentFlagIds: []
   elementAffinities: []
   statusImmunityIds: []
   passiveEffectIds: []
   portraitSprite: {fileID: 0}
+  battlePrefab: {fileID: 0}

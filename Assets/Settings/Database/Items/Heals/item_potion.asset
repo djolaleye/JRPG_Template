@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: JRPG.Data::JRPG.Data.CombatActionData
   id: item_potion
   displayName: Potion
-  description: 
+  description: Use a Small Potion to restore a modest amount of HP to one ally.
   category: 2
   targetRule:
     team: 1

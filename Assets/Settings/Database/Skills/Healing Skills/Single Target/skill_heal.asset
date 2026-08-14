@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: JRPG.Data::JRPG.Data.CombatActionData
   id: skill_heal_01
   displayName: Heal
-  description: 
+  description: Restores small HP to one ally.
   category: 3
   targetRule:
     team: 1

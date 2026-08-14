@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: JRPG.Data::JRPG.Data.CombatActionData
   id: skill_earthquake
   displayName: Earthquake
-  description: 
+  description: Splits the ground beneath the battlefield. Earth damage to every combatant.
   category: 3
   targetRule:
     team: 3

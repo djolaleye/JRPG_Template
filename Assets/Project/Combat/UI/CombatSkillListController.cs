@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine;
 using JRPG.Data;
 using JRPG.Menu;
 
@@ -6,11 +7,21 @@ namespace JRPG.Combat.UI
 {
     /// <summary>
     /// The current actor's Skill-category actions, greying out unaffordable ones.
+    ///
+    /// <para>The focused skill's authored description is pushed to the paired detail panel: the combat
+    /// row prefab has no aux slot, so the blurb has nowhere else to go.</para>
     /// </summary>
     public sealed class CombatSkillListController : MenuController
     {
+        [Tooltip("Optional. Description panel bound to the focused skill.")]
+        [SerializeField] private DetailPanelController detailPanel;
+
+        /// Actions backing the current rows, index-aligned with them. Null entries are separators.
+        private readonly List<CombatActionData> _rowActions = new();
+
         protected override IReadOnlyList<RowModel> BuildRows()
         {
+            _rowActions.Clear();
             var rows = new List<RowModel>();
             var flow = CombatFlowController.Current;
             var combat = flow?.Combat;
@@ -57,6 +68,9 @@ namespace JRPG.Combat.UI
 
             if (granted.Count == 0) return rows;
 
+            // The separator is a row too, so the parallel list needs a slot for it or every entry
+            // after this point would describe the wrong skill.
+            _rowActions.Add(null);
             rows.Add(RowModel.Separator("sep_from_equipment", "FROM EQUIPMENT"));
 
             for (int i = 0; i < granted.Count; i++)
@@ -64,6 +78,20 @@ namespace JRPG.Combat.UI
                                   grantedBy: profile.GetUnlockSource(granted[i])));
 
             return rows;
+        }
+
+        protected override void OnHighlightChanged(int index, RowModel model)
+        {
+            if (detailPanel == null) return;
+
+            var action = index >= 0 && index < _rowActions.Count ? _rowActions[index] : null;
+            if (action == null) { detailPanel.Clear(); return; }
+
+            detailPanel.ShowDetail(
+                string.IsNullOrEmpty(action.displayName) ? action.Id : action.displayName,
+                string.IsNullOrEmpty(action.description) ? "No description." : action.description,
+                icon: null,
+                footer: CombatRowFormat.CostText(action));
         }
 
         public override IReadOnlyList<InputPrompt> Prompts { get; } = new[]
@@ -86,6 +114,10 @@ namespace JRPG.Combat.UI
             // survive several items granting into the same group, so it goes in the label.
             string label = CombatRowFormat.Label(action);
             if (!string.IsNullOrEmpty(grantedBy)) label += "  ·  " + CombatRowFormat.ItemName(grantedBy);
+
+            // Recorded here rather than at each call site, so a row can never be added without its
+            // matching entry.
+            _rowActions.Add(action);
 
             return new RowModel
             {

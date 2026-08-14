@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: JRPG.Data::JRPG.Data.CombatActionData
   id: attack_ranged
   displayName: Shoot
-  description: 
+  description: A shot with the equipped ranged weapon. Physical damage to one enemy
+    from a distance.
   category: 5
   targetRule:
     team: 2

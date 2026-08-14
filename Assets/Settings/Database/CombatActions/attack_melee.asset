@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: JRPG.Data::JRPG.Data.CombatActionData
   id: attack_melee
   displayName: Attack
-  description: 
+  description: A basic strike with the equipped melee weapon. Physical damage to
+    one enemy.
   category: 0
   targetRule:
     team: 2

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: JRPG.Data::JRPG.Data.CombatActionData
   id: skill_taunt
   displayName: Taunt
-  description: 
+  description: Draws the attention of every enemy, forcing them to target the user.
   category: 3
   targetRule:
     team: 2
