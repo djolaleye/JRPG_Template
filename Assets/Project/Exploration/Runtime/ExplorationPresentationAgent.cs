@@ -46,6 +46,9 @@ namespace JRPG.Exploration
             if (explorationCamera == null) explorationCamera = Camera.main;
             if (brain == null && explorationCamera != null) brain = explorationCamera.GetComponent<CinemachineBrain>();
             if (listener == null && explorationCamera != null) listener = explorationCamera.GetComponent<AudioListener>();
+
+            // Inert until an encounter asks for it, whatever state the scene was saved in.
+            if (encounterFocusCamera != null) encounterFocusCamera.gameObject.SetActive(false);
         }
 
         private void OnEnable() => ExplorationPresentationSink.Current = this;
@@ -117,18 +120,34 @@ namespace JRPG.Exploration
                 return;
             }
 
+            encounterFocusCamera.gameObject.SetActive(true);
             encounterFocusCamera.LookAt = target;
             encounterFocusCamera.Follow = target;
             encounterFocusCamera.Priority = focusPriority;
         }
 
+        /// <summary>
+        /// Takes the encounter camera out of the running entirely.
+        ///
+        /// <para><b>Deactivated, not demoted.</b> Lowering its priority to zero only ties it with the
+        /// follow camera, and Cinemachine breaks a tie by activation order — so the focus camera keeps
+        /// the screen and the player returns from a battle still staring at the enemy. An inactive
+        /// object is not in the pool at all, which is the only unambiguous release.</para>
+        ///
+        /// <para>The brain is then reset so the follow camera cuts in rather than sliding back across
+        /// the world in view of the player.</para>
+        /// </summary>
         public void ReleaseFocus()
         {
-            if (encounterFocusCamera == null) return;
+            if (encounterFocusCamera != null)
+            {
+                encounterFocusCamera.Priority = 0;
+                encounterFocusCamera.LookAt = null;
+                encounterFocusCamera.Follow = null;
+                encounterFocusCamera.gameObject.SetActive(false);
+            }
 
-            encounterFocusCamera.Priority = 0;
-            encounterFocusCamera.LookAt = null;
-            encounterFocusCamera.Follow = null;
+            if (brain != null && brain.isActiveAndEnabled) brain.ResetState();
         }
 
         public void SetCameraActive(bool active)

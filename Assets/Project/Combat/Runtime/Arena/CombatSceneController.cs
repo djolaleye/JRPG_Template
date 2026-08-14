@@ -52,6 +52,10 @@ namespace JRPG.Combat.Arena
         [Tooltip("The scene's presentation camera.")]
         [SerializeField] private Camera combatCamera;
         [SerializeField] private CinemachineBrain brain;
+
+        [Tooltip("Enabled with the camera. Exploration disables its own at the same instant, so there " +
+                 "is never a battle with no listener and never two at once.")]
+        [SerializeField] private AudioListener listener;
         [SerializeField] private CinemachineCamera introCamera;
         [SerializeField] private CinemachineCamera partyRevealCamera;
         [SerializeField] private CinemachineCamera battleCamera;
@@ -88,6 +92,7 @@ namespace JRPG.Combat.Arena
         private void Awake()
         {
             if (brain == null && combatCamera != null) brain = combatCamera.GetComponent<CinemachineBrain>();
+            if (listener == null && combatCamera != null) listener = combatCamera.GetComponent<AudioListener>();
 
             // Inert on load: the exploration camera keeps the screen until the director says otherwise.
             SetCameraActive(false);
@@ -227,6 +232,7 @@ namespace JRPG.Combat.Arena
         {
             if (combatCamera != null) combatCamera.enabled = active;
             if (brain != null) brain.enabled = active;
+            if (listener != null) listener.enabled = active;
         }
 
         /// Hands priority to a specific stage of the reveal. The director sequences these; the blend

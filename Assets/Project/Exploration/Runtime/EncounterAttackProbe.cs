@@ -7,8 +7,12 @@ namespace JRPG.Exploration
     /// <summary>
     /// Lives on the player. Listens for the Attack-driven <see cref="CombatInitiationRequested"/>
     /// (published by <see cref="ExplorationInputBridge"/>) and, if an <see cref="EncounterTrigger"/> is
-    /// within its range, starts that encounter's battle through <see cref="ICombatService"/>. Does
-    /// nothing when no trigger is in range or a battle is already running.
+    /// within its range, hands that encounter to <see cref="IEncounterTransitionService"/>.
+    ///
+    /// <para><b>It asks; it does not decide.</b> Whether the encounter may start (Ready vs. InProgress
+    /// vs. Complete), whether an arena resolves, and everything about freezing and staging belongs to
+    /// the transition service. Duplicating any of it here is how a trigger and the world end up
+    /// disagreeing.</para>
     /// </summary>
     public sealed class EncounterAttackProbe : MonoBehaviour
     {
@@ -25,8 +29,7 @@ namespace JRPG.Exploration
         private void OnRequested(CombatInitiationRequested e)
         {
             var services = AppContext.Services;
-            if (services == null || !services.TryResolve<ICombatService>(out var combat)) return;
-            if (combat.IsInBattle) return;
+            if (services == null) return;
 
             // Only initiate from exploration — never while a menu, battle, or dialogue owns input.
             if (AppContext.State == null || AppContext.State.Current.Input != InputContext.Exploration) return;
@@ -34,7 +37,16 @@ namespace JRPG.Exploration
             var trigger = FindNearestTriggerInRange();
             if (trigger == null) return;
 
-            combat.StartBattleFromActiveParty(trigger.encounterId);
+            if (!services.TryResolve<IEncounterTransitionService>(out var transition))
+            {
+                Debug.LogWarning("[JRPG.Exploration] No IEncounterTransitionService registered — is the " +
+                                 "CombatArenaDirector missing from the Startup scene?", this);
+                return;
+            }
+
+            // The trigger's own transform is what the camera frames: the trigger sits on the world
+            // object the player just attacked.
+            transition.RequestEncounter(trigger.encounterId, trigger.transform);
         }
 
         private EncounterTrigger FindNearestTriggerInRange()
