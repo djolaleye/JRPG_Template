@@ -28,5 +28,6 @@ namespace JRPG.Data
         public List<CombatArenaDefinition> arenas = new();
         public ElementInteractionMatrix elementMatrix;
         public DifficultySettings difficultySettings;
+        public EconomySettings economySettings;
     }
 }

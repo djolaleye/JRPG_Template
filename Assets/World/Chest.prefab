@@ -71,7 +71,7 @@ MonoBehaviour:
   chestId: 
   authoredState: 0
   chestKeyId: 
-  heldItemId: equip_test_bow
+  heldItemId: 
   itemQuantity: 1
   alreadyOpenMessage: The chest is empty.
   lockedMessage: It's locked. A chest key would open it.

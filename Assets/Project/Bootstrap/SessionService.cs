@@ -123,6 +123,11 @@ namespace JRPG.Bootstrap
         private void ResetAllServices()
         {
             _story.ResetForNewGame();
+
+            // The wallet, before inventory: it reads nothing above it, and clearing it first means no
+            // starting-inventory bake or shop can be handed last session's money.
+            if (_services.TryResolve<ICurrencyService>(out var currency)) currency.ResetForNewGame();
+
             _inventory.ResetForNewGame();
             _equipment.ResetForNewGame();
             _party.ResetForNewGame();

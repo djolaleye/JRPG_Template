@@ -21,7 +21,8 @@ namespace JRPG.Save
         // v5: added the "world" contributor (encounter Ready/InProgress/Complete state).
         // v6: added the "difficulty" contributor (the selected Easy/Normal/Hard setting).
         // v7: added the "chests" contributor (which placed chests have been opened).
-        public const int CurrentSaveVersion = 7;
+        // v8: added the "currency" contributor (the wallet and its lifetime-earned statistic).
+        public const int CurrentSaveVersion = 8;
 
         private readonly SaveRegistry _registry;
         private readonly SaveFileConfig _config;
@@ -428,6 +429,9 @@ namespace JRPG.Save
                     case 6:
                         MigrateV6ToV7(dto);
                         break;
+                    case 7:
+                        MigrateV7ToV8(dto);
+                        break;
                     default:
                         Debug.LogError($"[JRPG.Save] No migration step defined from v{v}.");
                         return false;
@@ -498,6 +502,17 @@ namespace JRPG.Save
             dto.chests.entries ??= new List<ChestStateEntry>();
         }
 
+        /// v7 → v8:  added the "currency" contributor. A save from before the wallet existed recorded
+        /// no balance because there was nothing to record — currency was display-only on the results
+        /// screen and never owned. Zero is therefore the honest reading, not a default: that game had
+        /// no spendable money, and nothing in the older payloads implies otherwise.
+        private static void MigrateV7ToV8(GameSaveData dto)
+        {
+            dto.currency ??= new CurrencySaveData();
+            dto.currency.current = 0;
+            dto.currency.lifetimeEarned = 0L;
+        }
+
         private string SlotPath(int slot)
         {
             var fileName = string.Format(_config.fileNameFormat, slot);
@@ -550,6 +565,10 @@ namespace JRPG.Save
                     if (payload is ChestSaveData chestP) dto.chests = chestP;
                     else Debug.LogError($"[JRPG.Save] Unexpected payload type for key 'chests': {payload?.GetType().Name}");
                     break;
+                case "currency":
+                    if (payload is CurrencySaveData currencyP) dto.currency = currencyP;
+                    else Debug.LogError($"[JRPG.Save] Unexpected payload type for key 'currency': {payload?.GetType().Name}");
+                    break;
                 default:
                     Debug.LogWarning($"[JRPG.Save] Unknown SaveKey '{key}' (no field in GameSaveData).");
                     break;
@@ -588,6 +607,10 @@ namespace JRPG.Save
                     if (dto.chests == null) return null;
                     dto.chests.version = dto.version;
                     return dto.chests;
+                case "currency":
+                    if (dto.currency == null) return null;
+                    dto.currency.version = dto.version;
+                    return dto.currency;
                 default:
                     return null;
             }

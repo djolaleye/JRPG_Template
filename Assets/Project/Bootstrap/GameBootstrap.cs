@@ -5,6 +5,7 @@ using JRPG.Services;
 using JRPG.Save;
 using JRPG.Party;
 using JRPG.Inventory;
+using JRPG.Economy;
 using JRPG.Menu;
 using JRPG.Combat;
 using JRPG.Progression;
@@ -42,7 +43,7 @@ namespace JRPG.Bootstrap
         [SerializeField] private string titleSceneName = "Title";
 
         [Tooltip("Run bootstrap smoke probe (diagnostic logging of resolved services and state changes).")]
-        [SerializeField] private bool logProbeOutput = true;
+        [SerializeField] private bool logProbeOutput = false;
 
         private void Awake()
         {
@@ -103,6 +104,12 @@ namespace JRPG.Bootstrap
             services.Register<IDifficultyService>(difficulty);
             saveContributors.Register(difficulty);
 
+            // Wallet. Built before progression, which commits battle currency through it, and before
+            // the shop service, which spends through it. Reads only the economy settings asset.
+            var currency = new CurrencyService(bus, data);
+            services.Register<ICurrencyService>(currency);
+            saveContributors.Register(currency);
+
             var party = new PartyService(data, bus, protagonistId, story);
             services.Register<IPartyService>(party);
             // PartyService implements both roster surfaces. Register the runtime-instance surface
@@ -136,7 +143,7 @@ namespace JRPG.Bootstrap
             // Progression service. Consumes BattleResultPackaged (which carries the packaged result,
             // owns the post-battle flow, and persists per-character level/XP/points.
             // Registered as a save contributor after Party to re-stamp level/XP onto the instances PartyService rebuilds at level 1.
-            var progression = new ProgressionService(data, bus, party, party, inventory, difficulty);
+            var progression = new ProgressionService(data, bus, party, party, inventory, difficulty, currency);
             services.Register<IProgressionService>(progression);
             saveContributors.Register(progression);
 

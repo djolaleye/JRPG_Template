@@ -1,19 +1,14 @@
 {
-    "name": "JRPG.Bootstrap",
-    "rootNamespace": "JRPG.Bootstrap",
+    "name": "JRPG.Economy",
+    "rootNamespace": "JRPG.Economy",
     "references": [
         "JRPG.Core",
         "JRPG.Data",
         "JRPG.Services",
-        "JRPG.Characters",
         "JRPG.Save",
+        "JRPG.Characters",
         "JRPG.Party",
-        "JRPG.Inventory",
-        "JRPG.Economy",
-        "JRPG.Menu",
-        "JRPG.Combat",
-        "JRPG.Progression",
-        "JRPG.Dialogue"
+        "JRPG.Inventory"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

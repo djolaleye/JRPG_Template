@@ -56,5 +56,8 @@ namespace JRPG.Save
 
         // Which placed chests have been opened. Records opened chests only — see ChestStateService.
         public ChestSaveData chests = new();
+
+        // The wallet: spendable balance plus the lifetime-earned statistic.
+        public CurrencySaveData currency = new();
     }
 }

@@ -38,10 +38,9 @@ namespace JRPG.Data
         public IReadOnlyDictionary<string, EnemyActionProfileData> EnemyActionProfilesById => _enemyProfilesById;
         public IReadOnlyDictionary<string, CombatArenaDefinition> ArenasById => _arenasById;
 
-        /// The authored elemental interaction table; null when the database has none.
         public ElementInteractionMatrix ElementMatrix { get; private set; }
-
         public DifficultySettings DifficultySettings { get; private set; }
+        public EconomySettings EconomySettings { get; private set; }
 
         public void Build(GameDatabase db)
         {
@@ -78,6 +77,7 @@ namespace JRPG.Data
 
             ElementMatrix = db.elementMatrix;
             DifficultySettings = db.difficultySettings;
+            EconomySettings = db.economySettings;
         }
 
         /// Generates the combat action for every combat-usable item

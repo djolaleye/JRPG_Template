@@ -22,6 +22,7 @@ namespace JRPG.Progression
         private readonly IPartyRuntimeQueries _partyRuntime;
         private readonly IInventoryService _inventory;
         private readonly IDifficultyService _difficulty;
+        private readonly ICurrencyService _currency;
 
         private readonly ProgressionEngine _engine;
         private readonly LevelUpApplier _applier = new();
@@ -36,7 +37,7 @@ namespace JRPG.Progression
 
         public ProgressionService(DataRegistry data, IEventBus bus, IPartyService party,
             IPartyRuntimeQueries partyRuntime, IInventoryService inventory,
-            IDifficultyService difficulty = null)
+            IDifficultyService difficulty = null, ICurrencyService currency = null)
         {
             _data = data;
             _bus = bus;
@@ -46,6 +47,7 @@ namespace JRPG.Progression
 
             // Optional: a harness that constructs progression without difficulty gets the neutral rate.
             _difficulty = difficulty;
+            _currency = currency;
 
             _engine = new ProgressionEngine(data);
             _distributor = new AttributePointDistributor(bus);
@@ -185,6 +187,12 @@ namespace JRPG.Progression
 
             var result = _state.lastProcessedBattleResult;
             _rewardResolver.Grant(CurrentRewards, _inventory);
+
+            // Currency is banked here, beside the drops, and nowhere else. BattleRewardResolver stays a
+            // pure function that only *reports* the amount, so the results screen can preview the payout
+            // without the player being paid for looking at it.
+            if (_currency != null && CurrentRewards != null && CurrentRewards.currency > 0)
+                _currency.Add(CurrentRewards.currency, CurrencyChangeReason.Battle);
 
             foreach (var characterId in _engine.GetXpRecipients(_party))
             {
