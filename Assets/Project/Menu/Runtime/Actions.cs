@@ -225,6 +225,43 @@ namespace JRPG.Menu
         public string GetDisabledReason(MenuContext c) => "Out of stock or no inventory service.";
     }
 
+    /// <summary>
+    /// Throws away <paramref name="quantity"/> of <see cref="MenuContext.SelectedItemId"/> through
+    /// <see cref="IItemRuleService"/>.
+    ///
+    /// <para>The quantity is captured when the row is built, so the row is enabled and its refusal
+    /// worded for exactly the amount the player is looking at. Both the gate and the explanation come
+    /// from the rule service.</para>
+    /// </summary>
+    public sealed class DiscardItemAction : IMenuAction
+    {
+        private readonly int _quantity;
+
+        public DiscardItemAction(int quantity) { _quantity = quantity; }
+
+        public bool CanExecute(MenuContext c)
+            => c.Services != null
+               && c.Services.TryResolve<IItemRuleService>(out var rules)
+               && rules.CanDiscard(c.SelectedItemId, _quantity, out _);
+
+        public void Execute(MenuContext c)
+        {
+            if (c.Services == null || !c.Services.TryResolve<IItemRuleService>(out var rules)) return;
+
+            rules.TryDiscard(c.SelectedItemId, _quantity);
+        }
+
+        public string GetDisabledReason(MenuContext c)
+        {
+            if (c.Services == null || !c.Services.TryResolve<IItemRuleService>(out var rules))
+                return "No item rule service.";
+
+            rules.CanDiscard(c.SelectedItemId, _quantity, out var reason);
+
+            return reason;
+        }
+    }
+
     public sealed class SelectPartyMemberAction : IMenuAction
     {
         public bool CanExecute(MenuContext c) => !string.IsNullOrEmpty(c.SelectedItemId);

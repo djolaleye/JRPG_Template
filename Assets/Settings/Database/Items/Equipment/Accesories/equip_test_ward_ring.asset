@@ -25,7 +25,7 @@ MonoBehaviour:
     usableInExploration: 0
     targetLivingAlliesOnly: 0
     consumedOnUse: 0
-    requiredStoryFlag: 
+    requiredStoryFlags: []
   linkedEffects: []
   combatEffects: []
   combatTargetRule:

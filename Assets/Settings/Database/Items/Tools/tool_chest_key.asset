@@ -20,12 +20,16 @@ MonoBehaviour:
   stackLimit: 9
   canSell: 0
   canDiscard: 1
+  basePrice: 0
   usageRule:
     usableInCombat: 0
     usableInExploration: 1
     targetLivingAlliesOnly: 0
     consumedOnUse: 1
-    requiredStoryFlag: 
+    requiredStoryFlags: []
+    questUseOnly: 0
+    requiredQuestId: 
+    explorationToolUseMode: 1
   linkedEffects: []
   combatEffects: []
   combatTargetRule:

@@ -12,6 +12,7 @@ namespace JRPG.Data
         [Min(1)] public int stackLimit = 99;
         public bool canSell = true;
         public bool canDiscard = true;
+        [Min(0)] public int basePrice;
         public ItemUsageRule usageRule = new();
 
         /// <summary>

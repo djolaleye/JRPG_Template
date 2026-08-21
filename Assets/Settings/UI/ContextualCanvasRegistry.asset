@@ -153,3 +153,8 @@ MonoBehaviour:
     mode: 1
     overlay: 1
     input: 1
+  - menuId: item_discard
+    canvasPrefab: {fileID: 1774124250115852368, guid: ae764ea5d4de6c542a9307a9636f2c27, type: 3}
+    mode: 1
+    overlay: 7
+    input: 1

@@ -24,7 +24,7 @@ namespace JRPG.Inventory
         public string SaveKey => "inventory";
 
         /// <param name="story">
-        /// Optional. Supplies the answer for <see cref="ItemUsageRule.requiredStoryFlag"/>, so a
+        /// Optional. Supplies the answer for <see cref="ItemUsageRule.requiredStoryFlags"/>, so a
         /// story-gated item stays out of every filtered list until its flag is set. Null leaves every
         /// item visible, which is what the editor harnesses (which build no story service) rely on.
         /// GameBootstrap constructs the story service before this one, so it can be passed directly.

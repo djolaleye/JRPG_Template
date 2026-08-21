@@ -11,7 +11,7 @@ namespace JRPG.Inventory
     public static class ContextualFilterEngine
     {
         /// <param name="storyFlagIsSet">
-        /// Resolves <see cref="ItemUsageRule.requiredStoryFlag"/>. Null means "no story access", which
+        /// Resolves <see cref="ItemUsageRule.requiredStoryFlags"/>. Null means "no story access", which
         /// passes every item — the pre-12.6 behaviour, and the right answer for callers such as the
         /// editor harnesses that have no story service.
         ///
@@ -43,16 +43,25 @@ namespace JRPG.Inventory
         }
 
         /// <summary>
-        /// An item whose <see cref="ItemUsageRule.requiredStoryFlag"/> is not yet set stays out of every
-        /// list. This is the seam <see cref="ItemUsageRule"/> reserved: the flag is a visibility gate, so
-        /// it is evaluated before the per-context rules rather than alongside them.
+        /// An item with an unmet entry in <see cref="ItemUsageRule.requiredStoryFlags"/> stays out of
+        /// every list. This is the seam <see cref="ItemUsageRule"/> reserved: the flags are a visibility
+        /// gate, so they are evaluated before the per-context rules rather than alongside them.
         /// </summary>
         private static bool PassesStoryGate(ItemData item, System.Func<string, bool> storyFlagIsSet)
         {
-            var flag = item.usageRule?.requiredStoryFlag;
-            if (string.IsNullOrEmpty(flag)) return true;
+            var flags = item.usageRule?.requiredStoryFlags;
+            if (flags == null || flags.Count == 0) return true;
+            if (storyFlagIsSet == null) return true;
 
-            return storyFlagIsSet == null || storyFlagIsSet(flag);
+            for (int i = 0; i < flags.Count; i++)
+            {
+                var flag = flags[i];
+                if (string.IsNullOrEmpty(flag)) continue;   // an empty entry gates nothing
+
+                if (!storyFlagIsSet(flag)) return false;
+            }
+
+            return true;
         }
 
         // `state` gates the exploration tab by the mode the game is actually in: the pause/inventory

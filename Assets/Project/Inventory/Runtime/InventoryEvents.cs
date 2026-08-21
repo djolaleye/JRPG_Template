@@ -13,6 +13,22 @@ namespace JRPG.Inventory
         }
     }
 
+    /// <summary>
+    /// A stack was destroyed by the player rather than spent, sold or used. Carries the amount removed
+    /// so a notice can say what was thrown away without re-querying a stack that may now be gone.
+    /// </summary>
+    public readonly struct ItemDiscarded
+    {
+        public readonly string ItemId;
+        public readonly int Quantity;
+
+        public ItemDiscarded(string itemId, int quantity)
+        {
+            ItemId = itemId;
+            Quantity = quantity;
+        }
+    }
+
     public readonly struct EquipmentChanged
     {
         public readonly string CharInstanceId;

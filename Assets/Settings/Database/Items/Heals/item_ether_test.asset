@@ -25,7 +25,7 @@ MonoBehaviour:
     usableInExploration: 1
     targetLivingAlliesOnly: 0
     consumedOnUse: 1
-    requiredStoryFlag: 
+    requiredStoryFlags: []
   linkedEffects:
   - type: 1
     amount: 25

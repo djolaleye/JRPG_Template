@@ -120,7 +120,7 @@ namespace JRPG.Bootstrap
 
             // Registration order matters — inventory before equipment
             // so equipment restore can return prior items to the inventory pool if needed.
-            // Story is passed so item visibility can honour ItemUsageRule.requiredStoryFlag; it is
+            // Story is passed so item visibility can honour ItemUsageRule.requiredStoryFlags; it is
             // already constructed above, ahead of the roster, for the recruitment evaluator.
             var inventory = new InventoryService(data, bus, story);
             services.Register<IInventoryService>(inventory);
@@ -131,6 +131,11 @@ namespace JRPG.Bootstrap
             var equipment = new EquipmentManager(data, inventory.Container, bus, charId => party.ResolveInstanceById(charId));
             services.Register<IEquipmentService>(equipment);
             saveContributors.Register(equipment);
+
+            // Item category rules. Built after inventory and equipment ,
+            // takes the concrete EquipmentManager to answer "is anyone wearing this item?"
+            var itemRules = new ItemRuleService(data, inventory, bus, story, equipment);
+            services.Register<IItemRuleService>(itemRules);
 
             // Bake starting inventory + starting equipment (idempotent).
             StartingInventoryBaker.Bake(startingInventory, inventory.Container, data, equipment);

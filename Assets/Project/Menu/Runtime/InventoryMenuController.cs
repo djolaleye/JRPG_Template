@@ -45,6 +45,8 @@ namespace JRPG.Menu
         [SerializeField] private DetailPanelController detailPanel;
         [SerializeField] private PartyStatusPanel partyColumn;
 
+        private const string DiscardMenuId = "item_discard";
+
         /// Items backing the current rows, index-aligned with them.
         private readonly List<ItemData> _rowItems = new();
 
@@ -80,6 +82,36 @@ namespace JRPG.Menu
 
         protected override void OnPageLeft() => tabStrip?.Previous();
         protected override void OnPageRight() => tabStrip?.Next();
+
+        /// <summary>
+        /// Opens the discard screen for the focused item.
+        /// </summary>
+        protected override void OnTab()
+        {
+            var item = HighlightedItem();
+            if (item == null || Context?.Menus == null) return;
+
+            if (!Context.Menus.HasMenu(DiscardMenuId))
+            {
+                Debug.LogWarning($"[JRPG.Menu] No '{DiscardMenuId}' screen registered.");
+                return;
+            }
+
+            Context.Menus.Open(DiscardMenuId, new MenuContext
+            {
+                Services = Context.Services,
+                Menus = Context.Menus,
+                SelectedItemId = item.Id,
+                Subject = Context.Subject,
+            });
+        }
+
+        private ItemData HighlightedItem()
+        {
+            int index = HighlightedIndex;
+
+            return index >= 0 && index < _rowItems.Count ? _rowItems[index] : null;
+        }
         protected override void OnNavigateHorizontal(int dir)
         {
             if (dir < 0) tabStrip?.Previous();
@@ -244,6 +276,7 @@ namespace JRPG.Menu
         public override IReadOnlyList<InputPrompt> Prompts { get; } = new[]
         {
             new InputPrompt("Submit", "Use"),
+            new InputPrompt("Tab", "Discard"),
             new InputPrompt("PageL", "Prev Tab"),
             new InputPrompt("PageR", "Next Tab"),
             new InputPrompt("Cancel", "Back"),
