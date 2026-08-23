@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using JRPG.Core;
 using JRPG.Data;
+using JRPG.Save;
 using JRPG.Services;
 
 namespace JRPG.Economy
@@ -17,18 +18,32 @@ namespace JRPG.Economy
     /// global prohibition (key items, quest items, tools, worn gear); a shop's own rule narrows that
     /// further by category. A vendor can refuse what the rules allow, but never the reverse.</para>
     ///
-    /// <para><b>TEMP: No state, no save contributor.</b> Stock is authored and availability is derived from
-    /// story flags, which are persisted already — so there is nothing here for a save to hold.
-    /// [TODO: Shops will track their remaining stock of each offering, determining availability for purchase.]</para>
+    /// <para><b>The only state is what has been sold.</b> Catalogs, prices and gates are authored; the
+    /// ledger below records units sold per offering so a vendor can run out, and is saved under the key
+    /// <c>shops</c>. Everything else is derived on demand.</para>
+    ///
+    /// <para><b>Restocking is a property of the catalog.</b> Each shop's sold counts are
+    /// stamped with a signature of the story flags its catalog gates on. When a flag flips and that
+    /// signature changes, the counts are stale by definition and are dropped — so a vendor whose shelves
+    /// change refills at that moment.</para>
     /// </summary>
-    public sealed class ShopService : IShopService
+    public sealed class ShopService : IShopService, ISaveable
     {
+        /// What one vendor has sold, and which version of its catalog those counts belong to.
+        private sealed class StockRecord
+        {
+            public string signature;
+            public readonly Dictionary<string, int> soldUnits = new();
+        }
+
         private readonly DataRegistry _data;
         private readonly IInventoryService _inventory;
         private readonly ICurrencyService _currency;
         private readonly IItemRuleService _rules;
         private readonly IStoryStateService _story;
         private readonly IEventBus _bus;
+
+        private readonly Dictionary<string, StockRecord> _stock = new();
 
         public ShopService(DataRegistry data, IInventoryService inventory, ICurrencyService currency,
                            IItemRuleService rules, IEventBus bus, IStoryStateService story = null)
@@ -40,6 +55,111 @@ namespace JRPG.Economy
             _bus = bus;
             _story = story;
         }
+
+        // ---- Stock ------------------------------------------------------------------------------
+
+        /// <summary>
+        /// Output units this vendor still has of an offering. −1 means an unlimited supply.
+        /// </summary>
+        public int RemainingStock(string shopId, string offeringId)
+        {
+            var offering = GetOffering(shopId, offeringId);
+
+            if (offering == null) return 0;
+            if (!offering.HasLimitedStock) return -1;
+
+            EnsureCurrentCatalog(shopId);
+
+            return Mathf.Max(0, offering.stock - SoldUnits(shopId, offeringId));
+        }
+
+        /// <summary>
+        /// True when what is left cannot complete.
+        /// </summary>
+        public bool IsSoldOut(string shopId, string offeringId)
+        {
+            var offering = GetOffering(shopId, offeringId);
+            if (offering == null || !offering.HasLimitedStock) return false;
+
+            return RemainingStock(shopId, offeringId) < Mathf.Max(1, offering.outputQuantity);
+        }
+
+        private int SoldUnits(string shopId, string offeringId)
+            => _stock.TryGetValue(shopId, out var record) && record.soldUnits.TryGetValue(offeringId, out int sold)
+                ? sold
+                : 0;
+
+        private void RecordSale(string shopId, string offeringId, int units)
+        {
+            if (units <= 0) return;
+
+            EnsureCurrentCatalog(shopId);
+
+            if (!_stock.TryGetValue(shopId, out var record))
+            {
+                record = new StockRecord { signature = CatalogSignature(GetShop(shopId)) };
+                _stock[shopId] = record;
+            }
+
+            record.soldUnits.TryGetValue(offeringId, out int sold);
+            record.soldUnits[offeringId] = sold + units;
+        }
+
+        /// <summary>
+        /// Drops a shop's sold counts when its catalog has changed since they were recorded. Called at
+        /// the head of every stock read and write, so no path can skip a restock.
+        /// </summary>
+        private void EnsureCurrentCatalog(string shopId)
+        {
+            if (!_stock.TryGetValue(shopId, out var record)) return;
+
+            var current = CatalogSignature(GetShop(shopId));
+            if (record.signature == current) return;
+
+            record.signature = current;
+            record.soldUnits.Clear();
+        }
+
+        /// <summary>
+        /// A stable description of which of this shop's gates are currently open: every satisfied flag
+        /// the shop or any of its offerings gates on, deduped and sorted.
+        ///
+        /// <para>Sorted so authoring order cannot change it, and compared as a whole rather than parsed —
+        /// its only job is to differ when the shelves would look different.</para>
+        /// </summary>
+        private string CatalogSignature(ShopData shop)
+        {
+            if (shop == null) return string.Empty;
+
+            var satisfied = new List<string>();
+
+            CollectSatisfied(shop.requiredStoryFlags, satisfied);
+
+            if (shop.offerings != null)
+                for (int i = 0; i < shop.offerings.Count; i++)
+                    if (shop.offerings[i] != null) CollectSatisfied(shop.offerings[i].requiredStoryFlags, satisfied);
+
+            satisfied.Sort(System.StringComparer.Ordinal);
+
+            return string.Join("|", satisfied);
+        }
+
+        private void CollectSatisfied(List<string> flags, List<string> into)
+        {
+            if (flags == null) return;
+
+            for (int i = 0; i < flags.Count; i++)
+            {
+                var flag = flags[i];
+                if (string.IsNullOrEmpty(flag) || into.Contains(flag)) continue;
+                if (_story != null && !_story.GetBool(flag)) continue;
+
+                into.Add(flag);
+            }
+        }
+
+        /// <summary>Every vendor's shelves are full again.</summary>
+        public void ResetForNewGame() => _stock.Clear();
 
         // ---- Catalog  ----------------------------------------
 
@@ -61,8 +181,11 @@ namespace JRPG.Economy
         }
 
         /// <summary>
-        /// Sections with at least one authored offering, in sort order. A section whose rows are all
-        /// story-locked is still returned — the screen renders it disabled.
+        /// Sections that currently have something in them, in sort order.
+        ///
+        /// <para><b>A section whose every row is story-locked is not returned at all.</b> The front desk
+        /// lists what this vendor deals in *today*. A sold-out row still counts as stock, it is in the
+        /// catalog, just not avaialbale for now.</para>
         /// </summary>
         public IReadOnlyList<ShopSection> GetSections(string shopId)
         {
@@ -75,6 +198,7 @@ namespace JRPG.Economy
             {
                 var section = shop.sections[i];
                 if (section == null || string.IsNullOrEmpty(section.sectionId)) continue;
+                if (GetAvailableOfferings(shopId, section.sectionId).Count == 0) continue;
 
                 sections.Add(section);
             }
@@ -185,6 +309,24 @@ namespace JRPG.Economy
             }
 
             int outputTotal = Mathf.Max(1, offering.outputQuantity) * quantity;
+
+            // Stock before cost.
+            if (offering.HasLimitedStock)
+            {
+                int remaining = RemainingStock(shopId, offeringId);
+
+                if (remaining < Mathf.Max(1, offering.outputQuantity))
+                {
+                    reason = "Sold out.";
+                    return false;
+                }
+
+                if (remaining < outputTotal)
+                {
+                    reason = $"They only have {remaining} left.";
+                    return false;
+                }
+            }
             if (_inventory == null || _inventory.RoomFor(offering.outputItemId) < outputTotal)
             {
                 reason = "You can't carry that many.";
@@ -249,6 +391,10 @@ namespace JRPG.Economy
                 return false;
             }
 
+            // Recorded only once the goods have actually changed hands, so a rolled-back purchase above
+            // costs the vendor nothing off the shelf.
+            if (offering.HasLimitedStock) RecordSale(shopId, offeringId, outputTotal);
+
             _bus?.Publish(new ShopTransactionCompleted(shopId, offeringId, ShopTransactionType.Purchase,
                                                        offering.outputItemId, outputTotal, -price));
 
@@ -264,6 +410,8 @@ namespace JRPG.Economy
 
             int perLot = Mathf.Max(1, offering.outputQuantity);
             int limit = _inventory.RoomFor(offering.outputItemId) / perLot;
+
+            if (offering.HasLimitedStock) limit = Mathf.Min(limit, RemainingStock(shopId, offeringId) / perLot);
 
             if (offering.currencyCost > 0)
             {
@@ -365,6 +513,70 @@ namespace JRPG.Economy
             if (_data == null || !_data.TryGet<ItemData>(itemId, out var item) || item == null) return 0;
 
             return UnitSellValue(shop, item) * quantity;
+        }
+
+        // ---- ISaveable ----------------------------------------------------------------------------
+
+        public string SaveKey => "shops";
+
+        /// <summary>
+        /// Records what each vendor has sold, with the catalog signature those counts belong to. Shops
+        /// that have sold nothing are omitted, so the save does not grow with the authored catalog.
+        /// </summary>
+        public SaveDataBase CaptureState()
+        {
+            var payload = new ShopSaveData { version = SaveSystemCore.CurrentSaveVersion };
+
+            foreach (var kv in _stock)
+            {
+                var record = kv.Value;
+                if (record == null || record.soldUnits.Count == 0) continue;
+
+                var entry = new ShopStockEntry { shopId = kv.Key, catalogSignature = record.signature };
+
+                foreach (var sold in record.soldUnits)
+                {
+                    if (sold.Value <= 0) continue;
+                    entry.sold.Add(new OfferingSoldEntry { offeringId = sold.Key, soldUnits = sold.Value });
+                }
+
+                if (entry.sold.Count > 0) payload.shops.Add(entry);
+            }
+
+            return payload;
+        }
+
+        public void RestoreState(SaveDataBase state)
+        {
+            if (state is not ShopSaveData payload) return;
+
+            _stock.Clear();
+            if (payload.shops == null) return;
+
+            for (int i = 0; i < payload.shops.Count; i++)
+            {
+                var entry = payload.shops[i];
+                if (entry == null || string.IsNullOrEmpty(entry.shopId)) continue;
+
+                var record = new StockRecord { signature = entry.catalogSignature ?? string.Empty };
+
+                if (entry.sold != null)
+                {
+                    for (int s = 0; s < entry.sold.Count; s++)
+                    {
+                        var sold = entry.sold[s];
+                        if (string.IsNullOrEmpty(sold.offeringId) || sold.soldUnits <= 0) continue;
+
+                        record.soldUnits[sold.offeringId] = sold.soldUnits;
+                    }
+                }
+
+                _stock[entry.shopId] = record;
+
+                // A save written before a flag flipped carries a stale signature; clearing it here means
+                // the player never sees a sold-out row that the story has already restocked.
+                EnsureCurrentCatalog(entry.shopId);
+            }
         }
 
         // ---- Pricing ------------------------------------------------------------------------------

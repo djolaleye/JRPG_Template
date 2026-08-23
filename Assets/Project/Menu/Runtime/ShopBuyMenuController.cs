@@ -3,6 +3,7 @@ using System.Text;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using JRPG.Data;
+using JRPG.Economy;
 using JRPG.Services;
 
 namespace JRPG.Menu
@@ -21,6 +22,9 @@ namespace JRPG.Menu
     /// </summary>
     public class ShopBuyMenuController : ShopMenuControllerBase
     {
+        private const string SoldOutText = "Sold Out";
+        private const string SoldOutReason = "They're out of stock.";
+
         /// Offerings backing the current rows, index-aligned with them.
         private readonly List<ShopOfferingData> _rowOfferings = new();
 
@@ -56,19 +60,23 @@ namespace JRPG.Menu
             {
                 var offering = offerings[i];
                 var action = new BuyOfferingAction(shopId, offering.offeringId, quantity);
-                bool allowed = action.CanExecute(Context);
+
+                // A sold-out row stays on the shelf, priced "Sold Out".
+                bool soldOut = shops.IsSoldOut(shopId, offering.offeringId);
+                bool allowed = !soldOut && action.CanExecute(Context);
 
                 rows.Add(new RowModel
                 {
                     id = offering.offeringId,
                     label = OfferingLabel(offering),
                     icon = OutputItem(offering)?.icon,
-                    costText = CostText(offering),
+                    costText = soldOut ? SoldOutText : CostText(offering),
                     quantityText = OwnedText(offering),
+                    auxText = StockText(shops, shopId, offering, soldOut),
                     enabled = allowed,
                     action = action,
                     context = Context,
-                    disabledReason = allowed ? null : action.GetDisabledReason(Context),
+                    disabledReason = allowed ? null : (soldOut ? SoldOutReason : action.GetDisabledReason(Context)),
                 });
 
                 _rowOfferings.Add(offering);
@@ -158,6 +166,19 @@ namespace JRPG.Menu
             return parts.Length > 0 ? parts.ToString() : "Free";
         }
 
+        /// <summary>
+        /// "N left" for a row that can run out, so the player can see a supply shrinking before it is
+        /// gone.
+        /// </summary>
+        private static string StockText(ShopService shops, string shopId, ShopOfferingData offering, bool soldOut)
+        {
+            if (soldOut || !offering.HasLimitedStock) return null;
+
+            int remaining = shops.RemainingStock(shopId, offering.offeringId);
+
+            return remaining >= 0 ? $"{remaining} left" : null;
+        }
+
         /// "Have: N" — quantity the player already carries of this item.
         private string OwnedText(ShopOfferingData offering)
         {
@@ -190,13 +211,19 @@ namespace JRPG.Menu
             if (offering == null) { detailPanel.Clear(); return; }
 
             var item = OutputItem(offering);
+            var shops = Shops;
+            bool soldOut = shops != null && shops.IsSoldOut(ShopId, offering.offeringId);
+
+            var footer = $"{(soldOut ? SoldOutText : CostText(offering))}   ·   {OwnedText(offering)}";
+            var stock = shops != null ? StockText(shops, ShopId, offering, soldOut) : null;
+            if (!string.IsNullOrEmpty(stock)) footer += $"   ·   {stock}";
 
             detailPanel.ShowDetail(OfferingLabel(offering),
                                    item != null && !string.IsNullOrEmpty(item.description)
                                        ? item.description
                                        : "No description.",
                                    item != null ? item.icon : null,
-                                   $"{CostText(offering)}   ·   {OwnedText(offering)}");
+                                   footer);
         }
 
         private void RebuildQuantityForFocus(int index)

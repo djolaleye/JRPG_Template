@@ -33,7 +33,6 @@ namespace JRPG.Data
 
     /// <summary>
     /// One purchasable line: what the player receives and everything it costs.
-    /// [TODO: Shop remaining stock of offering]
     /// </summary>
     [Serializable]
     public class ShopOfferingData
@@ -43,6 +42,12 @@ namespace JRPG.Data
 
         public string outputItemId;
         [Min(1)] public int outputQuantity = 1;
+
+        [Tooltip("Units available before this row sells out. -1 is unlimited.")]
+        [Min(-1)] public int stock = -1;
+
+        /// True when this row can run out at all.
+        public bool HasLimitedStock => stock >= 0;
 
         [Min(0)] public int currencyCost;
         public List<MaterialCost> materialCosts = new();

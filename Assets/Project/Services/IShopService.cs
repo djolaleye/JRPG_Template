@@ -24,6 +24,12 @@ namespace JRPG.Services
         /// </summary>
         IReadOnlyList<string> GetAvailableOfferingIds(string shopId, string sectionId = null);
 
+        /// <summary>
+        /// Output units the vendor still has of an offering; −1 when its supply is unlimited. Zero, or
+        /// any amount below one lot, is a sold-out row.
+        /// </summary>
+        int RemainingStock(string shopId, string offeringId);
+
         bool CanBuy(string shopId, string offeringId, int quantity, out string reason);
 
         /// <summary>Buys <paramref name="quantity"/> lots. Returns false and changes nothing when refused.</summary>

@@ -21,6 +21,7 @@ MonoBehaviour:
   - offeringId: offer_potion
     outputItemId: item_potion_small
     outputQuantity: 1
+    stock: -1
     currencyCost: 60
     materialCosts: []
     requiredStoryFlags: []
@@ -30,6 +31,7 @@ MonoBehaviour:
   - offeringId: offer_ether
     outputItemId: item_ether_test
     outputQuantity: 1
+    stock: -1
     currencyCost: 140
     materialCosts: []
     requiredStoryFlags: []
@@ -39,6 +41,7 @@ MonoBehaviour:
   - offeringId: offer_bomb
     outputItemId: item_bomb_fire
     outputQuantity: 1
+    stock: -1
     currencyCost: 240
     materialCosts: []
     requiredStoryFlags: []
@@ -48,6 +51,7 @@ MonoBehaviour:
   - offeringId: offer_chest_key
     outputItemId: tool_chest_key
     outputQuantity: 1
+    stock: -1
     currencyCost: 100
     materialCosts: []
     requiredStoryFlags: []

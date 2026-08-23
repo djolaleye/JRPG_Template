@@ -59,5 +59,8 @@ namespace JRPG.Save
 
         // The wallet: spendable balance plus the lifetime-earned statistic.
         public CurrencySaveData currency = new();
+
+        // What each vendor has sold, so a shop can run out. Records sales only — see ShopService.
+        public ShopSaveData shops = new();
     }
 }

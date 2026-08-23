@@ -27,6 +27,7 @@ MonoBehaviour:
   - offeringId: offer_greater_potion
     outputItemId: item_potion_small
     outputQuantity: 3
+    stock: 6
     currencyCost: 150
     materialCosts:
     - itemId: mat_slime_gel
@@ -40,6 +41,7 @@ MonoBehaviour:
   - offeringId: offer_ether_brew
     outputItemId: item_ether_test
     outputQuantity: 1
+    stock: 2
     currencyCost: 0
     materialCosts:
     - itemId: mat_slime_gel
@@ -51,6 +53,7 @@ MonoBehaviour:
   - offeringId: offer_test_bow
     outputItemId: equip_test_bow
     outputQuantity: 1
+    stock: 1
     currencyCost: 600
     materialCosts:
     - itemId: mat_iron_ore
@@ -62,6 +65,7 @@ MonoBehaviour:
   - offeringId: offer_ward_ring
     outputItemId: equip_test_ward_ring
     outputQuantity: 1
+    stock: 1
     currencyCost: 900
     materialCosts:
     - itemId: mat_iron_ore

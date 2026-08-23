@@ -17,14 +17,12 @@ MonoBehaviour:
     quantity: 5
   - itemId: equip_sword_iron
     quantity: 1
-  - itemId: tool_chest_key
-    quantity: 1
   - itemId: mat_slime_gel
     quantity: 5
   - itemId: mat_iron_ore
     quantity: 3
   - itemId: mat_ember_shard
-    quantity: 1
+    quantity: 2
   startingEquipment:
   - characterId: char_hero
     itemId: equip_sword_iron

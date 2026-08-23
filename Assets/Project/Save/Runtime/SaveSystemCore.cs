@@ -22,7 +22,8 @@ namespace JRPG.Save
         // v6: added the "difficulty" contributor (the selected Easy/Normal/Hard setting).
         // v7: added the "chests" contributor (which placed chests have been opened).
         // v8: added the "currency" contributor (the wallet and its lifetime-earned statistic).
-        public const int CurrentSaveVersion = 8;
+        // v9: added the "shops" contributor (units sold per offering, so a vendor can run out).
+        public const int CurrentSaveVersion = 9;
 
         private readonly SaveRegistry _registry;
         private readonly SaveFileConfig _config;
@@ -432,6 +433,9 @@ namespace JRPG.Save
                     case 7:
                         MigrateV7ToV8(dto);
                         break;
+                    case 8:
+                        MigrateV8ToV9(dto);
+                        break;
                     default:
                         Debug.LogError($"[JRPG.Save] No migration step defined from v{v}.");
                         return false;
@@ -513,6 +517,15 @@ namespace JRPG.Save
             dto.currency.lifetimeEarned = 0L;
         }
 
+        /// v8 → v9:  added the "shops" contributor, which records what each vendor has sold. Shops had
+        /// unlimited stock before this, so a legacy save cannot have exhausted anything — an empty ledger
+        /// is the truth rather than a default, and every shelf loads full.
+        private static void MigrateV8ToV9(GameSaveData dto)
+        {
+            dto.shops ??= new ShopSaveData();
+            dto.shops.shops ??= new List<ShopStockEntry>();
+        }
+
         private string SlotPath(int slot)
         {
             var fileName = string.Format(_config.fileNameFormat, slot);
@@ -569,6 +582,10 @@ namespace JRPG.Save
                     if (payload is CurrencySaveData currencyP) dto.currency = currencyP;
                     else Debug.LogError($"[JRPG.Save] Unexpected payload type for key 'currency': {payload?.GetType().Name}");
                     break;
+                case "shops":
+                    if (payload is ShopSaveData shopP) dto.shops = shopP;
+                    else Debug.LogError($"[JRPG.Save] Unexpected payload type for key 'shops': {payload?.GetType().Name}");
+                    break;
                 default:
                     Debug.LogWarning($"[JRPG.Save] Unknown SaveKey '{key}' (no field in GameSaveData).");
                     break;
@@ -611,6 +628,10 @@ namespace JRPG.Save
                     if (dto.currency == null) return null;
                     dto.currency.version = dto.version;
                     return dto.currency;
+                case "shops":
+                    if (dto.shops == null) return null;
+                    dto.shops.version = dto.version;
+                    return dto.shops;
                 default:
                     return null;
             }

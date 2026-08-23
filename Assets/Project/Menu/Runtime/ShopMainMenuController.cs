@@ -8,9 +8,8 @@ namespace JRPG.Menu
     /// <summary>
     /// A specialty vendor's front desk: one row per section, then Sell, then Leave.
     ///
-    /// <para><b>A section whose stock is all story-locked is disabled, not hidden.</b> The player can
-    /// see the vendor deals in accessories even before any are on the shelf, serving
-    /// as a tell to the player to "come back later".</para>
+    /// <para><b>A section whose stock is entirely story-locked is not shown at all.</b> The desk lists
+    /// what this vendor deals in today. A section appears the moment its gate opens.</para>
     /// </summary>
     public sealed class ShopMainMenuController : MenuController
     {
@@ -38,12 +37,17 @@ namespace JRPG.Menu
                 return rows;
             }
 
+            // GetSections already drops sections with nothing available, so an empty result means either
+            // an unsectioned shop or one whose whole catalog is still locked. The flat catalog row tells
+            // those apart: it is shown only when it has something in it.
             var sections = shops.GetSections(shopId);
 
             if (sections.Count == 0)
             {
-                // A specialty shop authored without sections still has a catalog; show it as one row
-                rows.Add(SectionRow("catalog", "Buy", shopId, null, shops));
+                if (shops.GetAvailableOfferingIds(shopId, null).Count > 0)
+                    rows.Add(SectionRow("catalog", "Buy", shopId, null, shops));
+                else
+                    rows.Add(RowModel.Simple("bare", "Nothing on the shelves today.", null, Context, enabled: false));
             }
             else
             {
@@ -65,8 +69,9 @@ namespace JRPG.Menu
         }
 
         /// <summary>
-        /// One section row, enabled only when it currently has something to sell — with the count as
-        /// its aux text so an empty section reads as empty rather than broken.
+        /// One section row, with its line count as aux text. Every row reaching here has something in
+        /// it — an empty section was filtered out upstream — so the only thing that can disable it is a
+        /// missing buy screen.
         /// </summary>
         private RowModel SectionRow(string rowId, string label, string shopId, string sectionId, ShopService shops)
         {
@@ -77,11 +82,11 @@ namespace JRPG.Menu
             {
                 id = rowId,
                 label = label,
-                auxText = stocked > 0 ? $"{stocked}" : null,
-                enabled = stocked > 0 && action.CanExecute(Context),
+                auxText = $"{stocked}",
+                enabled = action.CanExecute(Context),
                 action = action,
                 context = Context,
-                disabledReason = stocked > 0 ? action.GetDisabledReason(Context) : "Nothing in stock right now.",
+                disabledReason = action.GetDisabledReason(Context),
             };
         }
 

@@ -5,6 +5,7 @@ using JRPG.Data;
 using JRPG.Services;
 using JRPG.Party;
 using JRPG.Inventory;
+using JRPG.Economy;
 using JRPG.Progression;
 using JRPG.Dialogue;
 using JRPG.Combat;
@@ -127,6 +128,10 @@ namespace JRPG.Bootstrap
             // The wallet, before inventory: it reads nothing above it, and clearing it first means no
             // starting-inventory bake or shop can be handed last session's money.
             if (_services.TryResolve<ICurrencyService>(out var currency)) currency.ResetForNewGame();
+
+            // Vendors restock
+            if (_services.TryResolve<IShopService>(out var shopSvc) && shopSvc is ShopService shops)
+                shops.ResetForNewGame();
 
             _inventory.ResetForNewGame();
             _equipment.ResetForNewGame();
