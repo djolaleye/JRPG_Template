@@ -137,6 +137,12 @@ namespace JRPG.Bootstrap
             var itemRules = new ItemRuleService(data, inventory, bus, story, equipment);
             services.Register<IItemRuleService>(itemRules);
 
+            // Shops. Spends through the wallet, moves goods through
+            // inventory, and defers to the item rules for what may be sold at all. Currently holds no state, so
+            // it is not a save contributor.
+            var shops = new ShopService(data, inventory, currency, itemRules, bus, story);
+            services.Register<IShopService>(shops);
+
             // Bake starting inventory + starting equipment (idempotent).
             StartingInventoryBaker.Bake(startingInventory, inventory.Container, data, equipment);
 

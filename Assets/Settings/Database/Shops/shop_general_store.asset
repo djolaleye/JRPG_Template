@@ -1,0 +1,64 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5de12e1721a4d274fae1609e9ee80bfb, type: 3}
+  m_Name: shop_general_store
+  m_EditorClassIdentifier: JRPG.Data::JRPG.Data.ShopData
+  id: shop_general_store
+  displayName: General Store
+  description: Everyday supplies at everyday prices.
+  shopType: 0
+  sections: []
+  offerings:
+  - offeringId: offer_potion
+    outputItemId: item_potion_small
+    outputQuantity: 1
+    currencyCost: 60
+    materialCosts: []
+    requiredStoryFlags: []
+    requirementMode: 0
+    sectionId: 
+    sortOrder: 0
+  - offeringId: offer_ether
+    outputItemId: item_ether_test
+    outputQuantity: 1
+    currencyCost: 140
+    materialCosts: []
+    requiredStoryFlags: []
+    requirementMode: 0
+    sectionId: 
+    sortOrder: 1
+  - offeringId: offer_bomb
+    outputItemId: item_bomb_fire
+    outputQuantity: 1
+    currencyCost: 240
+    materialCosts: []
+    requiredStoryFlags: []
+    requirementMode: 0
+    sectionId: 
+    sortOrder: 2
+  - offeringId: offer_chest_key
+    outputItemId: tool_chest_key
+    outputQuantity: 1
+    currencyCost: 100
+    materialCosts: []
+    requiredStoryFlags: []
+    requirementMode: 0
+    sectionId: 
+    sortOrder: 3
+  sellRule:
+    enabled: 0
+    acceptedCategories: 
+    priceMode: 0
+    sellMultiplier: -1
+    flatPrice: 0
+  requiredStoryFlags: []
+  requirementMode: 0

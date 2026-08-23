@@ -1,0 +1,81 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5de12e1721a4d274fae1609e9ee80bfb, type: 3}
+  m_Name: shop_alchemist
+  m_EditorClassIdentifier: JRPG.Data::JRPG.Data.ShopData
+  id: shop_alchemist
+  displayName: Alchemist
+  description: Brews to order, if you bring the makings.
+  shopType: 1
+  sections:
+  - sectionId: brews
+    displayName: Buy Items
+    sortOrder: 0
+  - sectionId: gear
+    displayName: Buy Accessories
+    sortOrder: 1
+  offerings:
+  - offeringId: offer_greater_potion
+    outputItemId: item_potion_small
+    outputQuantity: 3
+    currencyCost: 150
+    materialCosts:
+    - itemId: mat_slime_gel
+      quantity: 2
+    - itemId: mat_ember_shard
+      quantity: 1
+    requiredStoryFlags: []
+    requirementMode: 0
+    sectionId: brews
+    sortOrder: 0
+  - offeringId: offer_ether_brew
+    outputItemId: item_ether_test
+    outputQuantity: 1
+    currencyCost: 0
+    materialCosts:
+    - itemId: mat_slime_gel
+      quantity: 3
+    requiredStoryFlags: []
+    requirementMode: 0
+    sectionId: brews
+    sortOrder: 1
+  - offeringId: offer_test_bow
+    outputItemId: equip_test_bow
+    outputQuantity: 1
+    currencyCost: 600
+    materialCosts:
+    - itemId: mat_iron_ore
+      quantity: 1
+    requiredStoryFlags: []
+    requirementMode: 0
+    sectionId: gear
+    sortOrder: 0
+  - offeringId: offer_ward_ring
+    outputItemId: equip_test_ward_ring
+    outputQuantity: 1
+    currencyCost: 900
+    materialCosts:
+    - itemId: mat_iron_ore
+      quantity: 2
+    requiredStoryFlags:
+    - flag_alchemist_trusted
+    requirementMode: 0
+    sectionId: gear
+    sortOrder: 1
+  sellRule:
+    enabled: 1
+    acceptedCategories: 0400000001000000
+    priceMode: 0
+    sellMultiplier: -1
+    flatPrice: 0
+  requiredStoryFlags: []
+  requirementMode: 0

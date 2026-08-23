@@ -9,6 +9,7 @@
         "JRPG.Characters",
         "JRPG.Party",
         "JRPG.Inventory",
+        "JRPG.Economy",
         "Unity.InputSystem",
         "Unity.TextMeshPro",
         "Unity.ugui"

@@ -50,7 +50,17 @@ namespace JRPG.Menu
             if (entry == null) { Debug.LogError($"[JRPG.Menu] No registry entry for '{menuId}'."); return; }
             if (entry.canvasPrefab == null) { Debug.LogError($"[JRPG.Menu] Missing canvas prefab for '{menuId}'."); return; }
 
-            var menuContext = context as MenuContext ?? new MenuContext { Services = JRPG.Core.AppContext.Services, Menus = this };
+            // A caller outside JRPG.Menu can only reach Open through the lean interface, whose context is
+            // an object — so a raw argument (i.e a shop id from an exploration component) is carried
+            // into the new context as its Payload rather than dropped.
+            var menuContext = context as MenuContext
+                              ?? new MenuContext
+                              {
+                                  Services = JRPG.Core.AppContext.Services,
+                                  Menus = this,
+                                  Payload = context,
+                              };
+                              
             // Hide currently-top canvas (stack stays alive for back-nav).
             if (_machine.Top != null && _machine.Top.canvasInstance != null)
                 _machine.Top.canvasInstance.SetActive(false);

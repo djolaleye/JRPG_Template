@@ -38,13 +38,7 @@ namespace JRPG.Economy
         {
             if (!Resolve(itemId, quantity, out var item, out reason)) return false;
 
-            if (IsEquippedByAnyone(itemId))
-            {
-                reason = "Someone is wearing that.";
-                return false;
-            }
-
-            if (!Owned(itemId, quantity, out reason)) return false;
+            if (!OwnedUnequipped(itemId, quantity, out reason)) return false;
 
             switch (item.category)
             {
@@ -76,13 +70,7 @@ namespace JRPG.Economy
         {
             if (!Resolve(itemId, quantity, out var item, out reason)) return false;
 
-            if (IsEquippedByAnyone(itemId))
-            {
-                reason = "Someone is wearing that.";
-                return false;
-            }
-
-            if (!Owned(itemId, quantity, out reason)) return false;
+            if (!OwnedUnequipped(itemId, quantity, out reason)) return false;
 
             switch (item.category)
             {
@@ -246,6 +234,22 @@ namespace JRPG.Economy
             if (_inventory != null && _inventory.GetQuantity(itemId) >= quantity) return true;
 
             reason = "You don't have that many.";
+            return false;
+        }
+
+        /// <summary>
+        /// Ownership of a potentially worn item.
+        ///
+        /// <para><b>The inventory only ever holds unequipped copies.</b> Equipping moves an item out of
+        /// it, so a stack the player can see is by definition not worn, and a spare sword
+        /// is sellable while the one in use is not.</para>
+        /// </summary>
+        private bool OwnedUnequipped(string itemId, int quantity, out string reason)
+        {
+            if (Owned(itemId, quantity, out reason)) return true;   // In Inventory
+
+            if (IsEquippedByAnyone(itemId)) reason = "Someone is wearing that.";
+
             return false;
         }
 

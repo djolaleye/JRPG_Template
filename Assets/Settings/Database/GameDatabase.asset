@@ -30,6 +30,9 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 9cc7d16aea0145f44a87801bd3b92a0c, type: 2}
   - {fileID: 11400000, guid: cdac164fbfca97f46957600f41df64ab, type: 2}
   - {fileID: 11400000, guid: 9da988f2859359745b07db7bec0d1761, type: 2}
+  - {fileID: 11400000, guid: f4643fcde5fadec4fbab895bc73f062e, type: 2}
+  - {fileID: 11400000, guid: b4840de82b0e20b4da26b6c463b26ed2, type: 2}
+  - {fileID: 11400000, guid: 23beba6dbb49ac947821627fd37fc9cb, type: 2}
   combatActions:
   - {fileID: 11400000, guid: 50413de7c7de22b4f9d84af9d30c424b, type: 2}
   - {fileID: 11400000, guid: 169e08d3ad612b84a8c54231625fb563, type: 2}
@@ -96,6 +99,9 @@ MonoBehaviour:
   arenas:
   - {fileID: 11400000, guid: ee1eec9ff5a42a84fa669c3e0f99eebc, type: 2}
   - {fileID: 11400000, guid: 873e90d626589104a98029d0afaabda2, type: 2}
+  shops:
+  - {fileID: 11400000, guid: f876fdade35b7ed43a741e5c45381757, type: 2}
+  - {fileID: 11400000, guid: 053a4523398f74d4a807d0bd02418976, type: 2}
   elementMatrix: {fileID: 11400000, guid: eb895200428d3e74bb11e3cb278679a8, type: 2}
   difficultySettings: {fileID: 11400000, guid: 8bb3c3969ba5ec14d8d7c4c6372f574a, type: 2}
   economySettings: {fileID: 11400000, guid: 2a051dffa5c1dd848956fc4c01cc3215, type: 2}

@@ -34,6 +34,7 @@
   <Project Path="Unity.AI.Generators.Sdk.csproj" />
   <Project Path="Unity.Burst.CodeGen.csproj" />
   <Project Path="Unity.Cinemachine.csproj" />
+  <Project Path="JRPG.Economy.csproj" />
   <Project Path="Unity.VisualScripting.Flow.csproj" />
   <Project Path="Unity.Splines.Editor.csproj" />
   <Project Path="Unity.AI.Toolkit.Accounts.csproj" />
@@ -68,7 +69,6 @@
   <Project Path="glTFast.Documentation.Examples.csproj" />
   <Project Path="JRPG.Progression.UI.csproj" />
   <Project Path="Unity.AI.Generators.UI.AIDropdownIntegrations.csproj" />
-  <Project Path="JRPG.Economy.csproj" />
   <Project Path="JRPG.Progression.csproj" />
   <Project Path="JRPG.Party.csproj" />
   <Project Path="Unity.InputSystem.ForUI.csproj" />
@@ -87,12 +87,12 @@
   <Project Path="JRPG.Dialogue.csproj" />
   <Project Path="Unity.Settings.Editor.csproj" />
   <Project Path="Unity.AI.MCP.Runtime.csproj" />
+  <Project Path="JRPG.Menu.Editor.csproj" />
   <Project Path="Unity.InputSystem.TestFramework.csproj" />
   <Project Path="Unity.CollabProxy.Editor.csproj" />
   <Project Path="Unity.AI.Generators.Tools.csproj" />
   <Project Path="Unity.VisualScripting.Shared.Editor.csproj" />
   <Project Path="Unity.AI.Pbr.Srp.csproj" />
-  <Project Path="JRPG.Menu.Editor.csproj" />
   <Project Path="Assembly-CSharp.csproj" />
   <Project Path="JRPG.Progression.Editor.csproj" />
   <Project Path="Unity.AI.Toolkit.Async.csproj" />
