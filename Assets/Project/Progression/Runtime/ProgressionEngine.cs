@@ -49,6 +49,26 @@ namespace JRPG.Progression
             }
         }
 
+        /// <summary>
+        /// XP share for one character with no battle behind it — a quest payout, a script grant.
+        /// Same table as <see cref="ComputeXpShare"/>, except that "survived" has no meaning outside a
+        /// battle, so every active member takes the full share.
+        /// </summary>
+        public int ComputeFlatXpShare(string characterId, int totalXp, IPartyService party)
+        {
+            switch (party.GetState(characterId))
+            {
+                case CharacterRosterState.Active:
+                    return Mathf.RoundToInt(totalXp * ActiveSurvivorShare);
+                case CharacterRosterState.Reserve:
+                    return Mathf.RoundToInt(totalXp * ReserveShare);
+                case CharacterRosterState.Guest:
+                    return Mathf.RoundToInt(totalXp * GuestShare);
+                default:
+                    return 0;
+            }
+        }
+
         /// All roster members eligible for an XP share
         public List<string> GetXpRecipients(IPartyService party)
         {

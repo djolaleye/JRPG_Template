@@ -23,6 +23,7 @@
   <Project Path="Unity.VisualStudio.Editor.csproj" />
   <Project Path="Unity.InputSystem.csproj" />
   <Project Path="Unity.AI.Mesh.csproj" />
+  <Project Path="JRPG.Save.csproj" />
   <Project Path="Unity.AI.Assistant.Editor.csproj" />
   <Project Path="Unity.Searcher.Editor.csproj" />
   <Project Path="JRPG.Dialogue.UI.csproj" />
@@ -43,7 +44,6 @@
   <Project Path="JRPG.Services.csproj" />
   <Project Path="Unity.AI.ModelSelector.csproj" />
   <Project Path="Unity.AI.Animate.csproj" />
-  <Project Path="JRPG.Save.csproj" />
   <Project Path="Unity.AI.Assistant.Tools.Editor.csproj" />
   <Project Path="JRPG.Combat.Editor.csproj" />
   <Project Path="glTFast.Export.csproj" />
@@ -82,6 +82,7 @@
   <Project Path="Unity.VisualScripting.SettingsProvider.Editor.csproj" />
   <Project Path="JRPG.Exploration.csproj" />
   <Project Path="JRPG.Characters.csproj" />
+  <Project Path="JRPG.Quest.csproj" />
   <Project Path="JRPG.Inventory.csproj" />
   <Project Path="Unity.AI.Assistant.Annotations.Editor.csproj" />
   <Project Path="JRPG.Dialogue.csproj" />

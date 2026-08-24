@@ -10,6 +10,7 @@ using JRPG.Menu;
 using JRPG.Combat;
 using JRPG.Progression;
 using JRPG.Dialogue;
+using JRPG.Quest;
 
 namespace JRPG.Bootstrap
 {
@@ -157,6 +158,13 @@ namespace JRPG.Bootstrap
             var progression = new ProgressionService(data, bus, party, party, inventory, difficulty, currency);
             services.Register<IProgressionService>(progression);
             saveContributors.Register(progression);
+
+            // Quests and bonds. Built after progression and the wallet because quest rewards are paid
+            // through them, and after story/party/inventory, which it reads for objective progress and
+            // availability conditions. Its constructor runs the first Main-quest reconciliation.
+            var quests = new QuestService(data, bus, story, party, party, inventory, currency, progression);
+            services.Register<IQuestService>(quests);
+            saveContributors.Register(quests);
 
             // Dialogue service. Talks to party/inventory/combat/story through interfaces only, drives
             // the presenter via IMenuService, and hands off StartBattle after dialogue closes.

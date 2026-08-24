@@ -101,6 +101,10 @@ namespace JRPG.Data
         public List<QuestObjectiveData> objectives = new();
         public List<QuestRewardData> completionRewards = new();
 
+        [Tooltip("Completes itself the moment every required objective is met. Author false for a " +
+                 "quest that must be handed in — dialogue then calls CompleteQuest.")]
+        public bool autoComplete = true;
+
         [Tooltip("Discovered through the quest system when this quest completes. Optional.")]
         public string followUpQuestId;
 

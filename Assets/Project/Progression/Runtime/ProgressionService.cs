@@ -254,6 +254,79 @@ namespace JRPG.Progression
             }
         }
 
+        /// <summary>
+        /// Grants XP outside a battle (a quest payout, a script grant) through the same distribution
+        /// and level-up machinery the post-battle flow uses.
+        ///
+        /// <para><b>No screens.</b> Levels, stat growth and skills are applied immediately and the
+        /// usual events are published, but nothing opens: there is no results screen to walk through
+        /// and the player is standing in the world. Attribute points earned here land in the
+        /// character's progress record and surface on the next post-battle allocation screen, which is
+        /// the only place points are spent.</para>
+        ///
+        /// <para>The difficulty XP multiplier is not applied, since a quest reward is an
+        /// authored payout, so no point in scaling it for the
+        /// same work.</para>
+        /// </summary>
+        /// <returns>Total XP distributed across the roster.</returns>
+        public int GrantXp(int amount, string reason = null)
+        {
+            if (amount <= 0) return 0;
+
+            int distributed = 0;
+
+            foreach (var characterId in _engine.GetXpRecipients(_party))
+            {
+                var inst = _partyRuntime.ResolveInstanceById(characterId);
+                if (inst == null) continue;
+
+                int gained = _engine.ComputeFlatXpShare(characterId, amount, _party);
+                if (gained <= 0) continue;
+
+                var progress = GetProgressForCharacter(characterId);
+                int startingLevel = inst.level;
+
+                inst.currentXp += gained;
+                progress.currentXp = inst.currentXp;
+                distributed += gained;
+
+                _bus.Publish(new XpApplied(characterId, gained, inst.currentXp));
+
+                var levelUps = _engine.EvaluateLevelUps(characterId, startingLevel, inst.currentXp);
+                for (int i = 0; i < levelUps.Count; i++)
+                {
+                    var lu = levelUps[i];
+                    _applier.ApplyLevel(inst, lu);
+                    progress.currentLevel = inst.level;
+                    if (lu.pointsGranted > 0) progress.unspentAttributePoints += lu.pointsGranted;
+
+                    // Skills the level unlocks. An overflow decision is queued exactly as the battle
+                    // path queues it, so the next post-battle flow presents it rather than it being lost.
+                    var learned = new List<string>();
+                    var overflow = _skills.ApplyLevelUpLearning(inst, lu.oldLevel, lu.newLevel, learned);
+
+                    for (int s = 0; s < learned.Count; s++)
+                        _bus.Publish(new SkillLearned(characterId, learned[s], null));
+
+                    for (int s = 0; s < overflow.Count; s++)
+                        _state.pendingSkillChoices.Add(new PendingSkillChoice
+                        {
+                            characterId = characterId,
+                            newSkillId = overflow[s],
+                            currentSkillIds = new List<string>(inst.skillIds),
+                        });
+
+                    _bus.Publish(new LevelUpOccurred(characterId, lu.oldLevel, lu.newLevel));
+                }
+            }
+
+            if (distributed > 0)
+                Debug.Log($"[JRPG.Progression] Granted {distributed} XP outside battle" +
+                          (string.IsNullOrEmpty(reason) ? "." : $" ({reason})."));
+
+            return distributed;
+        }
+
         public IReadOnlyList<LevelUpResult> EvaluateLevelUps(string characterId, int startingLevel, int finalXp)
             => _engine.EvaluateLevelUps(characterId, startingLevel, finalXp);
 
