@@ -98,10 +98,12 @@
   <Project Path="JRPG.Progression.Editor.csproj" />
   <Project Path="Unity.AI.Toolkit.Async.csproj" />
   <Project Path="JRPG.Bootstrap.Editor.csproj" />
+  <Project Path="JRPG.Quest.UI.csproj" />
   <Project Path="Unity.AI.Assistant.Bridge.Editor.csproj" />
   <Project Path="Unity.AI.Toolkit.Compliance.csproj" />
   <Project Path="Unity.InputSystem.DocCodeSamples.csproj" />
   <Project Path="Unity.AI.Toolkit.GenerationContextMenu.csproj" />
+  <Project Path="JRPG.Quest.Editor.csproj" />
   <Project Path="glTFast.dots.csproj" />
   <Project Path="Unity.VisualScripting.DocCodeExamples.csproj" />
   <Project Path="JRPG.Save.Editor.csproj" />

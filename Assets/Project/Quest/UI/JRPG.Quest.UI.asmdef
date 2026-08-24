@@ -1,0 +1,26 @@
+{
+    "name": "JRPG.Quest.UI",
+    "rootNamespace": "JRPG.Quest.UI",
+    "references": [
+        "JRPG.Core",
+        "JRPG.Data",
+        "JRPG.Services",
+        "JRPG.Characters",
+        "JRPG.Party",
+        "JRPG.Save",
+        "JRPG.Quest",
+        "JRPG.Menu",
+        "Unity.InputSystem",
+        "Unity.TextMeshPro",
+        "Unity.ugui"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

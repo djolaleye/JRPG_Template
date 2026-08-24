@@ -178,3 +178,8 @@ MonoBehaviour:
     mode: 1
     overlay: 1
     input: 1
+  - menuId: quests
+    canvasPrefab: {fileID: 3676121662876641235, guid: 968413cdfd081f9469606f7fd5df7478, type: 3}
+    mode: 1
+    overlay: 1
+    input: 1

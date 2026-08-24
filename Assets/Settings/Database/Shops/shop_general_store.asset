@@ -21,7 +21,7 @@ MonoBehaviour:
   - offeringId: offer_potion
     outputItemId: item_potion_small
     outputQuantity: 1
-    stock: -1
+    stock: 3
     currencyCost: 60
     materialCosts: []
     requiredStoryFlags: []

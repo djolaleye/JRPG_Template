@@ -30,6 +30,7 @@ namespace JRPG.Menu
             // is already reachable — per-character level/XP/stats/skills on the character detail screen
             // (via Party), and attribute allocation in the post-battle flow, which is the only point
             // points are granted. A permanently greyed row advertised a destination that is not coming.
+            NavigationRow("quests", "Quests", "quests", "No quest screen yet."),
             NavigationRow("inventory", "Inventory", "inventory"),
             NavigationRow("equipment", "Equipment", "equip", "No equipment screen yet."),
 
