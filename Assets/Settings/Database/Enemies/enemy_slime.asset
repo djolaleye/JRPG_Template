@@ -44,9 +44,14 @@ MonoBehaviour:
     dropChance: 0.5
     minQuantity: 1
     maxQuantity: 1
+  - itemId: mat_slime_gel
+    dropChance: 0.8
+    minQuantity: 1
+    maxQuantity: 2
   elementAffinities: []
   statusImmunityIds: []
   passiveEffectIds: []
   actionProfileId: ai_slime_basic
   skillIds:
   - skill_status_01
+  battlePrefab: {fileID: 0}

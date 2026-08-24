@@ -47,3 +47,5 @@ MonoBehaviour:
   elementAffinities: []
   statusImmunityIds: []
   passiveEffectIds: []
+  portraitSprite: {fileID: 0}
+  battlePrefab: {fileID: 0}

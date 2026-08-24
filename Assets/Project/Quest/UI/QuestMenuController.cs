@@ -145,32 +145,27 @@ namespace JRPG.Quest.UI
             }
         }
 
+        /// <summary>
+        /// <b>Every quest row is focusable, including finished ones.</b> A row the player cannot act on
+        /// still has a description, objectives and rewards worth reading, and a journal whose completed
+        /// entries cannot be selected is a journal that cannot be read. Rows with nothing to do simply
+        /// carry no action, which <see cref="MenuController.ExecuteRow"/> treats as a no-op.
+        /// </summary>
         private RowModel BuildQuestRow(QuestData quest, QuestService service)
         {
             var state = service.GetState(quest.Id);
-            var context = RowContext(quest.Id, quest.characterId);
 
             IMenuAction action = null;
-            bool enabled = false;
-            string reason = null;
 
             if (state == QuestState.Available)
             {
                 action = new AcceptQuestAction(quest.Id);
-                enabled = true;
             }
-            else if (state == QuestState.Active && !quest.autoComplete)
+            else if (state == QuestState.Active && !quest.autoComplete && ObjectivesMet(quest, service))
             {
-                // A hand-in quest is the only kind whose row does anything while active — everything
-                // else finishes itself the moment its objectives land.
-                bool met = ObjectivesMet(quest, service);
-                action = new TurnInQuestAction(quest.Id, met);
-                enabled = met;
-                reason = met ? null : "Objectives are not finished.";
-            }
-            else if (state == QuestState.Active)
-            {
-                reason = string.Empty;
+                // A hand-in quest whose objectives are done is the only active row that does anything;
+                // everything else finishes itself the moment its objectives land.
+                action = new TurnInQuestAction(quest.Id, true);
             }
 
             return new RowModel
@@ -178,10 +173,9 @@ namespace JRPG.Quest.UI
                 id = quest.Id,
                 label = quest.DisplayTitle,
                 auxText = RowStatus(quest, service, state),
-                enabled = enabled,
+                enabled = true,
                 action = action,
-                context = context,
-                disabledReason = reason,
+                context = RowContext(quest.Id, quest.characterId),
             };
         }
 
@@ -199,39 +193,40 @@ namespace JRPG.Quest.UI
                 var nextState = nextQuest == null ? QuestState.Hidden : service.GetState(nextQuest.Id);
 
                 IMenuAction action = null;
-                bool enabled = false;
-                string reason;
+                string status;
 
-                if (nextState == QuestState.Available)
+                if (nextQuest == null)
+                {
+                    status = "Bond complete";
+                }
+                else if (nextState == QuestState.Available)
                 {
                     action = new AcceptQuestAction(nextQuest.Id);
-                    enabled = true;
-                    reason = null;
+                    status = "Quest available";
                 }
                 else if (nextState == QuestState.Active)
                 {
-                    reason = $"{nextQuest.DisplayTitle} is under way.";
-                }
-                else if (nextQuest == null)
-                {
-                    reason = "Bond complete.";
+                    status = $"{nextQuest.DisplayTitle} under way";
                 }
                 else
                 {
-                    // The threshold is stated rather than hidden
-                    reason = $"Next at {service.GetBondProgress(characterId)} / " +
-                             $"{service.GetBondProgressRequired(characterId)} bond progress.";
+                    // The threshold is stated rather than hidden. It lives in the row's own aux text
+                    // rather than a disabled-reason affix, because the row is selectable and that
+                    // affix only renders while a row is disabled.
+                    status = $"Next at {service.GetBondProgress(characterId)} / " +
+                             $"{service.GetBondProgressRequired(characterId)}";
                 }
+
+                string levelText = max > 0 ? $"Bond {level} / {max}" : $"Bond {level}";
 
                 rows.Add(new RowModel
                 {
                     id = characterId,
                     label = service.GetBondDisplayName(characterId),
-                    auxText = max > 0 ? $"Bond {level} / {max}" : $"Bond {level}",
-                    enabled = enabled,
+                    auxText = $"{levelText}   ·   {status}",
+                    enabled = true,
                     action = action,
                     context = RowContext(nextQuest?.Id, characterId),
-                    disabledReason = reason,
                 });
 
                 _rowSubjects.Add((nextQuest?.Id, characterId));
@@ -329,7 +324,7 @@ namespace JRPG.Quest.UI
                 body.AppendLine();
                 body.AppendLine($"Next: {next.DisplayTitle}  ({Describe(service.GetState(next.Id))})");
 
-                if (!string.IsNullOrEmpty(next.summary)) body.AppendLine(next.summary);
+                if (!string.IsNullOrEmpty(next.description)) body.AppendLine(next.description);
 
                 AppendObjectives(body, next, service);
 
@@ -372,7 +367,7 @@ namespace JRPG.Quest.UI
         {
             var body = new StringBuilder();
 
-            if (!string.IsNullOrEmpty(quest.summary)) body.AppendLine(quest.summary);
+            if (!string.IsNullOrEmpty(quest.description)) body.AppendLine(quest.description);
 
             AppendObjectives(body, quest, service);
 

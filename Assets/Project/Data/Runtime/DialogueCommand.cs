@@ -20,7 +20,12 @@ namespace JRPG.Data
         QueueCombatAction,       // stringA = combatantId (empty = current actor), stringB = actionId
         SetEnemyActionProfile,   // stringA = profileId (stub)
         SetBattleTrigger,        // stringA = triggerId, boolA = active (true = re-enable, false = suppress)
-        SetCharacterActive       // stringA = characterId — promotes a recruited member into the active party
+        SetCharacterActive,      // stringA = characterId — promotes a recruited member into the active party
+        DiscoverQuest,           // stringA = questId — Hidden → Available (Main continues to Active)
+        AcceptQuest,             // stringA = questId — Available → Active
+        CompleteQuest,           // stringA = questId — the hand-in for an autoComplete=false quest
+        SetQuestObjectiveComplete, // stringA = questId, stringB = objectiveId
+        GrantBondProgress        // stringA = characterId, intA = amount
     }
 
     /// Plain enum-tagged command data run on node enter/exit or choice selection, interpreted by

@@ -1,0 +1,51 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1155dd02f3b45424d9cfe1a1132f7fba, type: 3}
+  m_Name: quest_side_bounty
+  m_EditorClassIdentifier: JRPG.Data::JRPG.Data.QuestData
+  id: quest_side_bounty
+  displayName: 'Bounty: Fire Slimes'
+  description: The notice board pays by the head for fire slimes. Bring proof of
+    three.
+  questType: 1
+  giverId: char_ally
+  characterId: 
+  bondLevel: 0
+  mandatory: 0
+  availabilityConditions: []
+  objectives:
+  - objectiveId: obj_burn_slimes
+    type: 3
+    targetId: enemy_fire_slime
+    requiredAmount: 3
+    optional: 0
+    description: Defeat 3 fire slimes.
+    conditions: []
+  - objectiveId: obj_gel
+    type: 4
+    targetId: mat_slime_gel
+    requiredAmount: 2
+    optional: 0
+    description: Bring 2 Slime Gel as proof.
+    conditions: []
+  completionRewards:
+  - type: 1
+    id: 
+    amount: 350
+    flagValue: 1
+  - type: 0
+    id: 
+    amount: 70
+    flagValue: 1
+  autoComplete: 0
+  followUpQuestId: 
+  completionFlag: 

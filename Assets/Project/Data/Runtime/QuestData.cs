@@ -76,11 +76,6 @@ namespace JRPG.Data
     {
         public QuestType questType = QuestType.Side;
 
-        [Tooltip("Player-facing title.")]
-        public string title;
-
-        [TextArea] public string summary;
-
         [Tooltip("Optional authoring reference to the NPC or source that offers this quest. Not the " +
                  "runtime identity of anything.")]
         public string giverId;
@@ -111,7 +106,9 @@ namespace JRPG.Data
         [Tooltip("Story flag set true on completion.")]
         public string completionFlag;
 
-        public string DisplayTitle => string.IsNullOrEmpty(title) ? displayName : title;
+        /// The quest's title is <c>displayName</c> and its blurb is <c>description</c>, both inherited
+        /// from <see cref="GameDataBase"/>.
+        public string DisplayTitle => string.IsNullOrEmpty(displayName) ? Id : displayName;
 
 #if UNITY_EDITOR
         protected override void OnValidate()

@@ -63,7 +63,13 @@ namespace JRPG.Services
         /// Reports a gameplay event to every Active quest with a matching objective. The producer
         /// says what happened; the service decides what, if anything, that advances.
         /// </summary>
-        void RegisterObjectiveProgress(QuestObjectiveType type, string targetId, int amount = 1);
+        /// <returns>
+        /// True when at least one objective moved. False means nothing was listening — no quest with
+        /// that objective is active yet, or every match was already complete. A one-shot world trigger
+        /// uses this to decide whether it has been spent: reporting into a quest the player has not
+        /// accepted must not burn the trigger, or the objective becomes unreachable.
+        /// </returns>
+        bool RegisterObjectiveProgress(QuestObjectiveType type, string targetId, int amount = 1);
 
         /// Forces one objective complete regardless of its counter — the authored-exception path.
         bool SetObjectiveComplete(string questId, string objectiveId);

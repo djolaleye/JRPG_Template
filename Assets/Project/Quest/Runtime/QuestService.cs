@@ -61,7 +61,10 @@ namespace JRPG.Quest
             _partyRuntime = partyRuntime;
             _inventory = inventory;
 
-            _conditions = new DialogueConditionEvaluator(party, partyRuntime, inventory, story, data);
+            // Passing itself as the quest service lets a quest gate on another quest. Safe despite
+            // running inside this constructor: the evaluator only calls back into the read-side.
+            _conditions = new DialogueConditionEvaluator(party, partyRuntime, inventory, story, data,
+                                                        services: null, quests: this);
             _rewards = new QuestRewardApplier(inventory, currency, story, partyRuntime, progression, TryGrantBondProgress);
 
             if (_bus != null)
@@ -87,15 +90,33 @@ namespace JRPG.Quest
         public BondData GetBondData(string characterId)
             => !string.IsNullOrEmpty(characterId) && _data != null && _data.BondsByCharacterId.TryGetValue(characterId, out var b) ? b : null;
 
-        /// Every character with authored bond data, in database order.
-        public IReadOnlyList<string> GetBondCharacterIds()
+        /// <summary>
+        /// Characters with authored bond data, in database order.
+        ///
+        /// <para>Recruited members only by default: a bond is a relationship with someone travelling
+        /// with you, and listing a stranger's ladder would spoil who joins later. Tooling passes
+        /// <paramref name="recruitedOnly"/> false to see the whole authored set.</para>
+        /// </summary>
+        public IReadOnlyList<string> GetBondCharacterIds(bool recruitedOnly = true)
         {
             var ids = new List<string>();
             if (_data == null) return ids;
 
-            foreach (var kv in _data.BondsByCharacterId) ids.Add(kv.Key);
+            foreach (var kv in _data.BondsByCharacterId)
+            {
+                if (recruitedOnly && !IsBondCharacterAvailable(kv.Key)) continue;
+                ids.Add(kv.Key);
+            }
+
             return ids;
         }
+
+        /// <summary>
+        /// Whether the character is in the party in any capacity. With no party service,
+        /// every bond is treated as available rather than none.
+        /// </summary>
+        public bool IsBondCharacterAvailable(string characterId)
+            => _party == null || _party.IsRecruited(characterId);
 
         public string GetBondDisplayName(string characterId)
         {
@@ -308,9 +329,11 @@ namespace JRPG.Quest
 
         // ---- IQuestService: objective progress -------------------------------------------------
 
-        public void RegisterObjectiveProgress(QuestObjectiveType type, string targetId, int amount = 1)
+        public bool RegisterObjectiveProgress(QuestObjectiveType type, string targetId, int amount = 1)
         {
-            if (amount <= 0) return;
+            if (amount <= 0) return false;
+
+            bool advancedAnything = false;
 
             foreach (var runtime in ActiveSnapshot())
             {
@@ -331,7 +354,10 @@ namespace JRPG.Quest
                 }
 
                 if (moved) TryAutoComplete(quest, runtime);
+                advancedAnything |= moved;
             }
+
+            return advancedAnything;
         }
 
         public bool SetObjectiveComplete(string questId, string objectiveId)
@@ -418,6 +444,9 @@ namespace JRPG.Quest
 
             var bond = GetBondData(characterId);
             if (bond == null) return false;
+
+            // No bond with someone who is not travelling with you.
+            if (!IsBondCharacterAvailable(characterId)) return false;
 
             // The quest is the gate. While one is unlocked and unfinished, the meter stops — otherwise
             // a player could bank progress towards levels they have not earned the right to reach.

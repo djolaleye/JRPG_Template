@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1155dd02f3b45424d9cfe1a1132f7fba, type: 3}
+  m_Name: quest_bond_ally_01
+  m_EditorClassIdentifier: JRPG.Data::JRPG.Data.QuestData
+  id: quest_bond_ally_01
+  displayName: What the Kettle Knows
+  description: Your companion wants an hour off the road and someone to share it
+    with.
+  questType: 2
+  giverId: 
+  characterId: char_ally
+  bondLevel: 1
+  mandatory: 0
+  availabilityConditions: []
+  objectives:
+  - objectiveId: obj_gather_gel
+    type: 4
+    targetId: mat_slime_gel
+    requiredAmount: 1
+    optional: 0
+    description: Bring back 1 Slime Gel for the pot.
+    conditions: []
+  completionRewards:
+  - type: 0
+    id: 
+    amount: 30
+    flagValue: 1
+  autoComplete: 1
+  followUpQuestId: 
+  completionFlag: 

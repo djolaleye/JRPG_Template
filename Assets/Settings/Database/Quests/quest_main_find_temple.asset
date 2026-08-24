@@ -1,0 +1,49 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1155dd02f3b45424d9cfe1a1132f7fba, type: 3}
+  m_Name: quest_main_find_temple
+  m_EditorClassIdentifier: JRPG.Data::JRPG.Data.QuestData
+  id: quest_main_find_temple
+  displayName: The Road to the Temple
+  description: With the road clear, the old temple can be reached. Go and see what
+    waits there.
+  questType: 0
+  giverId: 
+  characterId: 
+  bondLevel: 0
+  mandatory: 1
+  availabilityConditions:
+  - type: 3
+    stringA: flag_quest_intro_done
+    stringB: 
+    intA: 0
+    boolA: 1
+  objectives:
+  - objectiveId: obj_reach_temple
+    type: 2
+    targetId: loc_temple
+    requiredAmount: 1
+    optional: 0
+    description: Reach the temple grounds.
+    conditions: []
+  completionRewards:
+  - type: 2
+    id: item_potion_small
+    amount: 2
+    flagValue: 1
+  - type: 0
+    id: 
+    amount: 80
+    flagValue: 1
+  autoComplete: 1
+  followUpQuestId: 
+  completionFlag: flag_quest_temple_found

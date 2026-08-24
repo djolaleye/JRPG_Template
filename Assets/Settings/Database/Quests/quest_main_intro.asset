@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1155dd02f3b45424d9cfe1a1132f7fba, type: 3}
+  m_Name: quest_main_intro
+  m_EditorClassIdentifier: JRPG.Data::JRPG.Data.QuestData
+  id: quest_main_intro
+  displayName: A Blade to Hand
+  description: Slimes have been coming up the road. Thin them out before they reach
+    the gate.
+  questType: 0
+  giverId: 
+  characterId: 
+  bondLevel: 0
+  mandatory: 1
+  availabilityConditions: []
+  objectives:
+  - objectiveId: obj_cull_slimes
+    type: 3
+    targetId: enemy_slime
+    requiredAmount: 2
+    optional: 0
+    description: Defeat 2 slimes on the road.
+    conditions: []
+  completionRewards:
+  - type: 1
+    id: 
+    amount: 150
+    flagValue: 1
+  - type: 0
+    id: 
+    amount: 60
+    flagValue: 1
+  autoComplete: 1
+  followUpQuestId: quest_main_find_temple
+  completionFlag: flag_quest_intro_done

@@ -10,7 +10,9 @@ namespace JRPG.Data
         StoryFlagEquals,       // stringA = flagId, boolA = expected value
         PartyMemberInSlot,     // stringA = characterId, intA = slot index
         PlayerLevelAtLeast,    // stringA = characterId (empty = protagonist), intA = min level
-        PreviousChoiceSelected // stringA = choiceId (previously selected this playthrough)
+        PreviousChoiceSelected, // stringA = choiceId (previously selected this playthrough)
+        QuestStateIs,          // stringA = questId, intA = (int)QuestState
+        BondLevelAtLeast       // stringA = characterId, intA = minimum bond level
     }
 
     /// Plain enum-tagged condition data embedded on choices/nodes and interpreted by

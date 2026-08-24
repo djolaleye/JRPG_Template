@@ -15,5 +15,5 @@ MonoBehaviour:
   currencyName: Gold
   currencySymbol: G
   amountFormat: '{0:N0} {1}'
-  startingCurrency: 500
+  startingCurrency: 0
   defaultSellMultiplier: 0.5

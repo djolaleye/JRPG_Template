@@ -97,6 +97,30 @@ namespace JRPG.Dialogue
                         bi.SetBattleTrigger(cmd.stringA, cmd.boolA);
                     break;
 
+                // Quests. Resolved lazily off the registry rather than taken as a constructor
+                // dependency: JRPG.Quest is built after dialogue and references it, so the edge can
+                // only run this way.
+                case DialogueCommandType.DiscoverQuest:
+                    if (TryResolveQuests(out var dq)) dq.DiscoverQuest(cmd.stringA);
+                    break;
+
+                case DialogueCommandType.AcceptQuest:
+                    if (TryResolveQuests(out var aq)) aq.TryAccept(cmd.stringA);
+                    break;
+
+                case DialogueCommandType.CompleteQuest:
+                    if (TryResolveQuests(out var cq)) cq.TryComplete(cmd.stringA);
+                    break;
+
+                case DialogueCommandType.SetQuestObjectiveComplete:
+                    if (TryResolveQuests(out var oq)) oq.SetObjectiveComplete(cmd.stringA, cmd.stringB);
+                    break;
+
+                case DialogueCommandType.GrantBondProgress:
+                    if (TryResolveQuests(out var bq))
+                        bq.TryGrantBondProgress(cmd.stringA, Mathf.Max(1, cmd.intA), BondProgressSource.Dialogue);
+                    break;
+
                 case DialogueCommandType.ChangePartyScope:
                 case DialogueCommandType.UnlockSkill:
                 case DialogueCommandType.ModifyRelationshipValue:
@@ -130,6 +154,15 @@ namespace JRPG.Dialogue
         {
             interruption = null;
             return _services != null && _services.TryResolve(out interruption);
+        }
+
+        private bool TryResolveQuests(out IQuestService quests)
+        {
+            quests = null;
+            if (_services != null && _services.TryResolve(out quests)) return true;
+
+            Debug.LogWarning("[JRPG.Dialogue] Quest command ignored — no IQuestService registered.");
+            return false;
         }
 
         private void MeetCharacter(string id)

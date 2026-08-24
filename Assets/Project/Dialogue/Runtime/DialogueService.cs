@@ -37,7 +37,7 @@ namespace JRPG.Dialogue
             _data = data;
 
             var partyRuntime = party as IPartyRuntimeQueries;
-            _conditions = new DialogueConditionEvaluator(party, partyRuntime, inventory, story, data);
+            _conditions = new DialogueConditionEvaluator(party, partyRuntime, inventory, story, data, services);
             _commands = new DialogueCommandExecutor(party, inventory, story, bus, services);
             _speakers = new SpeakerResolver(data, partyRuntime);
             _tokens = new DynamicTokenResolver(data, partyRuntime, story);

@@ -102,6 +102,18 @@ MonoBehaviour:
   shops:
   - {fileID: 11400000, guid: f876fdade35b7ed43a741e5c45381757, type: 2}
   - {fileID: 11400000, guid: 053a4523398f74d4a807d0bd02418976, type: 2}
+  quests:
+  - {fileID: 11400000, guid: a07fb3f007542b741a2502279cc065f3, type: 2}
+  - {fileID: 11400000, guid: fb6b2c24d6bf3994abeb05c7c283fdcb, type: 2}
+  - {fileID: 11400000, guid: 6903142cc63da02438abdef1204b41eb, type: 2}
+  - {fileID: 11400000, guid: 4837326f797fd5445b614c5af40dfdee, type: 2}
+  - {fileID: 11400000, guid: 9032e242de0a3b44682cb7b270a69f85, type: 2}
+  - {fileID: 11400000, guid: b82b19993f1bd4744b7b9d725ee5f710, type: 2}
+  - {fileID: 11400000, guid: ad696b4d454ff5d48b5c030841beab44, type: 2}
+  bonds:
+  - {fileID: 11400000, guid: 798aa37c9b3fb444e92804f2ecbf5445, type: 2}
+  - {fileID: 11400000, guid: 7b36800e1abdd4e4a90753af4f30a072, type: 2}
   elementMatrix: {fileID: 11400000, guid: eb895200428d3e74bb11e3cb278679a8, type: 2}
   difficultySettings: {fileID: 11400000, guid: 8bb3c3969ba5ec14d8d7c4c6372f574a, type: 2}
   economySettings: {fileID: 11400000, guid: 2a051dffa5c1dd848956fc4c01cc3215, type: 2}
+  bondSettings: {fileID: 11400000, guid: 0a0af3b9f7e75994bbbac6ab139ff9fc, type: 2}
