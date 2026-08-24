@@ -24,6 +24,9 @@ namespace JRPG.Data
         private readonly Dictionary<string, EnemyActionProfileData> _enemyProfilesById = new();
         private readonly Dictionary<string, CombatArenaDefinition> _arenasById = new();
         private readonly Dictionary<string, ShopData> _shopsById = new();
+        private readonly Dictionary<string, QuestData> _questsById = new();
+        private readonly Dictionary<string, BondData> _bondsById = new();
+        private readonly Dictionary<string, BondData> _bondsByCharacterId = new();
 
         public IReadOnlyDictionary<string, CharacterData> CharactersById => _charactersById;
         public IReadOnlyDictionary<string, EnemyData> EnemiesById => _enemiesById;
@@ -39,10 +42,14 @@ namespace JRPG.Data
         public IReadOnlyDictionary<string, EnemyActionProfileData> EnemyActionProfilesById => _enemyProfilesById;
         public IReadOnlyDictionary<string, CombatArenaDefinition> ArenasById => _arenasById;
         public IReadOnlyDictionary<string, ShopData> ShopsById => _shopsById;
+        public IReadOnlyDictionary<string, QuestData> QuestsById => _questsById;
+        public IReadOnlyDictionary<string, BondData> BondsById => _bondsById;
+        public IReadOnlyDictionary<string, BondData> BondsByCharacterId => _bondsByCharacterId;
 
         public ElementInteractionMatrix ElementMatrix { get; private set; }
         public DifficultySettings DifficultySettings { get; private set; }
         public EconomySettings EconomySettings { get; private set; }
+        public BondSettings BondSettings { get; private set; }
 
         public void Build(GameDatabase db)
         {
@@ -61,6 +68,9 @@ namespace JRPG.Data
             _enemyProfilesById.Clear();
             _arenasById.Clear();
             _shopsById.Clear();
+            _questsById.Clear();
+            _bondsById.Clear();
+            _bondsByCharacterId.Clear();
 
             Index(db.characters, _charactersById, "characters");
             Index(db.enemies, _enemiesById, "enemies");
@@ -76,12 +86,40 @@ namespace JRPG.Data
             Index(db.enemyActionProfiles, _enemyProfilesById, "enemyActionProfiles");
             Index(db.arenas, _arenasById, "arenas");
             Index(db.shops, _shopsById, "shops");
+            Index(db.quests, _questsById, "quests");
+            Index(db.bonds, _bondsById, "bonds");
+            IndexBondsByCharacter();
 
             SynthesiseItemActions();
 
             ElementMatrix = db.elementMatrix;
             DifficultySettings = db.difficultySettings;
             EconomySettings = db.economySettings;
+            BondSettings = db.bondSettings;
+        }
+
+        /// <summary>
+        /// Second index over the bond assets, keyed by character rather than by stable id.
+        ///
+        /// <para>Two bonds for one character is refused here. The editor validator reports it too, but this is the
+        /// guarantee that survives skipping the validator.</para>
+        /// </summary>
+        private void IndexBondsByCharacter()
+        {
+            foreach (var kv in _bondsById)
+            {
+                var bond = kv.Value;
+                if (string.IsNullOrWhiteSpace(bond.characterId))
+                    throw new InvalidOperationException(
+                        $"BondData '{bond.Id}' has an empty characterId.");
+
+                if (_bondsByCharacterId.TryGetValue(bond.characterId, out var existing))
+                    throw new InvalidOperationException(
+                        $"BondData '{bond.Id}' and '{existing.Id}' both target character " +
+                        $"'{bond.characterId}'. A character has exactly one bond progression.");
+
+                _bondsByCharacterId[bond.characterId] = bond;
+            }
         }
 
         /// Generates the combat action for every combat-usable item
@@ -219,6 +257,16 @@ namespace JRPG.Data
                     if (_shopsById.TryGetValue(id, out var sh) && sh is T tsh) { value = tsh; return true; }
                 }
 
+                if (typeof(T) == typeof(QuestData) || typeof(T).IsAssignableFrom(typeof(QuestData)))
+                {
+                    if (_questsById.TryGetValue(id, out var q) && q is T tq) { value = tq; return true; }
+                }
+
+                if (typeof(T) == typeof(BondData) || typeof(T).IsAssignableFrom(typeof(BondData)))
+                {
+                    if (_bondsById.TryGetValue(id, out var bd) && bd is T tbd) { value = tbd; return true; }
+                }
+
                 if (typeof(T) == typeof(GameDataBase))
                 {
                     if (_charactersById.TryGetValue(id, out var c) && c is T tc) { value = tc; return true; }
@@ -235,6 +283,8 @@ namespace JRPG.Data
                     if (_enemyProfilesById.TryGetValue(id, out var ap) && ap is T tap) { value = tap; return true; }
                     if (_arenasById.TryGetValue(id, out var ar) && ar is T tar) { value = tar; return true; }
                     if (_shopsById.TryGetValue(id, out var sh) && sh is T tsh) { value = tsh; return true; }
+                    if (_questsById.TryGetValue(id, out var q) && q is T tq) { value = tq; return true; }
+                    if (_bondsById.TryGetValue(id, out var bd) && bd is T tbd) { value = tbd; return true; }
                 }
             }
             

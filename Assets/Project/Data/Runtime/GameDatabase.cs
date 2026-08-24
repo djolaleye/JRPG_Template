@@ -27,8 +27,11 @@ namespace JRPG.Data
         public List<EnemyActionProfileData> enemyActionProfiles = new();
         public List<CombatArenaDefinition> arenas = new();
         public List<ShopData> shops = new();
+        public List<QuestData> quests = new();
+        public List<BondData> bonds = new();
         public ElementInteractionMatrix elementMatrix;
         public DifficultySettings difficultySettings;
         public EconomySettings economySettings;
+        public BondSettings bondSettings;
     }
 }
