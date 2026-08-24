@@ -152,6 +152,12 @@ namespace JRPG.Bootstrap
                 && difficulty is DifficultyService concreteDifficulty)
                 concreteDifficulty.ResetForNewGame();
 
+            // Quests last, as clearing them re-runs Main-quest
+            // reconciliation, which (theoretically) can discover and - for a quest whose objectives are already
+            // satisfied - complete a quest whose rewards are paid through inventory, currency and
+            // progression. Those have to be the fresh ones, not the outgoing session's.
+            if (_services.TryResolve<IQuestService>(out var quests)) quests.ResetForNewGame();
+
             ResetTransientSessionServices();
         }
 

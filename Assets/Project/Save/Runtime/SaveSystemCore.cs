@@ -23,7 +23,8 @@ namespace JRPG.Save
         // v7: added the "chests" contributor (which placed chests have been opened).
         // v8: added the "currency" contributor (the wallet and its lifetime-earned statistic).
         // v9: added the "shops" contributor (units sold per offering, so a vendor can run out).
-        public const int CurrentSaveVersion = 9;
+        // v10: added the "quests" contributor (quest ledger, objective progress and bond standings).
+        public const int CurrentSaveVersion = 10;
 
         private readonly SaveRegistry _registry;
         private readonly SaveFileConfig _config;
@@ -436,6 +437,9 @@ namespace JRPG.Save
                     case 8:
                         MigrateV8ToV9(dto);
                         break;
+                    case 9:
+                        MigrateV9ToV10(dto);
+                        break;
                     default:
                         Debug.LogError($"[JRPG.Save] No migration step defined from v{v}.");
                         return false;
@@ -526,6 +530,19 @@ namespace JRPG.Save
             dto.shops.shops ??= new List<ShopStockEntry>();
         }
 
+        /// v9 → v10:  added the "quests" contributor. A legacy save has no quest ledger because no
+        /// quest system existed to keep one, so an empty ledger and level-0 bonds are the literal truth
+        /// about that game. Completion is deliberately not fabricated from story flags: the mapping
+        /// from flag to quest is authoring knowledge this migration does not have, and inventing it
+        /// would mark quests done that were never given. Main-quest reconciliation runs on GameLoaded
+        /// and re-derives whatever the current story state implies.
+        private static void MigrateV9ToV10(GameSaveData dto)
+        {
+            dto.quests ??= new QuestSaveData();
+            dto.quests.quests ??= new List<QuestSaveEntry>();
+            dto.quests.bonds ??= new List<BondSaveEntry>();
+        }
+
         private string SlotPath(int slot)
         {
             var fileName = string.Format(_config.fileNameFormat, slot);
@@ -586,6 +603,10 @@ namespace JRPG.Save
                     if (payload is ShopSaveData shopP) dto.shops = shopP;
                     else Debug.LogError($"[JRPG.Save] Unexpected payload type for key 'shops': {payload?.GetType().Name}");
                     break;
+                case "quests":
+                    if (payload is QuestSaveData questP) dto.quests = questP;
+                    else Debug.LogError($"[JRPG.Save] Unexpected payload type for key 'quests': {payload?.GetType().Name}");
+                    break;
                 default:
                     Debug.LogWarning($"[JRPG.Save] Unknown SaveKey '{key}' (no field in GameSaveData).");
                     break;
@@ -632,6 +653,10 @@ namespace JRPG.Save
                     if (dto.shops == null) return null;
                     dto.shops.version = dto.version;
                     return dto.shops;
+                case "quests":
+                    if (dto.quests == null) return null;
+                    dto.quests.version = dto.version;
+                    return dto.quests;
                 default:
                     return null;
             }

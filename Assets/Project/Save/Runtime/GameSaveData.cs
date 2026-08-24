@@ -62,5 +62,8 @@ namespace JRPG.Save
 
         // What each vendor has sold, so a shop can run out. Records sales only — see ShopService.
         public ShopSaveData shops = new();
+
+        // Quest ledger and bond standings. Records known quests only — see QuestService.
+        public QuestSaveData quests = new();
     }
 }
